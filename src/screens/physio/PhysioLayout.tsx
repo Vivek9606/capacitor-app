@@ -1,0 +1,80 @@
+import { Activity, CalendarDays, ChevronRight, ClipboardList, Gift, Handshake, House, MessageSquare, User, UserPlus, Users } from 'lucide-react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { Shell, type NavItem } from '../../components/Shell'
+import { Badge, IconTile, Sheet } from '../../components/ui'
+import { useMe } from '../../lib/store'
+
+const ITEMS: NavItem[] = [
+  { to: '/app', label: 'Home', icon: House, end: true },
+  { to: '/app/patients', label: 'Patients', icon: Users },
+  { to: '/app/schedule', label: 'Schedule', icon: CalendarDays, mobile: false },
+  { to: '/app/community', label: 'Community', icon: MessageSquare, soon: true },
+  { to: '/app/profile', label: 'Profile', icon: User },
+]
+const EXTRA: NavItem[] = [
+  { to: '/app/refer', label: 'Refer a physio', icon: Gift },
+  { to: '/app/partner', label: 'Partner with us', icon: Handshake },
+]
+
+// Full-screen flows hide the phone tab bar.
+const FLOW = [/^\/app\/plan\//, /^\/app\/bookings\//, /^\/app\/profile\/(clinic|edit)/, /^\/app\/patients\/new/, /^\/app\/refer/, /^\/app\/partner/, /^\/app\/notifications/]
+
+export default function PhysioLayout() {
+  const { physio, session } = useMe()
+  if (!session) return <Navigate to="/welcome" replace />
+  if (!physio) return <Navigate to="/me" replace />
+  return (
+    <Shell
+      items={ITEMS}
+      extraItems={EXTRA}
+      tag="for Physios"
+      hideTabsOn={(p) => FLOW.some((r) => r.test(p))}
+      user={{ name: physio.name, sub: physio.qualification ?? 'Physiotherapist', photo: physio.photo }}
+      createSheet={(open, close) => <CreateSheet open={open} onClose={close} />}
+    />
+  )
+}
+
+// H2 · Create sheet
+export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const nav = useNavigate()
+  const go = (to: string, state?: unknown) => {
+    onClose()
+    nav(to, { state })
+  }
+  const rows = [
+    {
+      icon: <Activity size={20} />,
+      title: 'Care plan + Rx',
+      badge: 'Recommended',
+      sub: 'Drag & drop exercises, add notes, send on WhatsApp',
+      on: () => go('/app/patients', { pick: 'plan' }),
+    },
+    { icon: <ClipboardList size={20} />, title: 'Prescription only', sub: 'Diagnosis, advice and follow-up in one message', on: () => go('/app/patients', { pick: 'rx' }) },
+    { icon: <CalendarDays size={20} />, title: 'New booking', sub: 'Pick a slot — patient gets an auto WhatsApp confirmation', on: () => go('/app/bookings/new') },
+    { icon: <UserPlus size={20} />, title: 'Add patient', sub: 'Name + mobile. Everything else can wait', on: () => go('/app/patients/new') },
+  ]
+  return (
+    <Sheet open={open} onClose={onClose} title="Create">
+      <div className="flex flex-col gap-3">
+        {rows.map((r) => (
+          <button
+            key={r.title}
+            onClick={r.on}
+            className="flex items-center gap-3.5 rounded-2xl border border-line bg-surface p-4 text-left hover:border-brand-line cursor-pointer"
+          >
+            <IconTile>{r.icon}</IconTile>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 text-[16px] font-semibold">
+                {r.title}
+                {r.badge && <Badge tone="accent">{r.badge}</Badge>}
+              </div>
+              <div className="mt-0.5 text-[13px] leading-snug text-muted">{r.sub}</div>
+            </div>
+            <ChevronRight size={18} className="text-muted" />
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  )
+}
