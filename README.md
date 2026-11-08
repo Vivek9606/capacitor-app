@@ -51,7 +51,7 @@ Deep links for `https://betterhood.in/plan/…`, `/dr/…`, `/join` are declared
 
 ## Hosting the web app
 
-**GitHub Pages (set up):** `.github/workflows/pages.yml` builds and publishes on every push to `main` to `https://vivek9606.github.io/capacitor-app/`, using the DigitalOcean API (override with the repo variable `VITE_API_URL`). One-time: Settings → Pages → Source: **GitHub Actions**. Direct links like `/plan/…` work via a copied `404.html`.
+**Vercel (live):** https://capacitor-app-three.vercel.app — set `VITE_API_URL` in Vercel → Settings → Environment Variables, then redeploy. `vercel.json` handles SPA rewrites.
 
 Elsewhere: It's a single-page app: any static host works as long as unknown paths fall back to `index.html` (`vercel.json` and `public/_redirects` handle Vercel/Netlify).
 
