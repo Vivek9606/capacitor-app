@@ -8,3 +8,4 @@ ios/App/Pods
 .env.*
 !.env.example
 *.tsbuildinfo
+.idea/

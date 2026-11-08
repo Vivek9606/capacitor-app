@@ -154,6 +154,16 @@ npm run cap:android
 ```
 This builds the website, copies it into `android/` and opens Android Studio. The first Gradle sync takes a few minutes.
 
+> **Java version:** Android Studio ships with Java 25, which is too new for this project's Gradle. Use **JDK 21**:
+> - In Android Studio, go to **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK** and pick `jdk-21` (or *Download JDK… → version 21*).
+> - From the command line (PowerShell, in `android/`):
+>   ```powershell
+>   $env:JAVA_HOME = "$env:USERPROFILE\.jdks\jdk-21.0.13+9"
+>   .\gradlew.bat assembleDebug
+>   ```
+> - `android/local.properties` must use forward slashes: `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`.
+> - If the Gradle download times out, set `$env:JAVA_TOOL_OPTIONS = "-Djava.net.preferIPv4Stack=true"` first.
+
 ### Step 4: Put it on your phone
 - **Quickest:** plug the phone in by USB, select it at the top of Android Studio, and press **▶ Run**.
 - **As an APK file:** choose **Build → Build App Bundle(s) / APK(s) → Build APK(s)**. The file is `android/app/build/outputs/apk/debug/app-debug.apk`. Send it to your phone (WhatsApp, Drive or USB), open it, and allow "Install unknown apps".
