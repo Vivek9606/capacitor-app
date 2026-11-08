@@ -2,6 +2,8 @@
 
 One codebase, one app, two roles (**physio** and **patient**). Every flow works in the browser — nobody has to install anything — and the same build ships as an Android/iOS app via Capacitor for people who want native extras.
 
+User and testing guide: [USER_GUIDE.md](USER_GUIDE.md).
+
 Design source: Figma "Betterhood Physio App — MVP UI/UX Flow" (PNG exports in `figma-exports/`). Patient screens and desktop layouts follow the same visual system.
 
 ## Run it
