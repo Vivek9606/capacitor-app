@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
 import { Avatar, Badge, Card, cx, IconButton, Progress, WhatsAppButton } from '../../../components/ui'
 import { profileCompletion } from '../../../lib/logic'
-import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast } from '../../../lib/platform'
+import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
 
 // P1 · My profile
@@ -84,7 +84,7 @@ export default function Profile() {
             <div className="text-[16px] font-semibold">Your public profile</div>
             <p className="mt-1 text-[13px] text-muted">Patients can view your profile and book you from this link.</p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-surface px-3.5 py-3">
-              <span className="truncate text-[14px] font-semibold text-brand">betterhood.in{path}</span>
+              <span className="truncate text-[14px] font-semibold text-brand">{WEB_HOST}{path}</span>
               <button aria-label="Copy link" className="text-muted hover:text-ink cursor-pointer" onClick={() => copyText(url, 'Profile link copied')}>
                 <Copy size={17} />
               </button>

@@ -5,8 +5,8 @@ import { Page } from '../../../components/Shell'
 import { Button, Footer, PageHeader, WhatsAppButton } from '../../../components/ui'
 import { WhatsAppPreview } from '../../../components/WhatsAppPreview'
 import { addDays, fmtTime, today } from '../../../lib/dates'
-import { firstName, PUBLIC_HOST } from '../../../lib/logic'
-import { haptic, openWhatsApp, publicUrl, shareLink, toast } from '../../../lib/platform'
+import { firstName } from '../../../lib/logic'
+import { haptic, openWhatsApp, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
 
 // R4 · Preview & send
@@ -82,7 +82,7 @@ export default function Preview() {
           <div className="px-3.5 py-2.5">
             <div className="text-[13px] font-semibold">From {physio.name}, PT</div>
             <div className="text-[13px] text-wa">
-              {PUBLIC_HOST}
+              {WEB_HOST}
               {path}
             </div>
           </div>

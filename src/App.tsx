@@ -86,7 +86,7 @@ function Toaster() {
 export default function App() {
   return (
     <StoreProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <NativeBridge />
         <Routes>
           <Route path="/" element={<RootRedirect />} />

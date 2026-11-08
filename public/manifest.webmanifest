@@ -1,9 +1,9 @@
 {
   "name": "Betterhood",
   "short_name": "Betterhood",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#F4F3EE",
   "theme_color": "#1F5C4E",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

@@ -166,4 +166,3 @@ export function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10).padEnd(8, '0')}`
 }
 
-export const PUBLIC_HOST = 'betterhood.in'

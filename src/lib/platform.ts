@@ -98,10 +98,18 @@ export async function pickPhoto(): Promise<string | undefined> {
   })
 }
 
+/** Public web address of the app, e.g. https://vivek9606.github.io/capacitor-app (no trailing slash). */
+export const WEB_URL = String(
+  import.meta.env.VITE_PUBLIC_WEB_URL || (isNative ? 'https://betterhood.in' : `${location.origin}${import.meta.env.BASE_URL}`),
+).replace(/\/$/, '')
+
+/** Shown in the UI where we display a link, e.g. "vivek9606.github.io/capacitor-app". */
+export const WEB_HOST = WEB_URL.replace(/^https?:\/\//, '')
+
 export function publicUrl(path: string): string {
-  // Links that go out on WhatsApp always use the public web host, so they open in a browser
-  // for people without the app and in the app (App Links / Universal Links) for people with it.
-  return `https://betterhood.in${path}`
+  // Links that go out on WhatsApp always use the public web address, so they open in a browser
+  // for people without the app (and in the app via App Links once the domain is verified).
+  return `${WEB_URL}${path}`
 }
 
 export async function initNative() {

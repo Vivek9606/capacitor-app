@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { cx } from '../../components/ui'
 import type { Alert } from '../../lib/alerts'
 import { firstName } from '../../lib/logic'
-import { openWhatsApp, toast } from '../../lib/platform'
+import { openWhatsApp, publicUrl, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
 
 export function AlertCard({ alert }: { alert: Alert }) {
@@ -19,7 +19,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
     const link = alert.patientId ? store.db.patients.find((p) => p.id === alert.patientId)?.linkToken : undefined
     openWhatsApp(
       alert.phone,
-      `Hi ${firstName(alert.name)}, this is ${physio?.name}. Just checking in on your exercises — here’s your plan: https://betterhood.in/plan/${link ?? ''}`,
+      `Hi ${firstName(alert.name)}, this is ${physio?.name}. Just checking in on your exercises — here’s your plan: ${publicUrl(`/plan/${link ?? ''}`)}`,
     )
   }
 

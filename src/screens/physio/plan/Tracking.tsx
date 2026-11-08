@@ -8,7 +8,7 @@ import { Button, Card, cx, PageHeader, WeekDots } from '../../../components/ui'
 import { doseLabel } from '../../../lib/exercises'
 import { fmtShort, fmtTime, timeAgo, today } from '../../../lib/dates'
 import { firstName, logsFor, painSeries, painTrend, weekDots } from '../../../lib/logic'
-import { openWhatsApp, toast } from '../../../lib/platform'
+import { openWhatsApp, publicUrl, toast } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
 
 // R5 · Plan sent & tracking
@@ -41,7 +41,7 @@ export default function Tracking() {
   const nudge = () =>
     openWhatsApp(
       patient.phone,
-      `Hi ${name}, this is ${physio.name}. Don’t forget today’s session — it takes about 15 minutes: https://betterhood.in/plan/${patient.linkToken}`,
+      `Hi ${name}, this is ${physio.name}. Don’t forget today’s session — it takes about 15 minutes: ${publicUrl(`/plan/${patient.linkToken}`)}`,
     )
 
   const adjust = () => {
