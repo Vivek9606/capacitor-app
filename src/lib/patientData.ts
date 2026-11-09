@@ -23,8 +23,15 @@ export function patientView(db: DB, patient: Patient) {
   const bookings = db.bookings
     .filter((b) => (b.patientId === patient.id || b.patientPhone === patient.phone) && b.physioId === physio.id && b.status !== 'cancelled')
     .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
-  const upcoming = bookings.filter((b) => b.date >= t && b.status !== 'done')
-  const past = bookings.filter((b) => b.date < t || b.status === 'done').reverse()
+  const upcoming = bookings.filter((b) => b.date >= t && b.status !== 'done' && b.status !== 'no_show')
+  const past = bookings.filter((b) => b.date < t || b.status === 'done' || b.status === 'no_show').reverse()
+  const groups = db.groups
+    .filter((g) => g.physioId === physio.id && g.participants.some((p) => (p.patientId === patient.id || p.phone === patient.phone) && p.status !== 'cancelled'))
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+  const upcomingGroups = groups.filter((g) => g.date >= t && g.status === 'scheduled')
+  const consents = db.consents.filter((c) => c.patientId === patient.id).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
+  const pendingConsents = consents.filter((c) => c.status === 'pending')
+  const invoices = db.invoices.filter((i) => i.patientId === patient.id && i.status !== 'void').sort((a, b) => b.date.localeCompare(a.date))
   const messages = db.messages.filter((m) => m.patientId === patient.id).sort((a, b) => a.at.localeCompare(b.at))
   const unreadFromPhysio = messages.filter((m) => m.from === 'physio' && !m.read).length
 
@@ -43,6 +50,10 @@ export function patientView(db: DB, patient: Patient) {
     adherence: plan ? adherence(plan, db.sessions) : undefined,
     upcoming,
     past,
+    upcomingGroups,
+    consents,
+    pendingConsents,
+    invoices,
     messages,
     unreadFromPhysio,
     hasDoneAnySession: logs.some((l) => l.status === 'done'),

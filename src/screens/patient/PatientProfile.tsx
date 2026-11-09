@@ -1,11 +1,15 @@
 import { ChevronRight, ExternalLink, LogOut, MessageCircle, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
-import { Avatar, Card, PageHeader, SectionTitle } from '../../components/ui'
+import { Avatar, Badge, Card, PageHeader, SectionTitle } from '../../components/ui'
+import { patientView } from '../../lib/patientData'
 import { fmtShort } from '../../lib/dates'
 import { firstName, fmtPhone } from '../../lib/logic'
 import { isNative, openWhatsApp, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
+
+const CONSENT_TONE = { pending: 'accent', signed: 'ok', declined: 'muted', revoked: 'muted' } as const
+const CONSENT_LABEL = { pending: 'To sign', signed: 'Signed', declined: 'Declined', revoked: 'Withdrawn' } as const
 
 // Patient · Profile
 export default function PatientProfile() {
@@ -15,6 +19,7 @@ export default function PatientProfile() {
   if (!patient) return null
   const physio = store.db.physios.find((p) => p.id === patient.physioId)!
   const doc = `Dr. ${firstName(physio.name)}`
+  const { consents } = patientView(store.db, patient)
 
   return (
     <Page>
@@ -50,6 +55,24 @@ export default function PatientProfile() {
           </button>
         </div>
       </Card>
+
+      {consents.length > 0 && (
+        <>
+          <SectionTitle>Consent forms</SectionTitle>
+          <Card className="divide-y divide-line">
+            {consents.map((c) => (
+              <button key={c.id} onClick={() => nav(`/me/consents/${c.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[15px] font-medium">{c.title}</div>
+                  <div className="text-[13px] text-muted">{fmtShort((c.signedAt ?? c.requestedAt).slice(0, 10))}</div>
+                </div>
+                <Badge tone={CONSENT_TONE[c.status]}>{CONSENT_LABEL[c.status]}</Badge>
+                <ChevronRight size={17} className="text-muted" />
+              </button>
+            ))}
+          </Card>
+        </>
+      )}
 
       <SectionTitle>Privacy</SectionTitle>
       <Card className="divide-y divide-line">

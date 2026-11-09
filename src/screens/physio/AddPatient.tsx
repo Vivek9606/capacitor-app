@@ -31,7 +31,8 @@ export default function AddPatient() {
       condition: condition.trim() || undefined,
     })
     toast(`${name.trim()} added`)
-    if (pick) startPlan(id, pick)
+    if (pick === 'consent') nav(`/app/patients/${id}/consent`, { replace: true })
+    else if (pick) startPlan(id, pick)
     else nav(`/app/patients/${id}`, { replace: true })
   }
 
@@ -58,7 +59,7 @@ export default function AddPatient() {
       </div>
       <Footer>
         <Button block disabled={!valid} onClick={save}>
-          {pick === 'plan' ? 'Save & build care plan' : pick === 'rx' ? 'Save & write prescription' : 'Save patient'}
+          {pick === 'plan' ? 'Save & build care plan' : pick === 'rx' ? 'Save & write treatment plan' : pick === 'consent' ? 'Save & take consent' : 'Save patient'}
         </Button>
       </Footer>
     </Page>

@@ -76,7 +76,7 @@ export default function MyPlan() {
             </Card>
             {v.rxPlans.length > 0 && (
               <>
-                <SectionTitle>Prescriptions</SectionTitle>
+                <SectionTitle>Treatment plans</SectionTitle>
                 <div className="flex flex-col gap-2.5">
                   {v.rxPlans.map((p) => (
                     <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/me/rx/${p.id}`)}>
@@ -84,7 +84,7 @@ export default function MyPlan() {
                         <FileText size={19} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[15px] font-semibold">{p.rx!.diagnosis || 'Prescription'}</div>
+                        <div className="truncate text-[15px] font-semibold">{p.rx!.diagnosis || 'Treatment plan'}</div>
                         <div className="text-[13px] text-muted">{fmtShort(p.sentAt.slice(0, 10))} · view or download PDF</div>
                       </div>
                       <ChevronRight size={17} className="text-muted" />

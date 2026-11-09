@@ -5,6 +5,49 @@ export type Role = 'physio' | 'patient'
 
 export type VisitType = 'in_clinic' | 'home_visit' | 'teleconsult'
 
+/** How a physio practises. A physio can do more than one. */
+export type PracticeMode = 'clinic' | 'home' | 'individual'
+
+export interface TimeRange {
+  start: string // HH:mm
+  end: string // HH:mm
+}
+
+/** A place an individual (visiting) practitioner consults from: a hospital, gym, partner clinic… */
+export interface PracticeLocation {
+  id: string
+  name: string
+  address: string
+  days: string[] // 'Mon'..'Sun'
+}
+
+export interface Practice {
+  modes: PracticeMode[]
+  /** Home visits: areas served, e.g. "Indiranagar, Koramangala, HSR". */
+  serviceArea?: string
+  /** Home visits: travel time kept free before and after each visit. */
+  travelBufferMin?: number
+  /** Individual practice: where they consult. */
+  locations?: PracticeLocation[]
+}
+
+/** Calendly-style weekly availability. */
+export interface Availability {
+  weekly: Record<string, TimeRange[]> // 'Mon'..'Sun' → windows; missing/empty = closed
+  slotStepMin: number // start times every N minutes
+  bufferMin: number // gap after each appointment
+  minNoticeHours: number // patients can't book sooner than this
+  maxDaysAhead: number // how far ahead patients can book
+}
+
+export interface Billing {
+  upiId?: string
+  gstin?: string
+  invoicePrefix: string
+  taxPct: number // 0 = no GST line
+  footer?: string
+}
+
 export interface Physio {
   id: string
   phone: string // 10-digit Indian mobile, no +91
@@ -19,12 +62,16 @@ export interface Physio {
   practiceSettings: string[]
   slug: string
   clinic?: { name: string; address: string; area: string }
+  practice?: Practice
   consult: {
     inClinic: { enabled: boolean; fee: number; minutes: number }
-    homeVisit: { enabled: boolean; fee: number; radiusKm: number }
+    homeVisit: { enabled: boolean; fee: number; radiusKm: number; minutes?: number }
   }
-  workingDays: string[] // 'Mon'..'Sun'
+  workingDays: string[] // 'Mon'..'Sun' (derived from availability when set)
   hours?: { start: string; end: string }
+  availability?: Availability
+  billing?: Billing
+  courseProgress?: string[] // completed lesson ids
   inviteCode: string
   partnerOptIns: string[]
   communityWaitlist: boolean
@@ -103,7 +150,18 @@ export interface SessionLog {
   note?: string
 }
 
-export type BookingStatus = 'requested' | 'awaiting' | 'confirmed' | 'reminder_sent' | 'reschedule' | 'cancelled' | 'done'
+export type BookingStatus =
+  | 'requested'
+  | 'awaiting'
+  | 'confirmed'
+  | 'reminder_sent'
+  | 'reschedule'
+  | 'checked_in' // patient has arrived (showed up) / walk-in waiting
+  | 'cancelled'
+  | 'done'
+  | 'no_show'
+
+export type BookingSource = 'physio' | 'public_profile' | 'walk_in'
 
 export interface Booking {
   id: string
@@ -114,13 +172,103 @@ export interface Booking {
   date: string // YYYY-MM-DD
   time: string // HH:mm
   visitType: VisitType
+  minutes?: number // defaults to the visit type's length
   reason?: string
+  address?: string // home visits
   isNewPatient: boolean
   status: BookingStatus
   sendConfirmation: boolean
   reminder: boolean
-  source: 'physio' | 'public_profile'
+  source: BookingSource
+  checkedInAt?: string
   createdAt: string
+  /** Someone else's slot, shown to patients only as "busy". */
+  hidden?: boolean
+}
+
+/** Time the physio has taken off the calendar (leave, lunch, admin). No start = whole day. */
+export interface Block {
+  id: string
+  physioId: string
+  date: string // YYYY-MM-DD
+  start?: string
+  end?: string
+  reason?: string
+}
+
+export type GroupParticipantStatus = 'booked' | 'attended' | 'no_show' | 'cancelled'
+
+export interface GroupParticipant {
+  id: string
+  patientId?: string
+  name: string
+  phone: string
+  status: GroupParticipantStatus
+  joinedAt: string
+}
+
+export interface GroupSession {
+  id: string
+  physioId: string
+  seriesId?: string // weekly repeats share a series
+  title: string
+  description?: string
+  date: string
+  time: string
+  minutes: number
+  capacity: number
+  fee: number
+  location: string
+  publicBooking: boolean // shown on the public booking page
+  status: 'scheduled' | 'cancelled' | 'done'
+  participants: GroupParticipant[]
+  createdAt: string
+}
+
+export interface InvoiceItem {
+  description: string
+  qty: number
+  rate: number
+}
+
+export type PaymentMethod = 'cash' | 'upi' | 'card' | 'bank' | 'other'
+
+export interface Invoice {
+  id: string
+  physioId: string
+  patientId?: string
+  patientName: string
+  patientPhone: string
+  number: string
+  date: string
+  items: InvoiceItem[]
+  discount: number
+  taxPct: number
+  total: number
+  status: 'unpaid' | 'paid' | 'void'
+  method?: PaymentMethod
+  paidAt?: string
+  notes?: string
+  bookingId?: string
+  groupSessionId?: string
+  sentAt?: string
+  createdAt: string
+}
+
+export interface Consent {
+  id: string
+  physioId: string
+  patientId: string
+  formId: string
+  title: string
+  body: string // the exact text the patient agreed to
+  status: 'pending' | 'signed' | 'declined' | 'revoked'
+  method: 'in_clinic' | 'remote'
+  signedName?: string
+  signature?: string // PNG data URL
+  guardian?: string // signed by a parent/guardian on behalf of a minor
+  requestedAt: string
+  signedAt?: string
 }
 
 export interface Message {
@@ -160,6 +308,10 @@ export interface DB {
   messages: Message[]
   referrals: Referral[]
   templates: PlanTemplate[]
+  blocks: Block[]
+  groups: GroupSession[]
+  invoices: Invoice[]
+  consents: Consent[]
   draft?: PlanDraft
 }
 

@@ -1,10 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, ApiError, apiMode } from './api'
-import { nowTs, today } from './dates'
+import { addDays, nowTs, today } from './dates'
 import { slugify, uid } from './logic'
 import { toast } from './platform'
 import { DEMO, seed } from './seed'
-import type { Booking, DB, Patient, Physio, PlanDraft, Role, Session, SessionLog } from './types'
+import { formById } from './consents'
+import { nextInvoiceNumber, totals } from './invoices'
+import { nowHHMM } from './slots'
+import type { Block, Booking, Consent, DB, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, PlanDraft, Role, Session, SessionLog } from './types'
 
 /**
  * App data layer. Screens read `db` synchronously and call actions; each action updates local
@@ -13,10 +16,10 @@ import type { Booking, DB, Patient, Physio, PlanDraft, Role, Session, SessionLog
  * Without VITE_API_URL the app runs fully offline on seeded demo data in localStorage.
  */
 
-const DB_KEY = apiMode ? 'bh-cache-v1' : 'bh-demo-db-v1'
+const DB_KEY = apiMode ? 'bh-cache-v2' : 'bh-demo-db-v2'
 const SESSION_KEY = apiMode ? 'bh-auth-v1' : 'bh-session-v1'
 
-const EMPTY: DB = { physios: [], patients: [], exercises: [], plans: [], sessions: [], bookings: [], messages: [], referrals: [], templates: [] }
+const EMPTY: DB = { physios: [], patients: [], exercises: [], plans: [], sessions: [], bookings: [], messages: [], referrals: [], templates: [], blocks: [], groups: [], invoices: [], consents: [] }
 
 function load<T>(key: string): T | undefined {
   try {
@@ -42,9 +45,20 @@ export interface NewPhysioInput {
   email?: string
   focusAreas: string[]
   practiceSettings: string[]
+  practice?: Physio['practice']
   referredBy?: string
   signupToken?: string
 }
+
+export interface WalkInInput {
+  patientId?: string
+  name: string
+  phone: string
+  visitType: Booking['visitType']
+  reason?: string
+}
+
+export type NewInvoiceInput = Omit<Invoice, 'id' | 'number' | 'total' | 'createdAt' | 'physioId'> & { send?: boolean }
 
 export interface NewPatientInput {
   name: string
@@ -61,7 +75,7 @@ interface Bootstrap {
   db: DB
 }
 
-type Coll = 'physios' | 'patients' | 'plans' | 'sessions' | 'bookings' | 'messages' | 'referrals' | 'templates'
+type Coll = 'physios' | 'patients' | 'plans' | 'sessions' | 'bookings' | 'messages' | 'referrals' | 'templates' | 'blocks' | 'groups' | 'invoices' | 'consents'
 
 interface Ctl {
   setDb: (fn: (d: DB) => DB) => void
@@ -103,7 +117,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     setSession(s)
   }
 
-  return {
+  const self = {
     db,
     session,
     apiMode,
@@ -149,7 +163,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     async signupPhysio(input: NewPhysioInput): Promise<string> {
       if (apiMode) {
         const r = await api<{ token: string; userId: string }>('/auth/signup', {
-          body: { signupToken: input.signupToken, name: input.name, email: input.email || undefined, focusAreas: input.focusAreas, practiceSettings: input.practiceSettings, referredBy: input.referredBy },
+          body: { signupToken: input.signupToken, name: input.name, email: input.email || undefined, focusAreas: input.focusAreas, practiceSettings: input.practiceSettings, practice: input.practice, referredBy: input.referredBy },
         })
         await startSession({ role: 'physio', userId: r.userId, token: r.token })
         return r.userId
@@ -165,8 +179,12 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
         verification: 'none',
         focusAreas: input.focusAreas,
         practiceSettings: input.practiceSettings,
+        practice: input.practice,
         slug,
-        consult: { inClinic: { enabled: true, fee: 600, minutes: 45 }, homeVisit: { enabled: false, fee: 1000, radiusKm: 5 } },
+        consult: {
+          inClinic: { enabled: !input.practice || input.practice.modes.some((m) => m !== 'home'), fee: 600, minutes: 45 },
+          homeVisit: { enabled: !!input.practice?.modes.includes('home'), fee: 1000, radiusKm: 5, minutes: 60 },
+        },
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         inviteCode: `${(input.name.replace(/^Dr\.?\s*/i, '').split(' ')[0] || 'PHYSIO').toUpperCase().slice(0, 8)}-BH`,
         partnerOptIns: [],
@@ -335,21 +353,242 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       if (role === 'physio')
         remote((token) =>
           api<Booking>('/physio/bookings', {
-            body: { id, patientId: b.patientId, patientName: b.patientName, patientPhone: b.patientPhone, date: b.date, time: b.time, visitType: b.visitType, reason: b.reason, isNewPatient: b.isNewPatient, status: b.status === 'confirmed' ? 'confirmed' : 'awaiting', sendConfirmation: b.sendConfirmation, reminder: b.reminder },
+            body: {
+              id,
+              patientId: b.patientId,
+              patientName: b.patientName,
+              patientPhone: b.patientPhone,
+              date: b.date,
+              time: b.time,
+              visitType: b.visitType,
+              minutes: b.minutes,
+              reason: b.reason,
+              address: b.address,
+              isNewPatient: b.isNewPatient,
+              status: b.status === 'confirmed' || b.status === 'checked_in' ? b.status : 'awaiting',
+              sendConfirmation: b.sendConfirmation,
+              reminder: b.reminder,
+              source: b.source === 'walk_in' ? 'walk_in' : 'physio',
+            },
             token,
           }).then((row) => put('bookings', row)),
         )
-      else if (role === 'patient') remote((token) => api<Booking>('/patient/bookings', { body: { id, date: b.date, time: b.time, visitType: b.visitType, reason: b.reason }, token }).then((row) => put('bookings', row)))
+      else if (role === 'patient') remote((token) => api<Booking>('/patient/bookings', { body: { id, date: b.date, time: b.time, visitType: b.visitType, reason: b.reason, address: b.address }, token }).then((row) => put('bookings', row)))
       return id
     },
     updateBooking(id: string, patch: Partial<Booking>) {
+      const extra: Partial<Booking> = patch.status === 'checked_in' ? { checkedInAt: nowTs() } : {}
       mutate((d) => {
         const b = d.bookings.find((x) => x.id === id)
-        if (b) Object.assign(b, patch)
+        if (b) Object.assign(b, patch, extra)
       })
       if (role === 'physio') remote((token) => api<Booking>(`/physio/bookings/${id}`, { method: 'PATCH', body: patch, token }).then((row) => put('bookings', row)))
       else if (role === 'patient' && (patch.status === 'confirmed' || patch.status === 'reschedule'))
         remote((token) => api<Booking>(`/patient/bookings/${id}`, { method: 'PATCH', body: { status: patch.status }, token }).then((row) => put('bookings', row)))
+    },
+    /** Walk-in: patient is at the clinic now. Creates the patient if new and checks them in. */
+    walkIn(physioId: string, input: WalkInInput): { bookingId: string; patientId: string } {
+      const patientId = input.patientId ?? self.addPatient(physioId, { name: input.name, phone: input.phone })
+      const bookingId = self.addBooking({
+        physioId,
+        patientId,
+        patientName: input.name,
+        patientPhone: input.phone,
+        date: today(),
+        time: nowHHMM(),
+        visitType: input.visitType,
+        reason: input.reason || 'Walk-in',
+        isNewPatient: !input.patientId,
+        status: 'checked_in',
+        sendConfirmation: false,
+        reminder: false,
+        source: 'walk_in',
+      })
+      mutate((d) => {
+        const b = d.bookings.find((x) => x.id === bookingId)
+        if (b) b.checkedInAt = nowTs()
+      })
+      return { bookingId, patientId }
+    },
+
+    // ---------- blocked time ----------
+    addBlocks(physioId: string, blocks: Omit<Block, 'id' | 'physioId'>[]) {
+      const rows: Block[] = blocks.map((b) => ({ ...b, id: uid('bl'), physioId }))
+      mutate((d) => {
+        d.blocks.push(...rows)
+      })
+      remote((token) => api<Block[]>('/physio/blocks', { body: { blocks: rows.map(({ physioId: _p, ...r }) => r) }, token }))
+    },
+    removeBlock(id: string) {
+      mutate((d) => {
+        d.blocks = d.blocks.filter((b) => b.id !== id)
+      })
+      remote((token) => api(`/physio/blocks/${id}`, { method: 'DELETE', token }))
+    },
+
+    // ---------- group sessions ----------
+    /** Creates one session, or a weekly series when `repeatWeeks` > 1. Returns the first id. */
+    addGroupSessions(physioId: string, g: Omit<GroupSession, 'id' | 'physioId' | 'participants' | 'status' | 'createdAt' | 'seriesId'>, repeatWeeks = 1): string {
+      const seriesId = repeatWeeks > 1 ? uid('gs') : undefined
+      const rows: GroupSession[] = Array.from({ length: Math.max(1, repeatWeeks) }, (_, i) => ({
+        ...g,
+        id: uid('gr'),
+        physioId,
+        seriesId,
+        date: addDays(g.date, i * 7),
+        status: 'scheduled',
+        participants: [],
+        createdAt: nowTs(),
+      }))
+      mutate((d) => {
+        d.groups.push(...rows)
+      })
+      remote((token) =>
+        api<GroupSession[]>('/physio/groups', { body: { sessions: rows.map(({ physioId: _p, participants: _x, status: _s, createdAt: _c, ...r }) => r) }, token }).then((list) => list.forEach((row) => put('groups', row))),
+      )
+      return rows[0].id
+    },
+    updateGroup(id: string, patch: Partial<Pick<GroupSession, 'title' | 'description' | 'date' | 'time' | 'minutes' | 'capacity' | 'fee' | 'location' | 'publicBooking' | 'status'>>) {
+      mutate((d) => {
+        const g = d.groups.find((x) => x.id === id)
+        if (g) Object.assign(g, patch)
+      })
+      remote((token) => api<GroupSession>(`/physio/groups/${id}`, { method: 'PATCH', body: patch, token }).then((row) => put('groups', row)))
+    },
+    addParticipant(groupId: string, p: { patientId?: string; name: string; phone: string }): string {
+      const id = uid('gp')
+      const row: GroupParticipant = { id, patientId: p.patientId, name: p.name, phone: p.phone, status: 'booked', joinedAt: nowTs() }
+      mutate((d) => {
+        d.groups.find((g) => g.id === groupId)?.participants.push(row)
+      })
+      const path = role === 'patient' ? `/patient/groups/${groupId}/join` : `/physio/groups/${groupId}/participants`
+      remote((token) => api<GroupSession>(path, { body: role === 'patient' ? { id } : { id, patientId: p.patientId, name: p.name, phone: p.phone }, token }).then((g) => put('groups', g)))
+      return id
+    },
+    setParticipantStatus(groupId: string, participantId: string, status: GroupParticipantStatus) {
+      mutate((d) => {
+        const pt = d.groups.find((g) => g.id === groupId)?.participants.find((x) => x.id === participantId)
+        if (pt) pt.status = status
+      })
+      remote((token) => api<GroupSession>(`/physio/groups/${groupId}/participants/${participantId}`, { method: 'PATCH', body: { status }, token }).then((g) => put('groups', g)))
+    },
+
+    // ---------- invoices ----------
+    createInvoice(physioId: string, input: NewInvoiceInput): string {
+      const physio = db.physios.find((p) => p.id === physioId)!
+      const id = uid('iv')
+      const { send, ...rest } = input
+      const inv: Invoice = {
+        ...rest,
+        id,
+        physioId,
+        number: nextInvoiceNumber(db.invoices, physio, input.date),
+        total: totals(input.items, input.discount, input.taxPct).total,
+        sentAt: send ? nowTs() : undefined,
+        paidAt: input.status === 'paid' ? nowTs() : undefined,
+        createdAt: nowTs(),
+      }
+      mutate((d) => {
+        d.invoices.push(inv)
+      })
+      remote((token) =>
+        api<Invoice>('/physio/invoices', {
+          body: {
+            id,
+            patientId: inv.patientId,
+            patientName: inv.patientName,
+            patientPhone: inv.patientPhone,
+            date: inv.date,
+            items: inv.items,
+            discount: inv.discount,
+            taxPct: inv.taxPct,
+            notes: inv.notes,
+            bookingId: inv.bookingId,
+            groupSessionId: inv.groupSessionId,
+            status: inv.status,
+            method: inv.method,
+            send: !!send,
+          },
+          token,
+        }).then((row) => put('invoices', row)),
+      )
+      return id
+    },
+    updateInvoice(id: string, patch: { status?: Invoice['status']; method?: Invoice['method']; sent?: boolean }) {
+      mutate((d) => {
+        const inv = d.invoices.find((x) => x.id === id)
+        if (!inv) return
+        if (patch.status) {
+          inv.status = patch.status
+          inv.paidAt = patch.status === 'paid' ? inv.paidAt ?? nowTs() : undefined
+        }
+        if (patch.method) inv.method = patch.method
+        if (patch.sent) inv.sentAt = nowTs()
+      })
+      remote((token) => api<Invoice>(`/physio/invoices/${id}`, { method: 'PATCH', body: patch, token }).then((row) => put('invoices', row)))
+    },
+
+    // ---------- treatment consent forms ----------
+    /**
+     * In clinic: pass the signature and the consent is signed now on the physio's device.
+     * Remote: the patient gets a WhatsApp link and signs in their app.
+     */
+    requestConsent(physioId: string, patientId: string, formId: string, signed?: { signedName: string; signature?: string; guardian?: string }, notify = true): string {
+      const physio = db.physios.find((p) => p.id === physioId)!
+      const form = formById(formId)!
+      const id = uid('cs')
+      const c: Consent = {
+        id,
+        physioId,
+        patientId,
+        formId,
+        title: form.title,
+        body: form.body(physio),
+        status: signed ? 'signed' : 'pending',
+        method: signed ? 'in_clinic' : 'remote',
+        ...signed,
+        requestedAt: nowTs(),
+        signedAt: signed ? nowTs() : undefined,
+      }
+      mutate((d) => {
+        d.consents.push(c)
+      })
+      remote((token) =>
+        api<Consent>('/physio/consents', {
+          body: { id, patientId, formId, title: c.title, body: c.body, signedName: signed?.signedName, signature: signed?.signature, guardian: signed?.guardian || undefined, notify: !signed && notify },
+          token,
+        }).then((row) => put('consents', row)),
+      )
+      return id
+    },
+    /** Patient signs in their app, or the physio collects a signature for a pending request in clinic. */
+    signConsent(id: string, s: { signedName: string; signature?: string; guardian?: string }) {
+      mutate((d) => {
+        const c = d.consents.find((x) => x.id === id)
+        if (c) Object.assign(c, { ...s, guardian: s.guardian || undefined, status: 'signed', signedAt: nowTs(), method: role === 'physio' ? 'in_clinic' : c.method })
+      })
+      const body = { signedName: s.signedName, signature: s.signature, guardian: s.guardian || undefined }
+      remote((token) =>
+        api<Consent>(role === 'physio' ? `/physio/consents/${id}/sign` : `/patient/consents/${id}/sign`, { body, token }).then((row) => put('consents', row)),
+      )
+    },
+    setConsentStatus(id: string, status: 'declined' | 'revoked') {
+      mutate((d) => {
+        const c = d.consents.find((x) => x.id === id)
+        if (c) c.status = status
+      })
+      remote((token) =>
+        api<Consent>(role === 'physio' ? `/physio/consents/${id}` : `/patient/consents/${id}`, { method: 'PATCH', body: { status }, token }).then((row) => put('consents', row)),
+      )
+    },
+
+    // ---------- PhysioPreneurship course ----------
+    toggleLesson(physioId: string, lessonId: string, done: boolean): void {
+      const me = db.physios.find((p) => p.id === physioId)
+      if (!me) return
+      const cur = me.courseProgress ?? []
+      const next = done ? Array.from(new Set([...cur, lessonId])) : cur.filter((x) => x !== lessonId)
+      self.updatePhysio(physioId, { courseProgress: next })
     },
 
     // ---------- messages ----------
@@ -385,6 +624,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       setSession(undefined)
     },
   }
+  return self
 }
 
 export type Store = ReturnType<typeof makeStore>
@@ -394,7 +634,7 @@ const Ctx = createContext<Store | null>(null)
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [db, setDbState] = useState<DB>(() => {
     const saved = load<DB>(DB_KEY)
-    if (saved) return { ...EMPTY, ...saved, templates: saved.templates ?? [] }
+    if (saved) return { ...EMPTY, ...saved }
     return apiMode ? EMPTY : seed()
   })
   const [session, setSessionState] = useState<Session | undefined>(() => load<Session>(SESSION_KEY))

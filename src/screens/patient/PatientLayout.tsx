@@ -14,7 +14,7 @@ const ITEMS: NavItem[] = [
   { to: '/me/profile', label: 'Profile', icon: User },
 ]
 
-const FLOW = [/^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/]
+const FLOW = [/^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//]
 
 export default function PatientLayout() {
   const { patient, physio, session } = useMe()

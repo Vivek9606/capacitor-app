@@ -1,7 +1,8 @@
 import { addDays, iso, today, weekStart } from './dates'
 import { EXERCISES } from './exercises'
 import { scheduledDates } from './logic'
-import type { Booking, DB, Message, Plan, SessionLog } from './types'
+import { CONSENT_FORMS } from './consents'
+import type { Booking, Consent, DB, GroupSession, Invoice, Message, Physio, Plan, SessionLog } from './types'
 
 // Demo data, generated relative to today so the app always looks "live".
 export function seed(): DB {
@@ -129,6 +130,102 @@ export function seed(): DB {
     B({ id: 'bk6', patientName: 'Neha Gupta', patientPhone: '9812345670', date: addDays(t, 2), time: '17:30', visitType: 'in_clinic', reason: 'Knee pain while climbing stairs', isNewPatient: true, status: 'requested', source: 'public_profile', createdAt: ts(0, 8, 15) }),
     B({ id: 'bk7', patientId: 'pt_riya', patientName: 'Riya Sharma', patientPhone: '9845011223', date: addDays(t, 6), time: '10:30', visitType: 'in_clinic', reason: 'Follow-up', isNewPatient: false, status: 'awaiting' }),
     B({ id: 'bk8', patientId: 'pt_arjun', patientName: 'Arjun Mehta', patientPhone: '9900122334', date: addDays(t, -3), time: '10:00', visitType: 'in_clinic', reason: 'Assessment', isNewPatient: true, status: 'done' }),
+    B({ id: 'bk9', patientId: 'pt_karan', patientName: 'Karan Shah', patientPhone: '9886055667', date: addDays(t, -5), time: '17:00', visitType: 'in_clinic', reason: 'Follow-up · Frozen shoulder', isNewPatient: false, status: 'no_show' }),
+    B({ id: 'bk10', patientId: 'pt_riya', patientName: 'Riya Sharma', patientPhone: '9845011223', date: addDays(t, -7), time: '09:30', visitType: 'in_clinic', reason: 'Follow-up', isNewPatient: false, status: 'done' }),
+    B({
+      id: 'bk11',
+      patientId: 'pt_meera',
+      patientName: 'Meera Pillai',
+      patientPhone: '9611223344',
+      date: t,
+      time: minutesAgo(20),
+      visitType: 'in_clinic',
+      reason: 'Walk-in · ankle sprain',
+      isNewPatient: true,
+      status: 'checked_in',
+      source: 'walk_in',
+      sendConfirmation: false,
+      reminder: false,
+      checkedInAt: new Date(Date.now() - 20 * 60000).toISOString(),
+      createdAt: new Date(Date.now() - 20 * 60000).toISOString(),
+    }),
+  ]
+
+  // Weekly Saturday back-care class, three weeks out.
+  const groups: GroupSession[] = [0, 1, 2].map((w) => ({
+    id: `gr_back${w}`,
+    physioId,
+    seriesId: 'gs_back',
+    title: 'Back care group',
+    description: 'Core and mobility class for desk workers with back pain. Mats provided.',
+    date: addDays(weekStart(t), 5 + w * 7),
+    time: '08:00',
+    minutes: 60,
+    capacity: 8,
+    fee: 350,
+    location: 'Betterhood Physio Studio, Indiranagar',
+    publicBooking: true,
+    status: 'scheduled',
+    participants:
+      w === 0
+        ? [
+            { id: 'gp_1', patientId: 'pt_riya', name: 'Riya Sharma', phone: '9845011223', status: 'booked', joinedAt: ts(5) },
+            { id: 'gp_2', patientId: 'pt_sanjay', name: 'Sanjay Iyer', phone: '9945566778', status: 'booked', joinedAt: ts(4) },
+            { id: 'gp_3', name: 'Kavya Reddy', phone: '9880011122', status: 'booked', joinedAt: ts(2) },
+          ]
+        : [],
+    createdAt: ts(10),
+  }))
+
+  const yr = t.slice(0, 4)
+  const invoices: Invoice[] = [
+    {
+      id: 'iv_1',
+      physioId,
+      patientId: 'pt_arjun',
+      patientName: 'Arjun Mehta',
+      patientPhone: '9900122334',
+      number: `INV-${yr}-0001`,
+      date: addDays(t, -3),
+      items: [{ description: 'Assessment · in-clinic', qty: 1, rate: 800 }],
+      discount: 0,
+      taxPct: 0,
+      total: 800,
+      status: 'paid',
+      method: 'upi',
+      paidAt: ts(3, 11),
+      bookingId: 'bk8',
+      sentAt: ts(3, 11),
+      createdAt: ts(3, 11),
+    },
+    {
+      id: 'iv_2',
+      physioId,
+      patientId: 'pt_riya',
+      patientName: 'Riya Sharma',
+      patientPhone: '9845011223',
+      number: `INV-${yr}-0002`,
+      date: addDays(t, -7),
+      items: [
+        { description: 'Physiotherapy session · in-clinic', qty: 1, rate: 800 },
+        { description: 'IFT', qty: 1, rate: 200 },
+      ],
+      discount: 100,
+      taxPct: 0,
+      total: 900,
+      status: 'unpaid',
+      bookingId: 'bk10',
+      sentAt: ts(7, 10),
+      createdAt: ts(7, 10),
+    },
+  ]
+
+  const consentPhysio = { name: 'Dr. Ananya Rao', qualification: 'MPT (Ortho)', clinic: { name: 'Betterhood Physio Studio' } } as Physio
+  const form = (id: string) => CONSENT_FORMS.find((f) => f.id === id)!
+  const consents: Consent[] = [
+    { id: 'cs_1', physioId, patientId: 'pt_riya', formId: 'general', title: form('general').title, body: form('general').body(consentPhysio), status: 'signed', method: 'in_clinic', signedName: 'Riya Sharma', requestedAt: ts(14, 18), signedAt: ts(14, 18, 5) },
+    { id: 'cs_2', physioId, patientId: 'pt_karan', formId: 'general', title: form('general').title, body: form('general').body(consentPhysio), status: 'pending', method: 'remote', requestedAt: ts(1, 12) },
+    { id: 'cs_3', physioId, patientId: 'pt_riya', formId: 'dry_needling', title: form('dry_needling').title, body: form('dry_needling').body(consentPhysio), status: 'pending', method: 'remote', requestedAt: ts(0, 9) },
   ]
 
   const messages: Message[] = [
@@ -147,10 +244,28 @@ export function seed(): DB {
         councilRegNo: 'KPC/2017/04821',
         verification: 'pending',
         focusAreas: ['Orthopaedic', 'Sports'],
-        practiceSettings: ['Own clinic'],
+        practiceSettings: ['Own clinic', 'Home visits'],
+        practice: { modes: ['clinic', 'home'], serviceArea: 'Indiranagar, Domlur, HAL 2nd Stage', travelBufferMin: 20 },
         slug: 'ananya-rao',
-        consult: { inClinic: { enabled: true, fee: 800, minutes: 45 }, homeVisit: { enabled: false, fee: 1200, radiusKm: 5 } },
+        consult: { inClinic: { enabled: true, fee: 800, minutes: 45 }, homeVisit: { enabled: true, fee: 1200, radiusKm: 5, minutes: 60 } },
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        availability: {
+          weekly: {
+            Mon: [{ start: '09:00', end: '13:00' }, { start: '15:00', end: '19:00' }],
+            Tue: [{ start: '09:00', end: '13:00' }, { start: '15:00', end: '19:00' }],
+            Wed: [{ start: '09:00', end: '13:00' }, { start: '15:00', end: '19:00' }],
+            Thu: [{ start: '09:00', end: '13:00' }, { start: '15:00', end: '19:00' }],
+            Fri: [{ start: '09:00', end: '13:00' }, { start: '15:00', end: '19:00' }],
+            Sat: [{ start: '08:00', end: '13:00' }],
+            Sun: [],
+          },
+          slotStepMin: 30,
+          bufferMin: 15,
+          minNoticeHours: 2,
+          maxDaysAhead: 30,
+        },
+        billing: { invoicePrefix: 'INV', taxPct: 0, upiId: 'ananyarao@okhdfc' },
+        courseProgress: ['l1'],
         inviteCode: 'ANANYA-BH',
         partnerOptIns: [],
         communityWaitlist: false,
@@ -163,6 +278,7 @@ export function seed(): DB {
       { id: 'pt_karan', physioId, phone: '9886055667', name: 'Karan Shah', age: 54, sex: 'M', condition: 'Frozen shoulder (R)', since: '2026-10-20', tags: ['Diabetic'], visits: 2, linkToken: 'karan-4wk', createdAt: ts(20) },
       { id: 'pt_arjun', physioId, phone: '9900122334', name: 'Arjun Mehta', age: 24, sex: 'M', condition: 'ACL reconstruction · 6 wks', since: iso(new Date(Date.now() - 3 * 86400000)), tags: ['Footballer'], visits: 1, linkToken: 'arjun-acl', createdAt: ts(3) },
       { id: 'pt_priya', physioId, phone: '9741203344', name: 'Priya Nair', age: 31, sex: 'F', condition: 'Post-natal back care', since: '2026-10-05', tags: ['Home visit'], visits: 3, linkToken: 'priya-pn', createdAt: ts(35) },
+      { id: 'pt_meera', physioId, phone: '9611223344', name: 'Meera Pillai', age: 27, sex: 'F', condition: 'Ankle sprain (L)', since: t, tags: ['Walk-in'], visits: 0, linkToken: 'meera-ank', createdAt: ts(0) },
       { id: 'pt_sanjay', physioId, phone: '9945566778', name: 'Sanjay Iyer', age: 41, sex: 'M', condition: 'Neck pain · postural', since: '2026-09-20', tags: ['IT professional'], visits: 5, linkToken: 'sanjay-neck', consentAt: ts(40), createdAt: ts(48) },
     ],
     exercises: EXERCISES,
@@ -176,7 +292,20 @@ export function seed(): DB {
       { id: 'rf3', referrerId: physioId, name: 'Dr. Faiz Ahmed', status: 'pending', at: ts(2) },
     ],
     templates: [],
+    blocks: [
+      { id: 'bl_1', physioId, date: addDays(t, 1), start: '15:00', end: '16:30', reason: 'Hospital rounds' },
+      { id: 'bl_2', physioId, date: addDays(t, 9), reason: 'Conference' },
+    ],
+    groups,
+    invoices,
+    consents,
   }
+}
+
+/** HH:mm, N minutes ago, on a 5-minute grid (for the demo walk-in). */
+function minutesAgo(min: number): string {
+  const d = new Date(Date.now() - min * 60000)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(Math.floor(d.getMinutes() / 5) * 5).padStart(2, '0')}`
 }
 
 export const DEMO = {

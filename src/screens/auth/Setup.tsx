@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { PracticeModePicker } from '../../components/PracticeModePicker'
 import { Button, Chip, Footer, Input, PageHeader, Progress } from '../../components/ui'
+import { modeLabels } from '../../lib/practice'
+import type { PracticeMode } from '../../lib/types'
 import { useStore } from '../../lib/store'
 import { AuthLayout } from './AuthLayout'
 
 export const FOCUS_AREAS = ['Orthopaedic', 'Sports', 'Neuro', 'Women’s health', 'Geriatric', 'Paediatric', 'Cardio-pulmonary']
-export const PRACTICE_SETTINGS = ['Own clinic', 'Hospital', 'Home visits', 'Online']
 
 function readRef(): string | undefined {
   try {
@@ -27,13 +29,13 @@ export default function Setup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [focus, setFocus] = useState<string[]>([])
-  const [settings, setSettings] = useState<string[]>([])
+  const [modes, setModes] = useState<PracticeMode[]>([])
 
   if (!phone) return <Navigate to="/login" replace />
 
   const toggle = (list: string[], set: (v: string[]) => void, v: string) => set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v])
-  const progress = 40 + (name.trim() ? 20 : 0) + (focus.length ? 20 : 0) + (settings.length ? 20 : 0)
-  const ready = name.trim().length > 1 && focus.length > 0
+  const progress = 40 + (name.trim() ? 20 : 0) + (focus.length ? 20 : 0) + (modes.length ? 20 : 0)
+  const ready = name.trim().length > 1 && focus.length > 0 && modes.length > 0
 
   return (
     <AuthLayout>
@@ -51,14 +53,9 @@ export default function Setup() {
           </Chip>
         ))}
       </div>
-      <h3 className="mb-3 mt-6 text-[16px] font-semibold">Where do you practise?</h3>
-      <div className="flex flex-wrap gap-2">
-        {PRACTICE_SETTINGS.map((f) => (
-          <Chip key={f} selected={settings.includes(f)} onClick={() => toggle(settings, setSettings, f)}>
-            {f}
-          </Chip>
-        ))}
-      </div>
+      <h3 className="mt-6 text-[16px] font-semibold">How do you practise?</h3>
+      <p className="mb-3 text-[13px] text-muted">Pick all that apply — your booking page and schedule adapt to it.</p>
+      <PracticeModePicker value={modes} onChange={setModes} />
       {error && <p className="mt-4 text-[14px] text-danger">{error}</p>}
       <div className="flex-1 lg:hidden" />
       <Footer>
@@ -69,7 +66,7 @@ export default function Setup() {
             setBusy(true)
             setError('')
             try {
-              await signupPhysio({ phone, name: name.trim(), email: email.trim(), focusAreas: focus, practiceSettings: settings, referredBy: readRef(), signupToken: st?.signupToken })
+              await signupPhysio({ phone, name: name.trim(), email: email.trim(), focusAreas: focus, practiceSettings: modeLabels(modes), practice: { modes }, referredBy: readRef(), signupToken: st?.signupToken })
               nav('/app', { replace: true })
             } catch (e) {
               setError(e instanceof Error ? e.message : 'Couldn’t create your account')

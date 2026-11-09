@@ -6,7 +6,7 @@ import { Avatar, Badge, Button, Card, Empty, PageHeader } from '../../components
 import { adherence } from '../../lib/logic'
 import { useMe, useStore } from '../../lib/store'
 
-export type PickMode = 'plan' | 'rx' | undefined
+export type PickMode = 'plan' | 'rx' | 'consent' | undefined
 
 export function usePick(): PickMode {
   const loc = useLocation()
@@ -18,7 +18,7 @@ export function useStartPlan() {
   const store = useStore()
   const nav = useNavigate()
   return (patientId: string, mode: 'plan' | 'rx') => {
-    store.startDraft(patientId, mode === 'rx' ? { items: [], title: 'Prescription' } : {})
+    store.startDraft(patientId, mode === 'rx' ? { items: [], title: 'Treatment plan' } : {})
     nav(mode === 'rx' ? '/app/plan/rx' : '/app/plan/build')
   }
 }
@@ -43,7 +43,7 @@ export default function Patients() {
       <PageHeader
         back={!!pick}
         title={pick ? 'Choose a patient' : 'Patients'}
-        subtitle={pick === 'plan' ? 'Who is this care plan for?' : pick === 'rx' ? 'Who is this prescription for?' : `${list.length} patients`}
+        subtitle={pick === 'plan' ? 'Who is this care plan for?' : pick === 'rx' ? 'Who is this treatment plan for?' : pick === 'consent' ? 'Who is signing the consent form?' : `${list.length} patients`}
         right={
           <Button size="sm" variant="soft" onClick={() => nav('/app/patients/new', { state: { pick } })}>
             <UserPlus size={16} /> Add
@@ -69,7 +69,7 @@ export default function Patients() {
             const plan = db.plans.find((pl) => pl.patientId === p.id && pl.status === 'active')
             const adh = plan && adherence(plan, db.sessions)
             return (
-              <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => (pick ? startPlan(p.id, pick) : nav(`/app/patients/${p.id}`))}>
+              <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => (pick === 'consent' ? nav(`/app/patients/${p.id}/consent`) : pick ? startPlan(p.id, pick) : nav(`/app/patients/${p.id}`))}>
                 <Avatar name={p.name} size={44} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[15px] font-semibold">{p.name}</div>

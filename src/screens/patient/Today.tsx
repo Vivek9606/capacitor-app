@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronRight, Download, MessageSquare, Moon, Play, X } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Download, FileSignature, MessageSquare, Moon, Play, X } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookingBadge, VISIT_LABEL } from '../../components/bits'
@@ -52,6 +52,17 @@ export default function Today() {
           <span className="text-[13px] font-medium">{doc}</span>
         </button>
       </header>
+
+      {v.pendingConsents.map((c) => (
+        <Card key={c.id} className="mt-4 flex items-center gap-3 border-accent/40 bg-accent-soft p-4" onClick={() => nav(`/me/consents/${c.id}`)}>
+          <FileSignature size={20} className="shrink-0 text-accent" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-semibold">Please sign: {c.title}</div>
+            <div className="text-[13px] text-muted">{doc} needs this before your treatment</div>
+          </div>
+          <ChevronRight size={18} className="text-muted" />
+        </Card>
+      ))}
 
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">

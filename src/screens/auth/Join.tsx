@@ -48,7 +48,7 @@ export default function Join() {
 
         <div className="mt-6 flex flex-col gap-3">
           {[
-            { icon: <ClipboardList size={18} />, t: 'Care plans in 2 minutes', s: 'Drag & drop from 30+ exercise videos, add Rx, send on WhatsApp' },
+            { icon: <ClipboardList size={18} />, t: 'Care plans in 2 minutes', s: 'Drag & drop from 30+ exercise videos, add a treatment plan, send on WhatsApp' },
             { icon: <CalendarCheck size={18} />, t: 'Bookings that confirm themselves', s: 'Automatic WhatsApp confirmations and reminders' },
             { icon: <MessageCircle size={18} />, t: 'See who’s doing their exercises', s: 'Adherence and pain scores, without chasing patients' },
           ].map((r) => (

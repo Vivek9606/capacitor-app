@@ -1,4 +1,5 @@
 import { addDays, diffDays, parseISO, today, weekDays } from './dates'
+import { modesOf, practiceLocationDone, practiceStepLabel } from './practice'
 import type { Physio, Plan, SessionLog } from './types'
 
 // Which weekdays (0=Mon..6=Sun) a plan with N days/week is scheduled on.
@@ -111,18 +112,20 @@ export function profileSteps(p: Physio): ProfileStep[] {
     },
     {
       key: 'clinic',
-      label: 'Clinic location & map tag',
-      done: !!p.clinic?.address,
+      label: practiceStepLabel(p),
+      done: practiceLocationDone(p),
       to: '/app/profile/clinic',
-      nudge: 'Add your clinic location so patients near you can find and book you.',
-      cta: 'Add location',
+      nudge: modesOf(p).includes('clinic')
+        ? 'Add your clinic location so patients near you can find and book you.'
+        : 'Tell patients where you see them so they can book the right visit.',
+      cta: 'Set up practice',
     },
     {
       key: 'hours',
-      label: 'Consult hours & fees',
-      done: !!p.hours,
-      to: '/app/profile/clinic',
-      nudge: 'Set your consult hours and fees so patients can book open slots.',
+      label: 'Weekly hours & booking rules',
+      done: !!p.availability || !!p.hours,
+      to: '/app/profile/availability',
+      nudge: 'Set your weekly hours so patients can book open slots from your booking page.',
       cta: 'Set hours',
     },
   ]

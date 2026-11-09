@@ -27,7 +27,7 @@ export default function Refer() {
   const invite = () =>
     openWhatsApp(
       undefined,
-      `Hey! I use Betterhood to send exercise plans and prescriptions to patients on WhatsApp — it’s free. Sign up with my code ${physio.inviteCode} and we both get a month of Premium: ${link}`,
+      `Hey! I use Betterhood to send exercise plans and treatment plans to patients on WhatsApp — it’s free. Sign up with my code ${physio.inviteCode} and we both get a month of Premium: ${link}`,
     )
 
   return (

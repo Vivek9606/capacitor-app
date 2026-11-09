@@ -11,6 +11,8 @@ import Welcome from './screens/auth/Welcome'
 import Appointments from './screens/patient/Appointments'
 import Ask from './screens/patient/Ask'
 import Book from './screens/patient/Book'
+import ConsentSign from './screens/patient/ConsentSign'
+import PatientInvoice from './screens/patient/PatientInvoice'
 import MyPlan from './screens/patient/MyPlan'
 import PatientLayout from './screens/patient/PatientLayout'
 import PatientProfile from './screens/patient/PatientProfile'
@@ -22,6 +24,18 @@ import Confirmed from './screens/physio/booking/Confirmed'
 import NewBooking from './screens/physio/booking/NewBooking'
 import Schedule from './screens/physio/booking/Schedule'
 import Community from './screens/physio/Community'
+import ConsentView from './screens/physio/consent/ConsentView'
+import NewConsent from './screens/physio/consent/NewConsent'
+import GroupDetail from './screens/physio/groups/GroupDetail'
+import Groups from './screens/physio/groups/Groups'
+import NewGroup from './screens/physio/groups/NewGroup'
+import InvoiceView from './screens/physio/invoices/InvoiceView'
+import Invoices from './screens/physio/invoices/Invoices'
+import NewInvoice from './screens/physio/invoices/NewInvoice'
+import Learn from './screens/physio/learn/Learn'
+import Lesson from './screens/physio/learn/Lesson'
+import WalkIn from './screens/physio/WalkIn'
+import Availability from './screens/physio/profile/Availability'
 import Partner from './screens/physio/growth/Partner'
 import Refer from './screens/physio/growth/Refer'
 import Home from './screens/physio/Home'
@@ -36,6 +50,7 @@ import Tracking from './screens/physio/plan/Tracking'
 import Clinic from './screens/physio/profile/Clinic'
 import EditProfile from './screens/physio/profile/EditProfile'
 import Profile from './screens/physio/profile/Profile'
+import PublicBook from './screens/public/PublicBook'
 import PublicProfile from './screens/public/PublicProfile'
 
 function RootRedirect() {
@@ -98,6 +113,7 @@ export default function App() {
           {/* Public, no login: WhatsApp links land here */}
           <Route path="/plan/:token" element={<PlanLink />} />
           <Route path="/dr/:slug" element={<PublicProfile />} />
+          <Route path="/dr/:slug/book" element={<PublicBook />} />
           <Route path="/join" element={<Join />} />
 
           {/* Physio */}
@@ -107,6 +123,18 @@ export default function App() {
             <Route path="patients" element={<Patients />} />
             <Route path="patients/new" element={<AddPatient />} />
             <Route path="patients/:id" element={<PatientDetail />} />
+            <Route path="patients/:id/consent" element={<NewConsent />} />
+            <Route path="consents/:id" element={<ConsentView />} />
+            <Route path="walk-in" element={<WalkIn />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="groups/new" element={<NewGroup />} />
+            <Route path="groups/:id" element={<GroupDetail />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route path="invoices/new" element={<NewInvoice />} />
+            <Route path="invoices/:id" element={<InvoiceView />} />
+            <Route path="learn" element={<Learn />} />
+            <Route path="learn/:id" element={<Lesson />} />
+            <Route path="profile/availability" element={<Availability />} />
             <Route path="plan/build" element={<Build />} />
             <Route path="plan/rx" element={<RxNotes />} />
             <Route path="plan/preview" element={<Preview />} />
@@ -132,6 +160,8 @@ export default function App() {
             <Route path="book" element={<Book />} />
             <Route path="ask" element={<Ask />} />
             <Route path="profile" element={<PatientProfile />} />
+            <Route path="consents/:id" element={<ConsentSign />} />
+            <Route path="invoices/:id" element={<PatientInvoice />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

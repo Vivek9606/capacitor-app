@@ -5,7 +5,8 @@ import { Page } from '../../../components/Shell'
 import { Button, Card, Chip, Footer, Input, PageHeader } from '../../../components/ui'
 import { pickPhoto, toast } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
-import { FOCUS_AREAS, PRACTICE_SETTINGS } from '../../auth/Setup'
+import { FOCUS_AREAS } from '../../auth/Setup'
+import { modeLabels, modesOf } from '../../../lib/practice'
 
 export default function EditProfile() {
   const { physio } = useMe()
@@ -18,11 +19,10 @@ export default function EditProfile() {
     experienceYrs: physio?.experienceYrs ? String(physio.experienceYrs) : '',
     councilRegNo: physio?.councilRegNo ?? '',
     focusAreas: physio?.focusAreas ?? [],
-    practiceSettings: physio?.practiceSettings ?? [],
   }))
   const [cert, setCert] = useState(false)
   if (!physio) return null
-  const toggle = (k: 'focusAreas' | 'practiceSettings', v: string) => setF({ ...f, [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v] })
+  const toggle = (k: 'focusAreas', v: string) => setF({ ...f, [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v] })
 
   const save = () => {
     const submitVerification = physio.verification === 'none' && !!f.qualification && !!f.councilRegNo && cert
@@ -33,7 +33,6 @@ export default function EditProfile() {
       experienceYrs: f.experienceYrs ? Number(f.experienceYrs) : undefined,
       councilRegNo: f.councilRegNo.trim() || undefined,
       focusAreas: f.focusAreas,
-      practiceSettings: f.practiceSettings,
       ...(submitVerification ? { verification: 'pending' as const } : {}),
     })
     toast(submitVerification ? 'Saved · submitted for verification' : 'Profile saved')
@@ -57,16 +56,13 @@ export default function EditProfile() {
               ))}
             </div>
           </div>
-          <div>
-            <h3 className="mb-3 mt-2 text-[16px] font-semibold">Where do you practise?</h3>
-            <div className="flex flex-wrap gap-2">
-              {PRACTICE_SETTINGS.map((a) => (
-                <Chip key={a} selected={f.practiceSettings.includes(a)} onClick={() => toggle('practiceSettings', a)}>
-                  {a}
-                </Chip>
-              ))}
+          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/app/profile/clinic')}>
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] font-semibold">How you practise</div>
+              <div className="truncate text-[13px] text-muted">{modeLabels(modesOf(physio)).join(' · ')}</div>
             </div>
-          </div>
+            <span className="text-[13px] font-semibold text-brand">Edit</span>
+          </Card>
         </div>
         <div className="mt-6 flex flex-col gap-4 lg:mt-0">
           <h3 className="text-[16px] font-semibold">Qualifications & verification</h3>

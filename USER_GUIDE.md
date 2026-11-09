@@ -16,7 +16,7 @@ How the app is set up, how to log in, what to test, and how to try it as an Andr
 | Android / iOS app | Same code as the website, wrapped with Capacitor (`android/`, `ios/`) | capacitor-app |
 
 There is **one app with two roles**:
-- **Physio:** builds care plans and prescriptions, manages bookings, tracks patients.
+- **Physio:** builds care plans and treatment plans, manages bookings, walk-ins and group sessions, sends invoices and consent forms, tracks patients.
 - **Patient:** does the exercises, logs pain, sees visits, asks questions.
 
 Both roles work fully in the browser, so nobody has to install anything. The Android/iOS app is optional.
@@ -78,25 +78,34 @@ Codes are **not sent anywhere** while `WHATSAPP_PROVIDER=log`. For testing, add 
 1. **Home:** profile progress, today's appointments, "Needs your attention" (Arjun's request → **Accept**).
 2. **Patients → Riya:** history, pain trend, adherence.
 3. **Care plan:**
-   - Go to **Create → Care plan + Rx**, or open Riya's plan and choose **Adjust plan**.
+   - Go to **Create → Care plan + treatment plan**, or open Riya's plan and choose **Adjust plan**.
    - Add or drag exercises, then set sets/reps.
-   - Add Rx notes (diagnosis, advice, follow-up).
+   - Add treatment plan notes (diagnosis, advice, modalities, follow-up). If a modality needs consent (e.g. dry needling, IFT) and the patient hasn't signed, you'll see a warning.
    - On **Preview**, tap **Send on WhatsApp**.
    - Or tap **Use my WhatsApp** to send the link from your own WhatsApp.
 4. **Tracking:** this week's sessions, pain chart, reply to Riya's question, **Send nudge**.
-5. **Schedule → New booking:** pick a patient, time and visit type, and choose whether to send a WhatsApp confirmation.
-6. **Profile:** edit details, clinic and fees, upload a photo, and share your public profile link.
-7. **Refer a physio / Partner with Betterhood / Community** (waitlist).
+5. **Schedule → New booking:** pick a patient, visit type, a day on the calendar and an open time (times already taken, blocked or used by a group class are hidden), and choose whether to send a WhatsApp confirmation.
+6. **Schedule → Block:** block a whole day or a time range (leave, hospital rounds). Blocked time disappears from every booking page.
+7. **Attendance:** on today's appointments tap **Arrived** when the patient walks in, then **Visit done**, or **No-show**. No-shows show in the patient's visit history and attendance rate.
+8. **Walk-in:** **Create → Walk-in**. Pick an existing patient or type a new name and mobile. They go straight into the **Waiting** queue on Home.
+9. **Group sessions:** **Create → Group session** (title, date, time, seats, fee, repeat weekly). Open it to add people, mark **Attended / No-show**, message everyone, or create an invoice per participant.
+10. **Invoices:** **Create → Invoice**, or **Create invoice** on a finished visit. Send on WhatsApp (with a UPI pay link if you added your UPI id under **Invoices → Billing settings**), then **Record payment**.
+11. **Consent forms:** **Create → Consent form** or Patient → **Consents**. Either the patient signs now on your device, or you send it and they sign in their app.
+12. **Learn → PhysioPreneurship:** a short course on running your practice. Mark lessons done; progress shows on Home.
+13. **Profile:** edit details; **Practice setup** (own clinic, home visits, individual practice, or any mix: clinic address, other places you consult, home-visit area and travel time, fees); **Availability** (weekly hours with breaks, gap between appointments, notice period); share your booking page link.
+14. **Refer a physio / Partner with Betterhood / Community** (waitlist; on mobile it's in the Profile menu).
 
 ### Patient (plan link /plan/riya-3wk → 1223)
 1. **Consent** screen, shown the first time only.
 2. **Today:** today's session → **Start** → follow each exercise → finish → log pain (0–10).
-3. **My plan:** all exercises and the prescription (download or print as PDF).
-4. **Visits:** upcoming appointments → **Confirm** or **Reschedule**; request a new visit.
-5. **Ask:** send a question to the physio. It shows up on the physio's Tracking screen.
+3. **My plan:** all exercises and the treatment plan (download or print as PDF).
+4. **Consent:** Today shows a **Please sign** card for the electrotherapy consent → read it → type name, sign with a finger → **I agree — sign**. Signed forms are listed in Profile.
+5. **Visits:** upcoming appointments → **Confirm** or **Reschedule**; book a visit or a group class; missed visits show as **Missed**; **Bills** opens each invoice with a **Pay with UPI** button.
+6. **Ask:** send a question to the physio. It shows up on the physio's Tracking screen.
 
-### Public profile (/dr/ananya-rao, logged out)
-- Pick a day and time → name and mobile → **Request booking**. It appears on Ananya's Home as a request.
+### Public profile and booking page (logged out)
+- **/dr/ananya-rao** shows the clinic, home-visit area and upcoming group classes.
+- **/dr/ananya-rao/book** is the Calendly-style page: choose a visit type (or a group class) → day → time → name, mobile (and address for a home visit) → **Request booking**. It appears on Ananya's Home as a request. Group seats are taken straight away until the class is full.
 
 ### Check data is really saved (live mode)
 Do something as the physio (for example, reply to Riya), then open the plan link as Riya in a private window. The reply should be there.

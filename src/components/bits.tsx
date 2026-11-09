@@ -1,4 +1,4 @@
-import { Check, Clock, MessageCircle, RefreshCw, Bell, Inbox } from 'lucide-react'
+import { Bell, Check, Clock, DoorOpen, Footprints, Inbox, MessageCircle, RefreshCw, UserX } from 'lucide-react'
 import type { Booking, BookingStatus, VisitType } from '../lib/types'
 import { Badge } from './ui'
 
@@ -34,6 +34,18 @@ export function BookingBadge({ status }: { status: BookingStatus }) {
           New request
         </Badge>
       )
+    case 'checked_in':
+      return (
+        <Badge tone="ok" icon={<DoorOpen size={13} />}>
+          Arrived
+        </Badge>
+      )
+    case 'no_show':
+      return (
+        <Badge tone="warn" icon={<UserX size={13} />}>
+          No-show
+        </Badge>
+      )
     case 'done':
       return <Badge tone="muted">Done</Badge>
     case 'cancelled':
@@ -48,8 +60,17 @@ export const VISIT_LABEL: Record<VisitType, string> = {
 }
 
 export function bookingLine(b: Booking) {
-  return [b.isNewPatient ? 'New patient' : undefined, b.reason, VISIT_LABEL[b.visitType]].filter(Boolean).join(' · ')
+  return [b.source === 'walk_in' ? 'Walk-in' : b.isNewPatient ? 'New patient' : undefined, b.reason?.replace(/^Walk-in( · )?/, '') || undefined, VISIT_LABEL[b.visitType]]
+    .filter(Boolean)
+    .join(' · ')
 }
+
+export function WalkInIcon({ size = 14 }: { size?: number }) {
+  return <Footprints size={size} />
+}
+
+/** Booking still on the calendar and waiting for the visit to happen. */
+export const isOpenBooking = (b: Booking) => ['awaiting', 'confirmed', 'reminder_sent', 'reschedule', 'checked_in'].includes(b.status)
 
 export function NotifDot({ show }: { show: boolean }) {
   return (

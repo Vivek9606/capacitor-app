@@ -11,7 +11,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <div className="my-auto max-w-[460px]">
           <h2 className="text-[44px] font-semibold leading-[1.05] tracking-[-0.03em]">Care that continues after the session.</h2>
           <p className="mt-5 text-[17px] leading-relaxed text-white/75">
-            Build exercise plans, send prescriptions and confirm bookings on WhatsApp — all under your name. Patients never have to install anything.
+            Build exercise plans, send treatment plans and confirm bookings on WhatsApp — all under your name. Patients never have to install anything.
           </p>
           <ActivityCards className="mt-10" />
         </div>

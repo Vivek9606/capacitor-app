@@ -96,7 +96,7 @@ export default function PlanLink() {
             </div>
             {plan && (
               <div className="mt-1 text-[13px] text-white/75">
-                {plan.items} exercises · {plan.daysPerWeek} days a week{plan.hasRx ? ' · Rx included' : ''}
+                {plan.items} exercises · {plan.daysPerWeek} days a week{plan.hasRx ? ' · treatment plan included' : ''}
               </div>
             )}
           </div>
@@ -156,7 +156,7 @@ export default function PlanLink() {
               {[
                 { icon: <PlayCircle size={18} />, t: 'Follow your exercises', s: 'Videos and reps for each day’s session' },
                 { icon: <TrendingDown size={18} />, t: 'Log how you feel', s: `Your sessions and pain scores are shared with ${firstName(physio.name)}` },
-                { icon: <FileText size={18} />, t: 'Keep your prescription', s: 'Download it as a PDF any time' },
+                { icon: <FileText size={18} />, t: 'Keep your treatment plan', s: 'Download it as a PDF any time' },
               ].map((r) => (
                 <div key={r.t} className="flex gap-3">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">{r.icon}</div>

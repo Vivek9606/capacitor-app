@@ -5,7 +5,7 @@ import { cx } from './ui'
 
 const FOLLOW: Record<Rx['followUp'], string> = { '1w': 'In 1 week', '2w': 'In 2 weeks', custom: 'On the date below', none: 'As needed' }
 
-/** Letterhead prescription. Used in the R3 live preview, the patient's Rx view, and print-to-PDF. */
+/** Letterhead treatment plan. Used in the R3 live preview, the patient's treatment-plan view, and print-to-PDF. */
 export function RxDocument({
   rx,
   physio,
@@ -40,7 +40,8 @@ export function RxDocument({
           </div>
         </div>
       )}
-      <div className="mt-4 flex justify-between text-[13px]">
+      <div className="mt-4 text-[12px] font-semibold uppercase tracking-wider text-brand">Treatment plan</div>
+      <div className="mt-2 flex justify-between text-[13px]">
         <div>
           <span className="text-muted">Patient: </span>
           <b>{patient.name}</b>

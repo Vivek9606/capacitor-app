@@ -28,8 +28,8 @@ export default function Preview() {
   const name = firstName(patient.name)
   const docName = `Dr. ${firstName(physio.name)}`
   const msg = rxOnly
-    ? `Hi ${name}, here’s your prescription from ${physio.name}. Tap below to view or download it.`
-    : `Hi ${name}, here’s your plan${hasRx ? ' and prescription' : ''}. Tap below to start today’s session.`
+    ? `Hi ${name}, here’s your treatment plan from ${physio.name}. Tap below to view or download it.`
+    : `Hi ${name}, here’s your plan${hasRx ? ' and treatment plan' : ''}. Tap below to start today’s session.`
 
   /** `ownWhatsApp`: the physio shares the link themselves, so the server doesn't message the patient. */
   const send = (ownWhatsApp = false) => {
@@ -68,15 +68,15 @@ export default function Preview() {
       <WhatsAppPreview
         onBehalfOf={physio.name}
         time={time}
-        buttons={rxOnly ? ['View prescription', `Ask ${docName} a question`] : ['Start today’s session', `Ask ${docName} a question`]}
+        buttons={rxOnly ? ['View treatment plan', `Ask ${docName} a question`] : ['Start today’s session', `Ask ${docName} a question`]}
       >
         <div className="mb-2 overflow-hidden rounded-lg bg-surface">
           <div className="bg-brand px-3.5 py-3 text-white">
-            <div className="text-[17px] font-semibold">{rxOnly ? 'Your prescription' : `Your ${draft.weeks}-week care plan`}</div>
+            <div className="text-[17px] font-semibold">{rxOnly ? 'Your treatment plan' : `Your ${draft.weeks}-week care plan`}</div>
             <div className="text-[12px] text-white/80">
               {rxOnly
                 ? draft.rx.diagnosis || 'From your physio'
-                : `${draft.items.length} exercises · ${draft.daysPerWeek} days a week${hasRx ? ' · Rx included' : ''}`}
+                : `${draft.items.length} exercises · ${draft.daysPerWeek} days a week${hasRx ? ' · treatment plan included' : ''}`}
             </div>
           </div>
           <div className="px-3.5 py-2.5">

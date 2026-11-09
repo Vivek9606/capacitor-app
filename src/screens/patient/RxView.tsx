@@ -6,7 +6,7 @@ import { Button, PageHeader } from '../../components/ui'
 import { isNative, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
 
-// Patient · prescription with PDF download
+// Patient · treatment plan with PDF download
 export default function RxView() {
   const { id } = useParams()
   const { patient } = useMe()
@@ -25,7 +25,7 @@ export default function RxView() {
     <Page>
       <div className="no-print">
         <PageHeader
-          title="Prescription"
+          title="Treatment plan"
           subtitle={physio.name}
           right={
             <Button size="sm" variant="soft" onClick={download}>

@@ -1,12 +1,13 @@
 import { MessageCircle, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { SlotPicker } from '../../../components/SlotPicker'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
-import { Button, Card, Chip, cx, Footer, Input, Label, PageHeader, Toggle } from '../../../components/ui'
-import { addDays, fmtDay, fmtTime, relDay, today } from '../../../lib/dates'
+import { Button, Card, Chip, Footer, Input, Label, PageHeader, Toggle } from '../../../components/ui'
+import { fmtDay, fmtTime, today } from '../../../lib/dates'
 import { fmtPhone } from '../../../lib/logic'
 import { haptic } from '../../../lib/platform'
-import { openSlots } from '../../../lib/slots'
+import { fromMin, toMin, visitMinutes } from '../../../lib/slots'
 import { useMe, useStore } from '../../../lib/store'
 import type { VisitType } from '../../../lib/types'
 
@@ -30,11 +31,10 @@ export default function NewBooking() {
   const [confirmNow, setConfirmNow] = useState(true)
   const [reminder, setReminder] = useState(true)
 
+  const slotOpts = useMemo(() => ({ visitType: visit, excludeBookingId: existing?.id }), [visit, existing?.id])
   const myPatients = useMemo(() => db.patients.filter((p) => p.physioId === physio?.id), [db.patients, physio?.id])
   if (!physio) return null
   const patient = myPatients.find((p) => p.id === patientId)
-  const slots = openSlots(physio, db.bookings.filter((b) => b.id !== existing?.id), date)
-  const dateChips = [today(), addDays(today(), 1), addDays(today(), 2), addDays(today(), 3)]
   const newValid = newName.trim().length > 1 && /^[6-9]\d{9}$/.test(newPhone.replace(/\D/g, ''))
   const ready = !!time && (isNew ? newValid : !!patient)
 
@@ -122,63 +122,40 @@ export default function NewBooking() {
             </button>
           )}
 
-          <h3 className="mb-3 mt-6 text-[16px] font-semibold">Date</h3>
+          <h3 className="mb-3 mt-6 text-[16px] font-semibold">Visit type</h3>
           <div className="flex flex-wrap gap-2">
-            {dateChips.map((d) => (
-              <Chip
-                key={d}
-                selected={date === d}
-                onClick={() => {
-                  setDate(d)
-                  setTime(undefined)
-                }}
-              >
-                {relDay(d)}
-              </Chip>
-            ))}
-            <label className={cx('relative inline-flex h-10 cursor-pointer items-center rounded-full border px-4 text-[14px]', dateChips.includes(date) ? 'border-line bg-surface' : 'border-brand bg-brand-soft font-medium text-brand')}>
-              {dateChips.includes(date) ? 'Pick date' : fmtDay(date)}
-              <input
-                type="date"
-                min={today()}
-                value={date}
-                onChange={(e) => {
-                  if (!e.target.value) return
-                  setDate(e.target.value)
-                  setTime(undefined)
-                }}
-                className="absolute inset-0 cursor-pointer opacity-0"
-                aria-label="Pick date"
-              />
-            </label>
-          </div>
-
-          <h3 className="mb-3 mt-6 text-[16px] font-semibold">Open slots</h3>
-          {slots.length === 0 ? (
-            <p className="text-[14px] text-muted">No open slots on this day.</p>
-          ) : (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {slots.map((s) => (
-                <Chip key={s} selected={time === s} onClick={() => setTime(s)} className="justify-center px-2">
-                  {fmtTime(s)}
-                </Chip>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <h3 className="mb-3 mt-6 text-[16px] font-semibold lg:mt-0">Visit type</h3>
-          <div className="flex flex-wrap gap-2">
-            <Chip selected={visit === 'in_clinic'} onClick={() => setVisit('in_clinic')}>
-              In-clinic
+            <Chip selected={visit === 'in_clinic'} onClick={() => (setVisit('in_clinic'), setTime(undefined))}>
+              In-clinic · {visitMinutes(physio, 'in_clinic')} min
             </Chip>
-            <Chip selected={visit === 'home_visit'} onClick={() => setVisit('home_visit')}>
-              Home visit
+            <Chip selected={visit === 'home_visit'} onClick={() => (setVisit('home_visit'), setTime(undefined))}>
+              Home visit · {visitMinutes(physio, 'home_visit')} min
             </Chip>
             <Chip disabled>Teleconsult · soon</Chip>
           </div>
+        </div>
 
+        <div>
+          <h3 className="mb-3 mt-6 text-[16px] font-semibold lg:mt-0">Date & time</h3>
+          <Card className="p-4">
+            <SlotPicker
+              physio={physio}
+              cal={db}
+              opts={slotOpts}
+              date={date}
+              time={time}
+              layout="stacked"
+              onDate={(d) => {
+                setDate(d)
+                setTime(undefined)
+              }}
+              onTime={setTime}
+            />
+          </Card>
+          {time && (
+            <p className="mt-3 text-[14px] font-medium text-brand">
+              {fmtDay(date)} · {fmtTime(time)}–{fmtTime(fromMin(toMin(time) + visitMinutes(physio, visit)))}
+            </p>
+          )}
           <div className="mt-6 rounded-2xl bg-lime p-4">
             <div className="mb-3 flex items-center gap-2 font-semibold text-lime-ink">
               <MessageCircle size={18} /> WhatsApp automations

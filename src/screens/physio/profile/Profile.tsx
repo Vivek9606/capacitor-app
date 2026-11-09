@@ -1,8 +1,10 @@
-import { Camera, Check, ChevronRight, Copy, ExternalLink, Gift, Handshake, LogOut, Pencil, RotateCcw } from 'lucide-react'
+import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, RotateCcw, UsersRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
 import { Avatar, Badge, Card, cx, IconButton, Progress, WhatsAppButton } from '../../../components/ui'
+import { courseProgress } from '../../../lib/course'
 import { profileCompletion } from '../../../lib/logic'
+import { modeLabels, modesOf } from '../../../lib/practice'
 import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
 
@@ -13,9 +15,10 @@ export default function Profile() {
   const nav = useNavigate()
   if (!physio) return null
   const prof = profileCompletion(physio)
-  const path = `/dr/${physio.slug}`
+  const path = `/dr/${physio.slug}/book`
   const url = publicUrl(path)
   const meta = [physio.qualification, physio.experienceYrs ? `${physio.experienceYrs} yrs` : undefined, physio.clinic?.area].filter(Boolean).join(' · ')
+  const course = courseProgress(physio.courseProgress)
 
   const changePhoto = async () => {
     const photo = await pickPhoto()
@@ -81,8 +84,8 @@ export default function Profile() {
 
         <div className="mt-3 flex flex-col gap-3 lg:mt-0">
           <div className="rounded-2xl bg-brand-soft p-4">
-            <div className="text-[16px] font-semibold">Your public profile</div>
-            <p className="mt-1 text-[13px] text-muted">Patients can view your profile and book you from this link.</p>
+            <div className="text-[16px] font-semibold">Your booking page</div>
+            <p className="mt-1 text-[13px] text-muted">Patients pick a visit type, day and open time — like Calendly. Put it in your WhatsApp and Instagram bio.</p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-surface px-3.5 py-3">
               <span className="truncate text-[14px] font-semibold text-brand">{WEB_HOST}{path}</span>
               <button aria-label="Copy link" className="text-muted hover:text-ink cursor-pointer" onClick={() => copyText(url, 'Profile link copied')}>
@@ -92,23 +95,32 @@ export default function Profile() {
             <WhatsAppButton
               block
               className="mt-3"
-              onClick={() => shareLink({ title: physio.name, text: `Book a physiotherapy session with ${physio.name}:`, url })}
+              onClick={() => shareLink({ title: physio.name, text: `Book a physiotherapy session with ${physio.name} — pick a time that suits you:`, url })}
             >
               Share on WhatsApp
             </WhatsAppButton>
-            <button onClick={() => nav(path)} className="mt-2 flex w-full items-center justify-center gap-1.5 py-2 text-[14px] font-semibold text-brand cursor-pointer">
+            <button onClick={() => nav(`/dr/${physio.slug}`)} className="mt-2 flex w-full items-center justify-center gap-1.5 py-2 text-[14px] font-semibold text-brand cursor-pointer">
               <ExternalLink size={15} /> See what patients see
             </button>
           </div>
 
           <Card className="divide-y divide-line">
             {[
+              { icon: <Briefcase size={18} />, label: 'Practice setup', sub: modeLabels(modesOf(physio)).join(' · '), to: '/app/profile/clinic' },
+              { icon: <CalendarClock size={18} />, label: 'Availability', sub: 'Weekly hours, breaks and booking rules', to: '/app/profile/availability' },
+              { icon: <UsersRound size={18} />, label: 'Group sessions', to: '/app/groups' },
+              { icon: <ReceiptIndianRupee size={18} />, label: 'Invoices & billing', to: '/app/invoices' },
+              { icon: <GraduationCap size={18} />, label: 'PhysioPreneurship course', sub: `${course.done} of ${course.total} lessons`, to: '/app/learn' },
+              { icon: <MessageSquare size={18} />, label: 'Community', to: '/app/community' },
               { icon: <Gift size={18} />, label: 'Refer a physio', to: '/app/refer' },
               { icon: <Handshake size={18} />, label: 'Partner with Betterhood', to: '/app/partner' },
             ].map((r) => (
               <button key={r.to} onClick={() => nav(r.to)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
                 <span className="text-brand">{r.icon}</span>
-                <span className="flex-1">{r.label}</span>
+                <span className="min-w-0 flex-1">
+                  {r.label}
+                  {r.sub && <span className="block truncate text-[12px] text-muted">{r.sub}</span>}
+                </span>
                 <ChevronRight size={17} className="text-muted" />
               </button>
             ))}

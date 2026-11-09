@@ -17,7 +17,7 @@ export default function Welcome() {
         <span className="hidden lg:inline">Welcome to Betterhood</span>
       </h1>
       <p className="mt-4 text-[16px] leading-relaxed text-muted">
-        <span className="lg:hidden">Build exercise plans, send prescriptions and confirm bookings on WhatsApp — all under your name.</span>
+        <span className="lg:hidden">Build exercise plans, send treatment plans and confirm bookings on WhatsApp — all under your name.</span>
         <span className="hidden lg:inline">Sign up in under a minute with your mobile number. No passwords, no long forms.</span>
       </p>
       <div className="flex-1 lg:hidden" />

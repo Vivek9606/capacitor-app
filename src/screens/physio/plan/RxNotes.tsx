@@ -1,15 +1,17 @@
+import { FileSignature } from 'lucide-react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { RxDocument } from '../../../components/RxDocument'
 import { Page } from '../../../components/Shell'
 import { Button, Card, Chip, Footer, Input, Label, PageHeader, TextArea, Toggle } from '../../../components/ui'
 import { addDays, today } from '../../../lib/dates'
+import { missingForModalities } from '../../../lib/consents'
 import { firstName } from '../../../lib/logic'
 import { useMe, useStore } from '../../../lib/store'
 import type { Rx } from '../../../lib/types'
 
 const MODALITIES = ['Heat', 'IFT', 'TENS', 'Ultrasound', 'Taping', 'Dry needling', 'Manual therapy']
 
-// R3 · Prescription & notes (step 2 of 3, or step 1 of 2 for "Prescription only")
+// R3 · Treatment plan & notes (step 2 of 3, or step 1 of 2 for "Treatment plan only")
 export default function RxNotes() {
   const store = useStore()
   const { physio } = useMe()
@@ -21,11 +23,12 @@ export default function RxNotes() {
   const rxOnly = draft.items.length === 0
   const rx = draft.rx
   const set = (patch: Partial<Rx>) => store.updateDraft({ rx: { ...rx, ...patch } })
+  const missing = missingForModalities(store.db.consents, patient.id, rx.modalities)
   const valid = rxOnly ? !!(rx.diagnosis.trim() || rx.advice.trim()) : true
 
   return (
     <Page wide>
-      <PageHeader title="Prescription & notes" subtitle={rxOnly ? `For ${firstName(patient.name)} · Step 1 of 2` : 'Step 2 of 3'} />
+      <PageHeader title="Treatment plan & notes" subtitle={rxOnly ? `For ${firstName(patient.name)} · Step 1 of 2` : 'Step 2 of 3'} />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-4">
           <Input label="Diagnosis" value={rx.diagnosis} onChange={(e) => set({ diagnosis: e.target.value })} placeholder="Mechanical LBP, L4–L5" />
@@ -49,6 +52,17 @@ export default function RxNotes() {
                 </Chip>
               ))}
             </div>
+            {missing.map((f) => (
+              <div key={f.id} className="mt-3 flex items-center gap-3 rounded-2xl bg-accent-soft p-3.5">
+                <FileSignature size={18} className="shrink-0 text-accent" />
+                <div className="min-w-0 flex-1 text-[14px]">
+                  <b>{f.title}</b> needs signed consent from {firstName(patient.name)}.
+                </div>
+                <button className="shrink-0 text-[13px] font-semibold text-brand cursor-pointer" onClick={() => nav(`/app/patients/${patient.id}/consent`, { state: { formId: f.id } })}>
+                  Take consent
+                </button>
+              </div>
+            ))}
           </div>
           <div>
             <h3 className="mb-3 text-[16px] font-semibold">Follow-up</h3>
@@ -101,7 +115,7 @@ export default function RxNotes() {
         </div>
         <div className="hidden lg:block">
           <div className="sticky top-6">
-            <div className="mb-2 text-[13px] font-medium text-muted">Live preview · PDF the patient can download</div>
+            <div className="mb-2 text-[13px] font-medium text-muted">Live preview · treatment plan PDF the patient can download</div>
             <RxDocument rx={rx} physio={physio} patient={patient} items={draft.items} exercises={store.db.exercises} date={today()} />
           </div>
         </div>

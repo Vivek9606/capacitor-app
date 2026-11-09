@@ -187,7 +187,7 @@ export default function Build() {
 
       <Footer className="lg:mt-6 lg:flex lg:justify-end">
         <Button block className="lg:w-[400px]" disabled={draft.items.length === 0} onClick={() => nav('/app/plan/rx')}>
-          Next: add Rx notes
+          Next: add treatment plan
         </Button>
       </Footer>
 

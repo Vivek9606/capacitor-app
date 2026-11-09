@@ -1,10 +1,11 @@
-import { CalendarDays, Navigation, Plus } from 'lucide-react'
+import { CalendarDays, ChevronRight, MapPin, Navigation, Plus, UsersRound } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookingBadge, VISIT_LABEL } from '../../components/bits'
 import { Page } from '../../components/Shell'
-import { Button, Card, Empty, PageHeader, SectionTitle, Sheet, TextArea } from '../../components/ui'
-import { fmtDay, fmtTime, relDay } from '../../lib/dates'
+import { Badge, Button, Card, Empty, PageHeader, SectionTitle, Sheet, TextArea } from '../../components/ui'
+import { inr } from '../../lib/invoices'
+import { fmtDay, fmtShort, fmtTime, relDay } from '../../lib/dates'
 import { firstName } from '../../lib/logic'
 import { patientView } from '../../lib/patientData'
 import { haptic, openMaps, toast } from '../../lib/platform'
@@ -89,7 +90,27 @@ export default function Appointments() {
           )}
         </div>
         <div>
-          <SectionTitle className="lg:mt-0">Past visits</SectionTitle>
+          {v.upcomingGroups.length > 0 && (
+            <>
+              <SectionTitle className="lg:mt-0">Group classes</SectionTitle>
+              <div className="mb-2 flex flex-col gap-3">
+                {v.upcomingGroups.map((g) => (
+                  <Card key={g.id} className="p-4">
+                    <div className="flex items-center gap-2 text-[16px] font-semibold">
+                      <UsersRound size={17} className="text-brand" /> {g.title}
+                    </div>
+                    <div className="mt-0.5 text-[13px] text-muted">
+                      {relDay(g.date)} · {fmtTime(g.time)} · {g.minutes} min
+                    </div>
+                    <div className="mt-1 flex items-center gap-1 text-[13px] text-muted">
+                      <MapPin size={13} /> {g.location}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
+          <SectionTitle className={v.upcomingGroups.length ? undefined : 'lg:mt-0'}>Past visits</SectionTitle>
           {v.past.length === 0 ? (
             <p className="text-[14px] text-muted">No past visits yet.</p>
           ) : (
@@ -100,13 +121,32 @@ export default function Appointments() {
                     <div className="text-[15px] font-medium">{fmtDay(b.date)}</div>
                     <div className="text-[13px] text-muted">{b.reason ?? VISIT_LABEL[b.visitType]}</div>
                   </div>
-                  <span className="text-[13px] text-muted">{fmtTime(b.time)}</span>
+                  {b.status === 'no_show' ? <Badge tone="warn">Missed</Badge> : <span className="text-[13px] text-muted">{fmtTime(b.time)}</span>}
                 </div>
               ))}
             </Card>
           )}
         </div>
       </div>
+      {v.invoices.length > 0 && (
+        <>
+          <SectionTitle>Bills</SectionTitle>
+          <Card className="divide-y divide-line lg:max-w-[560px]">
+            {v.invoices.map((i) => (
+              <button key={i.id} onClick={() => nav(`/me/invoices/${i.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[15px] font-medium">
+                    {inr(i.total)} · {fmtShort(i.date)}
+                  </div>
+                  <div className="truncate text-[13px] text-muted">{i.items.map((x) => x.description).join(', ')}</div>
+                </div>
+                <Badge tone={i.status === 'paid' ? 'ok' : 'accent'}>{i.status === 'paid' ? 'Paid' : 'Due'}</Badge>
+                <ChevronRight size={17} className="text-muted" />
+              </button>
+            ))}
+          </Card>
+        </>
+      )}
       <div className="h-6" />
 
       <Sheet open={!!resched} onClose={() => setResched(undefined)} title="Ask to reschedule">
