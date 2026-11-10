@@ -21,7 +21,9 @@ export default function Ask() {
     if (patient && unread) store.markRead(patient.id, 'patient')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unread])
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [messages.length])
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' })
+  }, [messages.length])
 
   if (!patient || !physio) return null
   const doc = `Dr. ${firstName(physio.name)}`
