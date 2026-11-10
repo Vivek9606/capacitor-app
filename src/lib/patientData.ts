@@ -5,6 +5,7 @@ import type { DB, Patient } from './types'
 /** Everything the patient app needs, derived from the DB. */
 export function patientView(db: DB, patient: Patient) {
   const t = today()
+  // Only used for patients with a physio (self sign-ups without one see SoloHome).
   const physio = db.physios.find((p) => p.id === patient.physioId)!
   const plan = db.plans.find((p) => p.patientId === patient.id && p.status === 'active')
   const pastPlans = db.plans.filter((p) => p.patientId === patient.id && p.status !== 'active' && p.items.length > 0)

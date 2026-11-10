@@ -53,6 +53,11 @@ export function openWhatsApp(phone: string | undefined, text: string) {
   window.open(url, '_blank', 'noopener')
 }
 
+/** Open a betterhood.in / shop page in the browser (outside the app). */
+export function openLink(url: string) {
+  window.open(url, '_blank', 'noopener')
+}
+
 export function openMaps(query: string) {
   window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank', 'noopener')
 }

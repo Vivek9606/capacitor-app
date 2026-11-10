@@ -1,7 +1,7 @@
 // Domain types. Shaped to map 1:1 onto Supabase tables later
 // (physios, patients, exercises, plans, session_logs, bookings, messages, referrals).
 
-export type Role = 'physio' | 'patient'
+export type Role = 'physio' | 'patient' | 'admin'
 
 export type VisitType = 'in_clinic' | 'home_visit' | 'teleconsult'
 
@@ -81,7 +81,8 @@ export interface Physio {
 
 export interface Patient {
   id: string
-  physioId: string
+  /** Empty for someone who signed up on their own and hasn't been assigned a physio yet. */
+  physioId?: string
   phone: string
   name: string
   age?: number
@@ -92,6 +93,27 @@ export interface Patient {
   visits: number
   linkToken: string // token in the WhatsApp plan link
   consentAt?: string
+  createdAt: string
+  city?: string
+  email?: string
+  /** Joined on their own (not added by a physio). */
+  selfSignup?: boolean
+  /** Physio matching for self-signups: suggested from the assessment, confirmed by an admin. */
+  match?: { status: 'pending' | 'suggested' | 'confirmed'; suggestedPhysioId?: string }
+}
+
+/** A betterhood pain-assessment result. */
+export interface Assessment {
+  id: string
+  patientId: string
+  slug: string
+  area: 'back' | 'neck' | 'shoulder' | 'knee'
+  title: string
+  cat?: 'muscle' | 'nerve' | 'bone' | 'joint'
+  condition?: string
+  result?: string // betterhood.in result page slug
+  advisory?: string
+  totals: Record<string, number>
   createdAt: string
 }
 
@@ -312,6 +334,7 @@ export interface DB {
   groups: GroupSession[]
   invoices: Invoice[]
   consents: Consent[]
+  assessments: Assessment[]
   draft?: PlanDraft
 }
 

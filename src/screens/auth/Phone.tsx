@@ -79,6 +79,10 @@ export default function Phone() {
             <button type="button" className="underline cursor-pointer" onClick={() => setPhone(DEMO.patientPhone)}>
               {DEMO.patientPhone}
             </button>
+            , patient awaiting a physio{' '}
+            <button type="button" className="underline cursor-pointer" onClick={() => setPhone(DEMO.soloPatientPhone)}>
+              {DEMO.soloPatientPhone}
+            </button>
             , or any new number to sign up. OTP is {DEMO.otp}.
           </div>
         </div>)}

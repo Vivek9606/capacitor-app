@@ -286,3 +286,85 @@ select:focus-visible {
     background: #fff;
   }
 }
+
+/* ---------- Assessment content (HTML from the betterhood.in assessment forms) ---------- */
+.qz-html h2,
+.qz-html .assessment_heading {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+.qz-html h2 span,
+.qz-html h3 span {
+  color: var(--color-brand-bright);
+  font-style: italic;
+  font-weight: 500;
+}
+.qz-html h3 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.qz-html h4 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 650;
+  color: var(--color-brand);
+}
+.qz-html p {
+  margin-top: 10px;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.qz-html img {
+  margin-top: 12px;
+  max-height: 260px;
+  width: auto;
+  border-radius: 14px;
+}
+.qz-consent {
+  border-radius: 14px;
+  background: var(--color-brand-soft);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+.qz-consent a {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+.qz-aside .dyk_wrapper {
+  border: 1px solid #ffe2a8;
+  border-radius: 18px;
+  background: var(--color-warn-soft);
+  padding: 16px 18px;
+}
+.qz-aside .heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qz-aside .heading img {
+  width: 30px;
+  height: 30px;
+}
+.qz-aside h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 650;
+}
+.qz-aside h3 span {
+  color: var(--color-warn);
+  font-style: italic;
+}
+.qz-aside p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-ink);
+}

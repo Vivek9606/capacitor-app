@@ -7,7 +7,8 @@ import { DEMO, seed } from './seed'
 import { formById } from './consents'
 import { nextInvoiceNumber, totals } from './invoices'
 import { nowHHMM } from './slots'
-import type { Block, Booking, Consent, DB, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, PlanDraft, Role, Session, SessionLog } from './types'
+import { suggestPhysio } from './match'
+import type { Assessment, Block, Booking, Consent, DB, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, PlanDraft, Role, Session, SessionLog } from './types'
 
 /**
  * App data layer. Screens read `db` synchronously and call actions; each action updates local
@@ -16,10 +17,10 @@ import type { Block, Booking, Consent, DB, GroupParticipant, GroupParticipantSta
  * Without VITE_API_URL the app runs fully offline on seeded demo data in localStorage.
  */
 
-const DB_KEY = apiMode ? 'bh-cache-v2' : 'bh-demo-db-v2'
+const DB_KEY = apiMode ? 'bh-cache-v2' : 'bh-demo-db-v4'
 const SESSION_KEY = apiMode ? 'bh-auth-v1' : 'bh-session-v1'
 
-const EMPTY: DB = { physios: [], patients: [], exercises: [], plans: [], sessions: [], bookings: [], messages: [], referrals: [], templates: [], blocks: [], groups: [], invoices: [], consents: [] }
+const EMPTY: DB = { physios: [], patients: [], exercises: [], plans: [], sessions: [], bookings: [], messages: [], referrals: [], templates: [], blocks: [], groups: [], invoices: [], consents: [], assessments: [] }
 
 function load<T>(key: string): T | undefined {
   try {
@@ -68,6 +69,17 @@ export interface NewPatientInput {
   condition?: string
 }
 
+export interface NewSelfPatientInput {
+  phone: string
+  name: string
+  age?: number
+  sex?: Patient['sex']
+  city?: string
+  signupToken?: string
+}
+
+export type NewAssessmentInput = Omit<Assessment, 'id' | 'patientId' | 'createdAt'>
+
 export type OtpResult = { role: Role } | { signup: true; signupToken?: string }
 
 interface Bootstrap {
@@ -75,7 +87,7 @@ interface Bootstrap {
   db: DB
 }
 
-type Coll = 'physios' | 'patients' | 'plans' | 'sessions' | 'bookings' | 'messages' | 'referrals' | 'templates' | 'blocks' | 'groups' | 'invoices' | 'consents'
+type Coll = 'physios' | 'patients' | 'plans' | 'sessions' | 'bookings' | 'messages' | 'referrals' | 'templates' | 'blocks' | 'groups' | 'invoices' | 'consents' | 'assessments'
 
 interface Ctl {
   setDb: (fn: (d: DB) => DB) => void
@@ -203,6 +215,69 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       return id
     },
 
+    /** A patient joining on their own, without a physio. They take an assessment next. */
+    async signupPatient(input: NewSelfPatientInput): Promise<string> {
+      if (apiMode) {
+        const r = await api<{ token: string; userId: string; role: Role }>('/auth/signup-patient', {
+          body: { signupToken: input.signupToken, name: input.name, age: input.age, sex: input.sex, city: input.city || undefined },
+        })
+        await startSession({ role: r.role, userId: r.userId, token: r.token })
+        return r.userId
+      }
+      const id = uid('pt')
+      mutate((d) => {
+        d.patients.push({
+          id,
+          phone: input.phone,
+          name: input.name,
+          age: input.age,
+          sex: input.sex,
+          city: input.city || undefined,
+          since: today(),
+          tags: [],
+          visits: 0,
+          linkToken: `self-${id.slice(-6)}`,
+          consentAt: nowTs(),
+          createdAt: nowTs(),
+          selfSignup: true,
+          match: { status: 'pending' },
+        })
+      })
+      setSession({ role: 'patient', userId: id })
+      return id
+    },
+
+    /** Save an assessment result. Someone without a physio gets one suggested for the admin to confirm. */
+    saveAssessment(patientId: string, input: NewAssessmentInput): string {
+      const id = uid('as')
+      mutate((d) => {
+        d.assessments.push({ ...input, id, patientId, createdAt: nowTs() })
+        const p = d.patients.find((x) => x.id === patientId)
+        if (p && !p.physioId && p.match?.status !== 'confirmed') {
+          const sug = suggestPhysio(d, input.cat, p.city)
+          p.match = sug ? { status: 'suggested', suggestedPhysioId: sug } : { status: 'pending' }
+          p.condition ??= input.condition
+        }
+      })
+      remote(async (token) => {
+        const r = await api<{ assessment: Assessment; patient: Patient }>('/patient/assessments', { body: { id, ...input }, token })
+        put('assessments', r.assessment)
+        put('patients', r.patient)
+      })
+      return id
+    },
+
+    /** Demo mode only: the admin dashboard confirms a physio (API mode calls the admin endpoint itself). */
+    adminAssignDemo(patientId: string, physioId: string) {
+      mutate((d) => {
+        const p = d.patients.find((x) => x.id === patientId)
+        if (p) {
+          p.physioId = physioId
+          p.match = { status: 'confirmed', suggestedPhysioId: physioId }
+        }
+      })
+    },
+
     // ---------- physio ----------
     updatePhysio(id: string, patch: Partial<Physio>) {
       mutate((d) => {
@@ -218,6 +293,17 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     addPatient(physioId: string, input: NewPatientInput): string {
       const existing = db.patients.find((p) => p.phone === input.phone && p.physioId === physioId)
       if (existing) return existing.id
+      // Someone who signed up on their own: this physio takes them on (keeps their assessments).
+      const solo = db.patients.find((p) => p.phone === input.phone && !p.physioId)
+      if (solo) {
+        mutate((d) => {
+          const p = d.patients.find((x) => x.id === solo.id)!
+          p.physioId = physioId
+          p.match = { status: 'confirmed' }
+        })
+        remote((token) => api<Patient>('/physio/patients', { body: input, token }).then((row) => put('patients', row)))
+        return solo.id
+      }
       const id = uid('pt')
       mutate((d) => {
         d.patients.push({

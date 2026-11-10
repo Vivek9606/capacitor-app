@@ -10,6 +10,7 @@ import { firstName } from '../../lib/logic'
 import { patientView, estMinutes } from '../../lib/patientData'
 import { isNative, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
+import SoloHome from './SoloHome'
 
 function readDismissed() {
   try {
@@ -26,6 +27,7 @@ export default function Today() {
   const nav = useNavigate()
   const [bannerHidden, setBannerHidden] = useState(readDismissed)
   if (!patient) return null
+  if (!patient.physioId) return <SoloHome patient={patient} />
   const v = patientView(store.db, patient)
   const doc = `Dr. ${firstName(v.physio.name)}`
   const next = v.upcoming[0]

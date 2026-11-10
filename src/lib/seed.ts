@@ -245,7 +245,7 @@ export function seed(): DB {
         verification: 'pending',
         focusAreas: ['Orthopaedic', 'Sports'],
         practiceSettings: ['Own clinic', 'Home visits'],
-        practice: { modes: ['clinic', 'home'], serviceArea: 'Indiranagar, Domlur, HAL 2nd Stage', travelBufferMin: 20 },
+        practice: { modes: ['clinic', 'home'], serviceArea: 'Indiranagar, Domlur, HAL 2nd Stage, Bengaluru', travelBufferMin: 20 },
         slug: 'ananya-rao',
         consult: { inClinic: { enabled: true, fee: 800, minutes: 45 }, homeVisit: { enabled: true, fee: 1200, radiusKm: 5, minutes: 60 } },
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -272,8 +272,30 @@ export function seed(): DB {
         communityTopics: [],
         createdAt: ts(30),
       },
+      {
+        id: 'ph_kabir',
+        phone: '9876500011',
+        name: 'Dr. Kabir Menon',
+        qualification: 'MPT (Neuro)',
+        experienceYrs: 11,
+        verification: 'verified',
+        focusAreas: ['Neuro', 'Geriatric'],
+        practiceSettings: ['Own clinic'],
+        practice: { modes: ['clinic'] },
+        clinic: { name: 'Menon Neuro Rehab', address: '14, 5th Block, Koramangala, Bengaluru', area: 'Koramangala' },
+        slug: 'kabir-menon',
+        consult: { inClinic: { enabled: true, fee: 900, minutes: 45 }, homeVisit: { enabled: false, fee: 1200, radiusKm: 5, minutes: 60 } },
+        workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        inviteCode: 'KABIR-BH',
+        partnerOptIns: [],
+        communityWaitlist: false,
+        communityTopics: [],
+        createdAt: ts(90),
+      },
     ],
     patients: [
+      // Signed up on their own; took the back-pain assessment; waiting for an admin to confirm her physio.
+      { id: 'pt_divya', phone: '9812300099', name: 'Divya Menon', age: 29, sex: 'F', city: 'Bengaluru', condition: 'Nerve Compression', since: t, tags: [], visits: 0, linkToken: 'divya-self', consentAt: ts(1), createdAt: ts(1), selfSignup: true, match: { status: 'suggested', suggestedPhysioId: 'ph_kabir' } },
       { id: 'pt_riya', physioId, phone: '9845011223', name: 'Riya Sharma', age: 32, sex: 'F', condition: 'Lower back pain · L4–L5', since: '2026-09-02', tags: ['Desk job'], visits: 4, linkToken: 'riya-3wk', consentAt: ts(14, 18, 20), createdAt: ts(60) },
       { id: 'pt_karan', physioId, phone: '9886055667', name: 'Karan Shah', age: 54, sex: 'M', condition: 'Frozen shoulder (R)', since: '2026-10-20', tags: ['Diabetic'], visits: 2, linkToken: 'karan-4wk', createdAt: ts(20) },
       { id: 'pt_arjun', physioId, phone: '9900122334', name: 'Arjun Mehta', age: 24, sex: 'M', condition: 'ACL reconstruction · 6 wks', since: iso(new Date(Date.now() - 3 * 86400000)), tags: ['Footballer'], visits: 1, linkToken: 'arjun-acl', createdAt: ts(3) },
@@ -299,6 +321,10 @@ export function seed(): DB {
     groups,
     invoices,
     consents,
+    assessments: [
+      { id: 'as_divya', patientId: 'pt_divya', slug: 'assessment-lower-back-pain', area: 'back', title: 'Lower back pain', cat: 'nerve', condition: 'Nerve Compression', result: 'result-lower-back-pain-nerve', totals: { muscle: 6, nerve: 14, bone: 2, joint: 5 }, createdAt: ts(1) },
+      { id: 'as_riya', patientId: 'pt_riya', slug: 'assessment-lower-back-pain', area: 'back', title: 'Lower back pain', cat: 'muscle', condition: 'Muscular Imbalance', result: 'result-lower-back-pain-muscle', totals: { muscle: 12, nerve: 4, bone: 1, joint: 3 }, createdAt: ts(62) },
+    ],
   }
 }
 
@@ -313,4 +339,8 @@ export const DEMO = {
   patientPhone: '9845011223',
   patientLink: '/plan/riya-3wk',
   otp: '123456',
+  /** Self-signed-up patient waiting for a physio. */
+  soloPatientPhone: '9812300099',
+  /** Admin dashboard (/admin) sign-in in demo mode. */
+  adminPhone: '9000000001',
 }

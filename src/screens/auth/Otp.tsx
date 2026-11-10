@@ -49,7 +49,11 @@ export default function Otp() {
     try {
       const r = await store.verifyOtp(phone, c)
       haptic('success')
-      if ('signup' in r) nav('/setup', { replace: true, state: { phone, signupToken: r.signupToken } })
+      if ('signup' in r) {
+        const st = { phone, signupToken: r.signupToken }
+        const to = state?.intent === 'patient' ? '/signup/patient' : state?.intent === 'physio' || state?.intent === 'signup' ? '/setup' : '/start'
+        nav(to, { replace: true, state: st })
+      }
       else nav(state?.next ?? (r.role === 'physio' ? '/app' : '/me'), { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That code didn’t match. Check WhatsApp and try again.')

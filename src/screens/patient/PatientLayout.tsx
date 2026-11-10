@@ -1,6 +1,6 @@
-import { CalendarDays, ClipboardList, House, User } from 'lucide-react'
+import { CalendarDays, ClipboardList, Compass, House, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { Logo } from '../../components/Logo'
 import { Shell, type NavItem } from '../../components/Shell'
 import { Avatar, Button, Card, Checkbox } from '../../components/ui'
@@ -11,15 +11,25 @@ const ITEMS: NavItem[] = [
   { to: '/me', label: 'Today', icon: House, end: true },
   { to: '/me/plan', label: 'My plan', icon: ClipboardList },
   { to: '/me/appointments', label: 'Visits', icon: CalendarDays },
+  { to: '/me/explore', label: 'Explore', icon: Compass },
   { to: '/me/profile', label: 'Profile', icon: User },
 ]
 
-const FLOW = [/^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//]
+/** Signed up on their own, no physio yet: assessment, store and tools only. */
+const SOLO_ITEMS: NavItem[] = [
+  { to: '/me', label: 'Home', icon: House, end: true },
+  { to: '/me/explore', label: 'Explore', icon: Compass },
+  { to: '/me/profile', label: 'Profile', icon: User },
+]
+const SOLO_OK = [/^\/me\/?$/, /^\/me\/(explore|profile|assess)/]
+
+const FLOW = [/^\/me\/assess\//, /^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//]
 
 export default function PatientLayout() {
   const { patient, physio, session } = useMe()
   const store = useStore()
-  const myPhysio = patient && store.db.physios.find((p) => p.id === patient.physioId)
+  const loc = useLocation()
+  const myPhysio = patient?.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
 
   useEffect(() => {
     if (patient?.consentAt) store.markPlansOpened(patient.id)
@@ -28,7 +38,12 @@ export default function PatientLayout() {
 
   if (!session) return <Navigate to="/welcome" replace />
   if (physio) return <Navigate to="/app" replace />
-  if (!patient || !myPhysio) return <Navigate to="/welcome" replace />
+  if (!patient) return <Navigate to="/welcome" replace />
+
+  if (!myPhysio) {
+    if (!SOLO_OK.some((r) => r.test(loc.pathname))) return <Navigate to="/me" replace />
+    return <Shell items={SOLO_ITEMS} hideTabsOn={(p) => FLOW.some((r) => r.test(p))} user={{ name: patient.name, sub: 'Finding your physio' }} />
+  }
   if (!patient.consentAt) return <ConsentGate />
 
   return (

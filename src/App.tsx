@@ -3,14 +3,21 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { initNative, listenDeepLinks, registerToast } from './lib/platform'
 import { StoreProvider, useMe } from './lib/store'
+import Admin from './screens/admin/Admin'
 import Join from './screens/auth/Join'
 import Otp from './screens/auth/Otp'
 import Phone from './screens/auth/Phone'
+import PatientSignup from './screens/auth/PatientSignup'
 import PlanLink from './screens/auth/PlanLink'
+import RoleChoice from './screens/auth/RoleChoice'
 import Setup from './screens/auth/Setup'
 import Welcome from './screens/auth/Welcome'
 import Appointments from './screens/patient/Appointments'
 import Ask from './screens/patient/Ask'
+import AssessPick from './screens/patient/assess/AssessPick'
+import AssessResult from './screens/patient/assess/AssessResult'
+import AssessRun from './screens/patient/assess/AssessRun'
+import Explore from './screens/patient/Explore'
 import Book from './screens/patient/Book'
 import ConsentSign from './screens/patient/ConsentSign'
 import PatientInvoice from './screens/patient/PatientInvoice'
@@ -123,6 +130,10 @@ export default function App() {
           <Route path="/login" element={<GuestOnly><Phone /></GuestOnly>} />
           <Route path="/login/verify" element={<Otp />} />
           <Route path="/setup" element={<Setup />} />
+          <Route path="/start" element={<RoleChoice />} />
+          <Route path="/signup/patient" element={<PatientSignup />} />
+          {/* Web-only admin dashboard */}
+          <Route path="/admin" element={<Admin />} />
 
           {/* Public, no login: WhatsApp links land here */}
           <Route path="/plan/:token" element={<PlanLink />} />
@@ -174,6 +185,10 @@ export default function App() {
             <Route path="book" element={<Book />} />
             <Route path="ask" element={<Ask />} />
             <Route path="profile" element={<PatientProfile />} />
+            <Route path="explore" element={<Explore />} />
+            <Route path="assess" element={<AssessPick />} />
+            <Route path="assess/result/:id" element={<AssessResult />} />
+            <Route path="assess/:slug" element={<AssessRun />} />
             <Route path="consents/:id" element={<ConsentSign />} />
             <Route path="invoices/:id" element={<PatientInvoice />} />
           </Route>

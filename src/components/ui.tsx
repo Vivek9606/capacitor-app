@@ -293,7 +293,7 @@ export function Label({ children }: { children: ReactNode }) {
   return <div className="mb-1.5 text-[13px] font-medium text-muted">{children}</div>
 }
 
-export function Input({ label, className, prefix, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label?: string; prefix?: ReactNode }) {
+export function Input({ label, className, prefix, ...rest }: Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { label?: string; prefix?: ReactNode }) {
   return (
     <label className="block">
       {label && <Label>{label}</Label>}

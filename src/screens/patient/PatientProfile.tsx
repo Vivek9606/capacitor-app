@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink, LogOut, MessageCircle, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, ExternalLink, LogOut, MessageCircle, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
 import { Avatar, Badge, Card, PageHeader, SectionTitle } from '../../components/ui'
@@ -17,9 +17,10 @@ export default function PatientProfile() {
   const store = useStore()
   const nav = useNavigate()
   if (!patient) return null
-  const physio = store.db.physios.find((p) => p.id === patient.physioId)!
-  const doc = `Dr. ${firstName(physio.name)}`
-  const { consents } = patientView(store.db, patient)
+  const physio = patient.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
+  const doc = physio ? `Dr. ${firstName(physio.name)}` : 'your physio'
+  const consents = physio ? patientView(store.db, patient).consents : []
+  const assessments = store.db.assessments.filter((a) => a.patientId === patient.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
     <Page>
@@ -29,11 +30,12 @@ export default function PatientProfile() {
         <div>
           <div className="font-display text-[18px] font-bold">{patient.name}</div>
           <div className="text-[13px] text-muted">
-            {[patient.age, patient.sex, fmtPhone(patient.phone)].filter(Boolean).join(' · ')}
+            {[patient.age, patient.sex, patient.city, fmtPhone(patient.phone)].filter(Boolean).join(' · ')}
           </div>
         </div>
       </Card>
 
+      {physio && (<>
       <SectionTitle>My physio</SectionTitle>
       <Card className="p-4">
         <div className="flex items-center gap-3">
@@ -55,6 +57,28 @@ export default function PatientProfile() {
           </button>
         </div>
       </Card>
+      </>)}
+
+      <SectionTitle right={<button onClick={() => nav('/me/assess')} className="text-[13px] font-semibold text-brand cursor-pointer">New</button>}>My assessments</SectionTitle>
+      {assessments.length === 0 ? (
+        <Card className="flex items-center gap-3 p-4" onClick={() => nav('/me/assess')}>
+          <ClipboardCheck size={19} className="shrink-0 text-brand" />
+          <span className="flex-1 text-[14px]">Take a 5-minute pain assessment</span>
+          <ChevronRight size={17} className="text-muted" />
+        </Card>
+      ) : (
+        <Card className="divide-y divide-line">
+          {assessments.map((a) => (
+            <button key={a.id} onClick={() => nav(`/me/assess/result/${a.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-medium">{a.title}</div>
+                <div className="text-[13px] text-muted">{a.condition ?? 'Result'} · {fmtShort(a.createdAt.slice(0, 10))}</div>
+              </div>
+              <ChevronRight size={17} className="text-muted" />
+            </button>
+          ))}
+        </Card>
+      )}
 
       {consents.length > 0 && (
         <>
@@ -79,8 +103,12 @@ export default function PatientProfile() {
         <div className="flex items-start gap-3 p-4">
           <ShieldCheck size={19} className="mt-0.5 shrink-0 text-brand" />
           <div className="flex-1 text-[14px]">
-            <div className="font-semibold">Sharing progress with {doc}</div>
-            <div className="text-muted">Consent given {patient.consentAt ? fmtShort(patient.consentAt.slice(0, 10)) : '—'}. Only you and your physio see your health details.</div>
+            <div className="font-semibold">{physio ? `Sharing progress with ${doc}` : 'Your health details'}</div>
+            <div className="text-muted">
+              {physio
+                ? `Consent given ${patient.consentAt ? fmtShort(patient.consentAt.slice(0, 10)) : '—'}. Only you and your physio see your health details.`
+                : 'Your assessment answers are used only to match you with a physio. Only Betterhood’s care team and your physio see them.'}
+            </div>
           </div>
         </div>
         <button
