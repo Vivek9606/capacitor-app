@@ -91,7 +91,7 @@ export default function PlanLink() {
         <Card className="mt-6 overflow-hidden">
           <div className="bg-brand px-5 py-5 text-white">
             <div className="text-[13px] text-white/70">From {physio.name}, PT</div>
-            <div className="mt-1 text-[22px] font-semibold tracking-[-0.01em]">
+            <div className="mt-1 font-display text-[22px] font-bold tracking-[-0.01em]">
               {plan ? `Your ${plan.weeks}-week care plan` : 'Your care from ' + firstName(physio.name)}
             </div>
             {plan && (
@@ -111,7 +111,7 @@ export default function PlanLink() {
 
         {step === 'verify' ? (
           <>
-            <h1 className="mt-7 text-[24px] font-semibold tracking-[-0.01em]">Hi {preview.patientFirstName}, is this you?</h1>
+            <h1 className="mt-7 font-display text-[24px] font-bold tracking-[-0.01em]">Hi {preview.patientFirstName}, is this you?</h1>
             <p className="mt-2 text-[15px] leading-relaxed text-muted">
               To keep your health details private, enter the last 4 digits of the mobile number this plan was sent to.
             </p>
@@ -129,7 +129,7 @@ export default function PlanLink() {
                 placeholder="0000"
                 aria-label="Last 4 digits"
                 className={cx(
-                  'h-14 w-[120px] rounded-xl border bg-surface text-center text-[22px] font-semibold tracking-[0.3em] outline-none',
+                  'h-14 w-[120px] rounded-xl border bg-surface text-center font-display text-[22px] font-bold tracking-[0.3em] outline-none',
                   error ? 'border-danger' : 'border-line focus:border-brand',
                 )}
               />
@@ -150,7 +150,7 @@ export default function PlanLink() {
           </>
         ) : (
           <>
-            <h1 className="mt-7 text-[24px] font-semibold tracking-[-0.01em]">Before you start</h1>
+            <h1 className="mt-7 font-display text-[24px] font-bold tracking-[-0.01em]">Before you start</h1>
             <p className="mt-2 text-[15px] leading-relaxed text-muted">Here’s what happens with your plan in Betterhood.</p>
             <div className="mt-5 flex flex-col gap-3">
               {[
@@ -209,7 +209,7 @@ function LinkExpired() {
       <div className="grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-accent">
         <Lock size={24} />
       </div>
-      <h1 className="mt-4 text-[22px] font-semibold">This link has expired</h1>
+      <h1 className="mt-4 font-display text-[22px] font-bold">This link has expired</h1>
       <p className="mt-2 text-[15px] text-muted">Ask your physio to resend your plan, or log in with your mobile number.</p>
       <Button className="mt-6" onClick={() => nav('/login', { state: { intent: 'login' } })}>
         Log in with mobile

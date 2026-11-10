@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { BookingBadge, VISIT_LABEL } from '../../components/bits'
 import { ExerciseMedia } from '../../components/ExerciseMedia'
 import { Page } from '../../components/Shell'
-import { Avatar, Button, Card, Empty, SectionTitle, WeekDots } from '../../components/ui'
+import { Avatar, Button, Card, Empty, RefreshButton, SectionTitle, WeekDots } from '../../components/ui'
 import { fmtTime, greeting, relDay } from '../../lib/dates'
 import { firstName } from '../../lib/logic'
 import { patientView, estMinutes } from '../../lib/patientData'
@@ -45,12 +45,13 @@ export default function Today() {
       <header className="flex items-center gap-3">
         <div className="flex-1">
           <div className="text-[13px] text-muted lg:text-[15px]">{greeting()},</div>
-          <div className="text-[22px] font-semibold tracking-[-0.01em] lg:text-[28px]">{firstName(patient.name)}</div>
+          <div className="font-display text-[22px] font-bold tracking-[-0.01em] lg:text-[28px]">{firstName(patient.name)}</div>
         </div>
         <button onClick={() => nav('/me/profile')} className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3 cursor-pointer lg:hidden">
           <Avatar name={v.physio.name} photo={v.physio.photo} size={30} />
           <span className="text-[13px] font-medium">{doc}</span>
         </button>
+        <RefreshButton />
       </header>
 
       {v.pendingConsents.map((c) => (
@@ -71,13 +72,13 @@ export default function Today() {
               <Empty icon={<CalendarDays size={20} />} title="No active plan right now" body={`${doc} will send your next plan on WhatsApp. You can still book a visit or ask a question.`} />
             </Card>
           ) : v.todayLog?.status === 'done' ? (
-            <div className="rounded-[22px] bg-brand p-5 text-white">
+            <div className="bg-hero rounded-[24px] shadow-brand p-5 text-white">
               <div className="flex items-center gap-3">
                 <div className="anim-pop grid h-11 w-11 place-items-center rounded-full bg-ok">
                   <Check size={24} strokeWidth={3} />
                 </div>
                 <div>
-                  <div className="text-[18px] font-semibold">Done for today</div>
+                  <div className="font-display text-[18px] font-bold">Done for today</div>
                   <div className="text-[13px] text-white/75">
                     Pain logged: {v.todayLog.pain ?? '–'}/10 · {doc} can see your progress
                   </div>
@@ -86,11 +87,11 @@ export default function Today() {
               {v.nextSession && <div className="mt-4 text-[14px] text-white/80">Next session: {relDay(v.nextSession)}</div>}
             </div>
           ) : v.scheduledToday ? (
-            <div className="rounded-[22px] bg-brand p-5 text-white">
+            <div className="bg-hero rounded-[24px] shadow-brand p-5 text-white">
               <div className="text-[13px] text-white/70">
                 {v.plan.title} · Week {v.week} of {v.plan.weeks}
               </div>
-              <div className="mt-1 text-[22px] font-semibold leading-tight">Today’s session</div>
+              <div className="mt-1 font-display text-[22px] font-bold leading-tight">Today’s session</div>
               <div className="mt-1 text-[14px] text-white/80">
                 {v.plan.items.length} exercises · about {estMinutes(v.plan.items)} min
               </div>
@@ -116,7 +117,7 @@ export default function Today() {
                   <Moon size={20} />
                 </div>
                 <div>
-                  <div className="text-[18px] font-semibold">Rest day</div>
+                  <div className="font-display text-[18px] font-bold">Rest day</div>
                   <div className="text-[13px] text-muted">{v.nextSession ? `Next session: ${relDay(v.nextSession)}` : 'Your plan is complete'}</div>
                 </div>
               </div>
@@ -138,7 +139,7 @@ export default function Today() {
 
           {!isNative && v.hasDoneAnySession && !bannerHidden && (
             <div className="relative flex items-center gap-3 rounded-2xl border border-line bg-surface p-4">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand text-[18px] font-bold text-white">b</div>
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand font-display text-[18px] font-bold text-white">b</div>
               <div className="flex-1">
                 <div className="text-[15px] font-semibold">Get the Betterhood app</div>
                 <div className="text-[13px] text-muted">Reminders and offline videos. Optional — this page works too.</div>

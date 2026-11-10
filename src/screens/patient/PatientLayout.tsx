@@ -57,7 +57,7 @@ function ConsentGate() {
           <div className="font-semibold">{physio.name}</div>
         </div>
       </div>
-      <h1 className="mt-6 text-[24px] font-semibold">Hi {firstName(patient.name)}, one quick thing</h1>
+      <h1 className="mt-6 font-display text-[24px] font-bold">Hi {firstName(patient.name)}, one quick thing</h1>
       <p className="mt-2 text-[15px] text-muted">Your exercise progress and pain scores are shared with your physio so they can adjust your plan.</p>
       <Card className="mt-5 p-4">
         <Checkbox

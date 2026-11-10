@@ -73,7 +73,7 @@ export default function Otp() {
   return (
     <AuthLayout>
       <PageHeader title="Verify number" />
-      <h1 className="mt-2 text-[28px] font-semibold tracking-[-0.02em]">Enter the 6-digit code</h1>
+      <h1 className="mt-2 font-display text-[28px] font-bold tracking-[-0.02em]">Enter the 6-digit code</h1>
       <div className="mt-3 flex items-center justify-between text-[15px] text-muted">
         <span>Sent on WhatsApp to {fmtPhone(phone)}</span>
         <button className="font-semibold text-brand cursor-pointer" onClick={() => nav('/login', { state: { intent: state.intent } })}>
@@ -100,7 +100,7 @@ export default function Otp() {
             <div
               key={i}
               className={cx(
-                'grid h-14 place-items-center rounded-xl border bg-surface text-[22px] font-semibold',
+                'grid h-14 place-items-center rounded-xl border bg-surface font-display text-[22px] font-bold',
                 error ? 'border-danger' : i === code.length ? 'border-2 border-brand' : 'border-line',
               )}
             >

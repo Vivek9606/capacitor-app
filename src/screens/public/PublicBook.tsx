@@ -23,7 +23,7 @@ export default function PublicBook() {
     return (
       <div className="mx-auto max-w-[480px] px-6 py-20 text-center">
         <Logo className="justify-center" />
-        <h1 className="mt-8 text-[22px] font-semibold">Booking page not found</h1>
+        <h1 className="mt-8 font-display text-[22px] font-bold">Booking page not found</h1>
         <p className="mt-2 text-muted">This link may have changed.</p>
       </div>
     )

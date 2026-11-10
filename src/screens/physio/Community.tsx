@@ -18,7 +18,7 @@ export default function Community() {
 
   return (
     <Page wide>
-      <h1 className="pb-4 text-[26px] font-semibold tracking-[-0.01em] lg:text-[28px]">Community</h1>
+      <h1 className="pb-4 font-display text-[26px] font-bold tracking-[-0.01em] lg:text-[28px]">Community</h1>
       <div className="lg:grid lg:grid-cols-2 lg:gap-10">
         <div className="rounded-[22px] bg-brand-soft p-4 lg:self-start">
           <div className="rounded-2xl bg-surface p-4">
@@ -48,7 +48,7 @@ export default function Community() {
 
         <div>
           <span className="mt-6 inline-block rounded-full bg-accent px-2.5 py-1 text-[12px] font-bold tracking-wide text-white lg:mt-0">COMING SOON</span>
-          <h2 className="mt-3 text-[26px] font-semibold leading-tight tracking-[-0.01em]">The Physio Forum is coming soon</h2>
+          <h2 className="mt-3 font-display text-[26px] font-bold leading-tight tracking-[-0.01em]">The Physio Forum is coming soon</h2>
           <p className="mt-2 text-[15px] leading-relaxed text-muted">Discuss real cases with peers and build a searchable knowledge base for Indian physios.</p>
           <div className="mt-5 flex flex-col gap-3.5">
             {[
@@ -108,7 +108,7 @@ export default function Community() {
           <div className="anim-pop grid h-14 w-14 place-items-center rounded-full bg-ok text-white">
             <Check size={28} strokeWidth={3} />
           </div>
-          <h2 className="mt-4 text-[22px] font-semibold">You’re on the list</h2>
+          <h2 className="mt-4 font-display text-[22px] font-bold">You’re on the list</h2>
           <p className="mt-1 text-[14px] text-muted">We’ll tell you on WhatsApp the day it opens. Early members get a Founding Member badge.</p>
         </div>
         <div className="mt-5 rounded-2xl border border-line bg-surface p-4">

@@ -61,12 +61,12 @@ export function Shell({
     <Ctx.Provider value={{ openCreate }}>
       <div className="min-h-full lg:flex">
         {/* Desktop sidebar */}
-        <aside className="no-print sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line bg-surface px-4 py-6 lg:flex">
+        <aside className="no-print sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col border-r border-line/70 bg-glass px-4 py-6 lg:flex">
           <Logo tag={tag} className="px-2" />
           {createSheet && (
             <button
               onClick={openCreate}
-              className="mt-7 flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand font-semibold text-white hover:bg-brand-ink cursor-pointer"
+              className="pressable mt-7 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#7a2a6c] to-brand font-semibold text-white shadow-brand hover:to-brand-ink cursor-pointer"
             >
               <Plus size={20} /> Create
             </button>
@@ -88,7 +88,7 @@ export function Shell({
               </nav>
             </>
           )}
-          <div className="mt-auto flex items-center gap-3 rounded-2xl bg-bg p-3">
+          <div className="mt-auto flex items-center gap-3 rounded-2xl border border-line/70 bg-surface p-3 shadow-card">
             <Avatar name={user.name} photo={user.photo} size={38} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-[14px] font-semibold">{user.name}</div>
@@ -110,16 +110,18 @@ export function Shell({
 
         {/* Content */}
         <main
-          className={cx('min-w-0 flex-1 safe-top', showTabs ? 'pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0' : '')}
-          style={{ ['--tabbar-h' as string]: showTabs ? 'calc(76px + env(safe-area-inset-bottom))' : '0px' }}
+          className={cx('min-w-0 flex-1 safe-top', showTabs ? 'pb-[calc(96px+env(safe-area-inset-bottom))] lg:pb-0' : '')}
+          style={{ ['--tabbar-h' as string]: showTabs ? 'calc(80px + env(safe-area-inset-bottom))' : '0px' }}
         >
-          <Outlet />
+          <div key={loc.pathname} className="anim-page">
+            <Outlet />
+          </div>
         </main>
 
         {/* Phone tab bar */}
         {showTabs && (
-          <nav className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur safe-bottom lg:hidden">
-            <div className="mx-auto flex h-[76px] max-w-[520px] items-center px-2">
+          <nav className="no-print fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden">
+            <div className="bg-glass mx-auto flex h-[66px] max-w-[520px] items-center rounded-[26px] border border-white/70 px-1.5 shadow-float">
               {mobileItems.slice(0, half).map((i) => (
                 <TabLink key={i.to} item={i} />
               ))}
@@ -128,7 +130,7 @@ export function Shell({
                   <button
                     aria-label="Create"
                     onClick={openCreate}
-                    className="grid h-[54px] w-[54px] place-items-center rounded-full bg-brand text-white shadow-[0_6px_16px_rgba(31,92,78,0.35)] active:scale-95 transition-transform cursor-pointer"
+                    className="pressable grid h-[52px] w-[52px] -translate-y-3 place-items-center rounded-[18px] bg-gradient-to-br from-brand-bright to-brand text-white shadow-brand ring-4 ring-bg cursor-pointer hover:rotate-90 transition-transform duration-300"
                   >
                     <Plus size={26} />
                   </button>
@@ -152,10 +154,12 @@ function TabLink({ item }: { item: NavItem }) {
     <NavLink
       to={item.to}
       end={item.end}
-      className={({ isActive }) => cx('relative flex flex-1 flex-col items-center gap-1 pt-1 text-[12px]', isActive ? 'font-semibold text-brand' : 'text-muted')}
+      className={({ isActive }) => cx('group relative flex flex-1 flex-col items-center gap-0.5 text-[11px] transition-colors', isActive ? 'font-bold text-brand' : 'font-medium text-muted')}
     >
-      <span className="relative">
-        <Icon size={23} strokeWidth={1.8} />
+      {({ isActive }) => (
+        <>
+      <span className={cx('relative grid h-8 w-14 place-items-center rounded-full transition-all duration-300', isActive ? 'bg-brand-soft' : 'group-active:scale-90')}>
+        <Icon size={21} strokeWidth={isActive ? 2.3 : 1.8} className={cx('transition-transform duration-300', isActive && 'scale-105')} />
         {item.soon && (
           <span className="absolute -right-6 -top-2">
             <SoonBadge />
@@ -163,6 +167,8 @@ function TabLink({ item }: { item: NavItem }) {
         )}
       </span>
       {item.label}
+        </>
+      )}
     </NavLink>
   )
 }
@@ -175,8 +181,8 @@ function SideLink({ item }: { item: NavItem }) {
       end={item.end}
       className={({ isActive }) =>
         cx(
-          'flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] transition-colors',
-          isActive ? 'bg-brand-soft font-semibold text-brand' : 'text-ink hover:bg-bg',
+          'flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] transition-all duration-200',
+          isActive ? 'bg-brand-soft font-bold text-brand shadow-[inset_3px_0_0_var(--color-brand)]' : 'font-medium text-ink/80 hover:bg-bg hover:text-ink hover:translate-x-0.5',
         )
       }
     >
@@ -190,7 +196,7 @@ function SideLink({ item }: { item: NavItem }) {
 /** Standard page container: phone-width on mobile, wide on desktop. */
 export function Page({ children, wide, className }: { children: ReactNode; wide?: boolean; className?: string }) {
   return (
-    <div className={cx('mx-auto w-full px-5 pt-5 lg:px-10 lg:pt-9', wide ? 'max-w-[480px] lg:max-w-[1120px]' : 'max-w-[480px] lg:max-w-[720px]', className)}>
+    <div className={cx('stagger mx-auto w-full px-5 pt-5 lg:px-10 lg:pt-9', wide ? 'max-w-[480px] lg:max-w-[1120px]' : 'max-w-[480px] lg:max-w-[720px]', className)}>
       {children}
     </div>
   )

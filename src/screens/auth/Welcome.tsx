@@ -9,10 +9,10 @@ export default function Welcome() {
   return (
     <AuthLayout>
       <Logo tag="for Physios" className="lg:hidden" />
-      <div className="mt-5 rounded-[28px] bg-brand p-4 pt-16 lg:hidden">
+      <div className="mt-5 bg-hero rounded-[24px] shadow-brand p-4 pt-16 lg:hidden">
         <ActivityCards />
       </div>
-      <h1 className="mt-7 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] lg:mt-0">
+      <h1 className="mt-7 font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em] lg:mt-0">
         <span className="lg:hidden">Care that continues after the session.</span>
         <span className="hidden lg:inline">Welcome to Betterhood</span>
       </h1>

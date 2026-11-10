@@ -44,7 +44,7 @@ export default function Partner() {
                   on ? 'border-brand' : 'border-line hover:border-brand-line',
                 )}
               >
-                <span className={cx('grid h-[22px] w-[22px] shrink-0 place-items-center rounded-md border', on ? 'border-brand bg-brand text-white' : 'border-[#cfcfc8]')}>
+                <span className={cx('grid h-[22px] w-[22px] shrink-0 place-items-center rounded-md border', on ? 'border-brand bg-brand text-white' : 'border-faint/70')}>
                   {on && <Check size={15} strokeWidth={3} />}
                 </span>
                 <IconTile className="h-9 w-9">{o.icon}</IconTile>

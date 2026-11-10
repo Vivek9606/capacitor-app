@@ -98,7 +98,7 @@ export default function Clinic() {
           {has('clinic') && (
             <section className="mt-6">
               <h3 className="mb-3 text-[16px] font-semibold">Your clinic</h3>
-              <div className="relative h-[150px] overflow-hidden rounded-2xl bg-[#e6eee9] lg:h-[180px]">
+              <div className="relative h-[150px] overflow-hidden rounded-2xl bg-brand-soft lg:h-[180px]">
                 <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 300 150" aria-hidden>
                   <path d="M0 45 H300 M0 110 H300 M95 0 V150 M215 0 V150" stroke="#fff" strokeWidth="9" />
                   <path d="M0 80 H300 M160 0 V150" stroke="#fff" strokeWidth="4" />

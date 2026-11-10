@@ -7,7 +7,7 @@ function Letterhead({ physio, title, right }: { physio: Physio; title: string; r
   return (
     <div className="flex items-start justify-between gap-4 border-b-2 border-brand pb-4">
       <div>
-        <div className="text-[18px] font-semibold text-brand">{physio.clinic?.name ?? physio.name}</div>
+        <div className="font-display text-[18px] font-bold text-brand">{physio.clinic?.name ?? physio.name}</div>
         <div className="text-[13px] text-muted">
           {physio.name}, PT{physio.qualification ? ` · ${physio.qualification}` : ''}
         </div>

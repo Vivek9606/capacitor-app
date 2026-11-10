@@ -1,7 +1,7 @@
 import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, RotateCcw, UsersRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
-import { Avatar, Badge, Card, cx, IconButton, Progress, WhatsAppButton } from '../../../components/ui'
+import { Avatar, Badge, Card, cx, IconButton, Progress, RefreshButton, WhatsAppButton } from '../../../components/ui'
 import { courseProgress } from '../../../lib/course'
 import { profileCompletion } from '../../../lib/logic'
 import { modeLabels, modesOf } from '../../../lib/practice'
@@ -31,10 +31,13 @@ export default function Profile() {
   return (
     <Page wide>
       <div className="flex items-center justify-between pb-4">
-        <h1 className="text-[20px] font-semibold lg:text-[28px]">My profile</h1>
-        <IconButton aria-label="Edit profile" onClick={() => nav('/app/profile/edit')}>
-          <Pencil size={17} />
-        </IconButton>
+        <h1 className="font-display text-[20px] font-bold lg:text-[28px]">My profile</h1>
+        <div className="flex gap-2">
+          <RefreshButton />
+          <IconButton aria-label="Edit profile" onClick={() => nav('/app/profile/edit')}>
+            <Pencil size={17} />
+          </IconButton>
+        </div>
       </div>
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">
@@ -46,7 +49,7 @@ export default function Profile() {
               </span>
             </button>
             <div className="min-w-0">
-              <div className="text-[18px] font-semibold">{physio.name}, PT</div>
+              <div className="font-display text-[18px] font-bold">{physio.name}, PT</div>
               {meta && <div className="text-[13px] text-muted">{meta}</div>}
               <div className="mt-1.5">
                 {physio.verification === 'verified' ? (

@@ -55,7 +55,7 @@ export default function Availability() {
                     <div className="w-10 text-[15px] font-semibold">{d}</div>
                     {!on && <div className="flex-1 text-[14px] text-muted">Unavailable</div>}
                     {on && (
-                      <div className="flex flex-1 flex-col gap-2">
+                      <div className="flex min-w-0 flex-1 flex-col gap-2">
                         {ws.map((w, i) => (
                           <div key={i} className="flex items-center gap-1.5">
                             <input

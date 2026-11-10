@@ -2,18 +2,19 @@ import { Play } from 'lucide-react'
 import { cx } from './ui'
 
 // Placeholder for exercise videos. Phase 2: <video> from Supabase Storage / a video CDN, with poster frames.
+// Soft brand tints (plum, sand, mint, sun, coral from betterhood.in), one per body region.
 const TINTS: Record<string, string> = {
-  Lumbar: '#dcebe5',
-  Core: '#e1ece4',
-  Hip: '#e6ebdc',
-  Knee: '#dde8ea',
-  Shoulder: '#e4e5ef',
-  Neck: '#ece6e0',
-  Ankle: '#e8e6dc',
+  Lumbar: '#f5eaf2',
+  Core: '#f3ece2',
+  Hip: '#e6f7ed',
+  Knee: '#fff4e2',
+  Shoulder: '#ead6e5',
+  Neck: '#ffe9e2',
+  Ankle: '#efe6dc',
 }
 
 export function ExerciseMedia({ region, size = 'md', className, label }: { region?: string; size?: 'sm' | 'md' | 'lg'; className?: string; label?: string }) {
-  const bg = TINTS[region ?? ''] ?? '#e3efea'
+  const bg = TINTS[region ?? ''] ?? '#f5eaf2'
   const icon = size === 'sm' ? 16 : size === 'md' ? 22 : 34
   return (
     <div className={cx('relative grid place-items-center overflow-hidden rounded-xl text-brand', className)} style={{ background: bg }}>

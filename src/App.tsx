@@ -1,3 +1,4 @@
+import { AlertCircle, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { initNative, listenDeepLinks, registerToast } from './lib/platform'
@@ -90,8 +91,21 @@ function Toaster() {
   }, [msg])
   if (!msg) return null
   return (
-    <div className="no-print pointer-events-none fixed inset-x-0 bottom-[calc(96px+env(safe-area-inset-bottom))] z-[60] flex justify-center px-5 lg:bottom-8">
-      <div key={msg.id} role="status" className="anim-pop max-w-[440px] rounded-2xl bg-ink px-4 py-3 text-center text-[14px] font-medium text-white shadow-lg">
+    <div className="no-print pointer-events-none fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-[60] flex justify-center px-5 lg:bottom-8">
+      <div
+        key={msg.id}
+        role="status"
+        className="anim-toast flex max-w-[440px] items-center gap-2.5 rounded-2xl bg-ink/92 py-3 pl-3 pr-4 text-[14px] font-semibold text-white shadow-float backdrop-blur-md"
+      >
+        {/couldn|can.t|failed|error|expired|invalid|wrong|not /i.test(msg.text) ? (
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/25 text-[#ffa27f]">
+            <AlertCircle size={14} strokeWidth={2.6} />
+          </span>
+        ) : (
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ok/30 text-[#7fe0a9]">
+            <Check size={14} strokeWidth={3} />
+          </span>
+        )}
         {msg.text}
       </div>
     </div>

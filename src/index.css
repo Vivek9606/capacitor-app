@@ -1,34 +1,56 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/figtree';
+@import '@fontsource-variable/bricolage-grotesque';
 
+/*
+ * Betterhood design tokens, from the brand system on betterhood.in (physio-app.css).
+ * Plum (from the logo) carries action, a warm cream canvas keeps it human,
+ * mint means progress/verified, sun means waiting, coral means attention.
+ * Every screen uses these names (bg-brand, text-muted, shadow-card…), so changing a value here restyles the app.
+ */
 @theme {
-  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
 
-  --color-bg: #f4f3ee;
+  --color-bg: #faf6f0; /* cream */
   --color-surface: #ffffff;
-  --color-line: #e7e5de;
-  --color-ink: #15221e;
-  --color-muted: #66706b;
-  --color-faint: #9aa29e;
+  --color-line: #ebe2e3;
+  --color-track: #f2ebe4; /* sand: empty bars, toggles, upcoming dots */
+  --color-ink: #1f0b26;
+  --color-muted: #5f4e62;
+  --color-faint: #8c7c8f;
 
-  --color-brand: #1f5c4e;
-  --color-brand-ink: #174a3f;
-  --color-brand-soft: #e3efea;
-  --color-brand-line: #9fc3b7;
+  --color-brand: #5e1951; /* plum-700, the logo colour */
+  --color-brand-ink: #3a1240; /* plum-800 */
+  --color-brand-soft: #f4e8f1;
+  --color-brand-line: #d7b3cf; /* plum-300 */
+  --color-brand-bright: #9b4a8c; /* plum-500, highlights in gradients */
 
-  --color-wa: #14897a;
-  --color-wa-ink: #0f7064;
-  --color-lime: #ddf5cb;
-  --color-lime-ink: #2f7a36;
+  --color-wa: #128c7e; /* WhatsApp stays WhatsApp */
+  --color-wa-ink: #0d7064;
+  --color-lime: #e2f5e9; /* mint soft */
+  --color-lime-ink: #0f7a43;
   --color-chat: #ece5dd;
 
-  --color-accent: #ef7a4a;
-  --color-accent-soft: #fdeadf;
-  --color-ok: #2f9e6a;
-  --color-ok-soft: #dff2e8;
-  --color-warn: #e08a1e;
-  --color-warn-soft: #fcefd9;
-  --color-danger: #d9534f;
+  --color-accent: #d9513a; /* coral: attention */
+  --color-accent-soft: #ffe8e1;
+  --color-ok: #128048; /* mint: progress, done */
+  --color-ok-soft: #e2f5e9;
+  --color-warn: #a86a00; /* sun: waiting */
+  --color-warn-soft: #fff0d2;
+  --color-sun: #ffb547;
+  --color-danger: #c4402a;
+  --color-scrim: #1b0820;
+
+  --radius-card: 20px;
+
+  --shadow-card: 0 1px 2px rgb(36 12 44 / 0.05), 0 8px 24px -14px rgb(36 12 44 / 0.16);
+  --shadow-lift: 0 2px 4px rgb(36 12 44 / 0.05), 0 18px 36px -14px rgb(36 12 44 / 0.24);
+  --shadow-brand: 0 12px 26px -12px rgb(94 25 81 / 0.65);
+  --shadow-float: 0 24px 64px -20px rgb(36 12 44 / 0.4);
+
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
@@ -38,11 +60,40 @@ body,
 }
 
 body {
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  /* Soft brand glow at the top of every screen */
+  background-image: radial-gradient(1100px 420px at 50% -180px, rgb(155 74 140 / 0.1), transparent 70%);
+  background-repeat: no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings use the display face, like betterhood.in */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+::selection {
+  background: rgb(155 74 140 / 0.22);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-bright);
+  outline-offset: 2px;
+}
+/* Text fields show focus with their own border and glow instead. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
 }
 
 .safe-top {
@@ -59,20 +110,59 @@ body {
   scrollbar-width: none;
 }
 
+/* ---------- Surfaces ---------- */
+
+/* Hero cards (profile progress, today's plan…) */
+.bg-hero {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.14), transparent 50%),
+    radial-gradient(80% 120% at 0% 100%, rgb(155 74 140 / 0.6), transparent 60%),
+    linear-gradient(135deg, #5e1951 0%, #3a1240 100%);
+}
+.bg-glass {
+  background: rgb(250 246 240 / 0.82);
+  backdrop-filter: saturate(1.6) blur(18px);
+  -webkit-backdrop-filter: saturate(1.6) blur(18px);
+}
+
+/* ---------- Motion ---------- */
+
 @keyframes sheet-up {
   from {
     transform: translateY(100%);
   }
+}
+@keyframes sheet-down {
   to {
-    transform: translateY(0);
+    transform: translateY(100%);
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
   }
 }
 @keyframes fade-in {
   from {
     opacity: 0;
   }
+}
+@keyframes fade-out {
   to {
-    opacity: 1;
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 }
 @keyframes pop {
@@ -80,22 +170,112 @@ body {
     transform: scale(0.6);
     opacity: 0;
   }
-  70% {
-    transform: scale(1.08);
-  }
-  100% {
-    transform: scale(1);
+  60% {
+    transform: scale(1.06);
     opacity: 1;
   }
 }
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Fill mode "backwards" only: once done, no transform stays behind, so fixed-position sheets inside still work. */
+.anim-page {
+  animation: rise 0.42s var(--ease-out-expo) backwards;
+}
 .anim-sheet {
-  animation: sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: sheet-up 0.46s var(--ease-spring) backwards;
+}
+.anim-sheet-out {
+  animation: sheet-down 0.24s ease-in forwards;
 }
 .anim-fade {
-  animation: fade-in 0.2s ease-out;
+  animation: fade-in 0.25s ease-out backwards;
+}
+.anim-fade-out {
+  animation: fade-out 0.24s ease-in forwards;
 }
 .anim-pop {
-  animation: pop 0.4s ease-out;
+  animation: pop 0.45s var(--ease-out-expo) backwards;
+}
+.anim-toast {
+  animation: toast-in 0.4s var(--ease-spring) backwards;
+}
+.anim-grow {
+  transform-origin: left;
+  animation: grow-x 0.9s var(--ease-out-expo) backwards;
+}
+@media (min-width: 768px) {
+  .anim-sheet {
+    animation: dialog-in 0.32s var(--ease-out-expo) backwards;
+  }
+  .anim-sheet-out {
+    animation: dialog-out 0.18s ease-in forwards;
+  }
+}
+
+/* Screens cascade in: each top-level block rises a beat after the previous one. */
+.stagger > * {
+  animation: rise 0.5s var(--ease-out-expo) backwards;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+.stagger > *:nth-child(n + 7) {
+  animation-delay: 240ms;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-track) 25%, #f8f3ee 37%, var(--color-track) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Pressable things shrink a little under the finger. */
+.pressable {
+  transition:
+    transform 0.18s var(--ease-out-expo),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.pressable:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media print {

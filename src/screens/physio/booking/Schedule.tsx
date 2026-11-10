@@ -1,7 +1,7 @@
 import { Ban, Check, ChevronLeft, ChevronRight, Clock, Footprints, Plus, Settings2, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookingBadge, bookingLine, isOpenBooking, VISIT_LABEL } from '../../../components/bits'
+import { attendanceMarked, BookingBadge, bookingLine, isOpenBooking, needsAttendance, VISIT_LABEL } from '../../../components/bits'
 import { Page } from '../../../components/Shell'
 import { Badge, Button, Card, Chip, cx, IconButton, Input, Label, PageHeader, Sheet, Toggle } from '../../../components/ui'
 import { physioAlerts } from '../../../lib/alerts'
@@ -63,8 +63,8 @@ export default function Schedule() {
         subtitle={fmtMonthLong(day)}
         right={
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" onClick={() => setBlockOpen(true)}>
-              <Ban size={15} /> Block
+            <Button size="sm" variant="secondary" aria-label="Block time" onClick={() => setBlockOpen(true)}>
+              <Ban size={15} /> <span className="hidden min-[400px]:inline">Block</span>
             </Button>
             <IconButton aria-label="Availability settings" onClick={() => nav('/app/profile/availability')}>
               <Settings2 size={18} />
@@ -100,7 +100,7 @@ export default function Schedule() {
                     )}
                   >
                     <span className={cx('text-[12px]', sel ? 'text-white/80' : 'text-muted')}>{dayShort(d)}</span>
-                    <span className="text-[18px] font-semibold">{dayNum(d)}</span>
+                    <span className="font-display text-[18px] font-bold">{dayNum(d)}</span>
                     <span className={cx('mt-0.5 h-1.5 w-1.5 rounded-full', has ? (sel ? 'bg-white' : 'bg-brand') : 'bg-transparent')} />
                   </button>
                 )
@@ -163,7 +163,7 @@ export default function Schedule() {
                       <BookingBadge status={r.booking.status} />
                     </div>
                     <div className="mt-1 truncate text-[13px] text-muted">{bookingLine(r.booking)}</div>
-                    {r.booking.date <= today() && isOpenBooking(r.booking) && (
+                    {needsAttendance(r.booking, today()) && (
                       <div className="mt-2.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
                         {r.booking.status === 'checked_in' ? (
                           <Button size="sm" onClick={() => markDone(r.booking!)}>
@@ -257,7 +257,7 @@ export default function Schedule() {
               <BookingBadge status={open.status} />
             </div>
 
-            {open.date <= today() && isOpenBooking(open) && (
+            {needsAttendance(open, today()) && (
               <div className="mt-4 grid grid-cols-2 gap-2.5">
                 {open.status !== 'checked_in' ? (
                   <Button size="md" onClick={() => (store.updateBooking(open.id, { status: 'checked_in' }), setOpen(undefined), toast(`${firstName(open.patientName)} has arrived`))}>
@@ -280,6 +280,19 @@ export default function Schedule() {
                   <X size={16} /> No-show
                 </Button>
               </div>
+            )}
+            {attendanceMarked(open, today()) && (
+              <button
+                className="mt-4 block text-[14px] font-semibold text-brand cursor-pointer"
+                onClick={() => {
+                  const status = open.status === 'no_show' ? 'done' : 'no_show'
+                  store.updateBooking(open.id, { status })
+                  setOpen({ ...open, status })
+                  toast(status === 'done' ? 'Changed to showed up' : 'Changed to no-show')
+                }}
+              >
+                {open.status === 'no_show' ? 'They did come · mark as showed up' : 'They didn’t come · mark as no-show'}
+              </button>
             )}
             {open.status === 'no_show' && (
               <Button

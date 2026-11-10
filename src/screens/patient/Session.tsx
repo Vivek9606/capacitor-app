@@ -48,14 +48,14 @@ export default function Session() {
         <div className="anim-pop grid h-20 w-20 place-items-center rounded-full bg-ok text-white">
           <Check size={40} strokeWidth={3} />
         </div>
-        <h1 className="mt-6 text-[28px] font-semibold tracking-[-0.01em]">Session done!</h1>
+        <h1 className="mt-6 font-display text-[28px] font-bold tracking-[-0.01em]">Session done!</h1>
         <p className="mt-2 text-[16px] text-muted">
           {total} exercises · pain {pain}/10. {doc} can see your progress.
         </p>
         {v.adherence && (
           <div className="mt-6 w-full max-w-[320px] rounded-2xl border border-line bg-surface p-4 text-left">
             <div className="text-[14px] text-muted">Plan progress</div>
-            <div className="mt-1 text-[18px] font-semibold">
+            <div className="mt-1 font-display text-[18px] font-bold">
               {v.adherence.done + (v.todayLog?.status === 'done' ? 0 : 1)} sessions done
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function Session() {
       {!onPain && item && ex ? (
         <>
           <ExerciseMedia region={ex.region} size="lg" className="mt-5 aspect-video w-full" label="Video · demo placeholder" />
-          <h1 className="mt-5 text-[26px] font-semibold tracking-[-0.01em]">{ex.name}</h1>
+          <h1 className="mt-5 font-display text-[26px] font-bold tracking-[-0.01em]">{ex.name}</h1>
           <div className="mt-1 text-[16px] font-medium text-brand">{doseLabel(item)}</div>
           {item.note && <div className="mt-3 rounded-xl bg-accent-soft px-3.5 py-2.5 text-[14px]">“{item.note}” — {doc}</div>}
           {ex.cues.length > 0 && (
@@ -129,7 +129,7 @@ export default function Session() {
         </>
       ) : (
         <>
-          <h1 className="mt-8 text-[26px] font-semibold tracking-[-0.01em]">How’s your pain right now?</h1>
+          <h1 className="mt-8 font-display text-[26px] font-bold tracking-[-0.01em]">How’s your pain right now?</h1>
           <p className="mt-1 text-[15px] text-muted">0 is no pain, 10 is the worst you can imagine.</p>
           <div className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-11">
             {Array.from({ length: 11 }).map((_, n) => (

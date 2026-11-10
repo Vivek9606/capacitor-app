@@ -44,7 +44,7 @@ export default function Phone() {
           submit()
         }}
       >
-        <h1 className="mt-2 text-[28px] font-semibold leading-tight tracking-[-0.02em]">What’s your mobile number?</h1>
+        <h1 className="mt-2 font-display text-[28px] font-bold leading-tight tracking-[-0.02em]">What’s your mobile number?</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">We’ll send a one-time code on WhatsApp. No passwords, no long forms.</p>
         <div className="mt-6">
           <Input

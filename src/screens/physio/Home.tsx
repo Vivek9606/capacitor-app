@@ -1,14 +1,14 @@
 import { Activity, CalendarDays, Check, ChevronRight, Footprints, Gift, GraduationCap, ReceiptIndianRupee, UsersRound, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { bookingLine, BookingBadge, isOpenBooking, NotifDot } from '../../components/bits'
+import { bookingLine, BookingBadge, needsAttendance, NotifDot } from '../../components/bits'
 import { Page } from '../../components/Shell'
-import { Avatar, Badge, Button, Card, cx, Empty, IconButton, IconTile, SectionTitle } from '../../components/ui'
+import { Avatar, Badge, Button, Card, cx, Empty, IconButton, IconTile, RefreshButton, SectionTitle } from '../../components/ui'
 import { physioAlerts } from '../../lib/alerts'
 import { COURSE, courseProgress } from '../../lib/course'
 import { fmtTime, greeting, timeAgo, today } from '../../lib/dates'
 import { firstName, profileCompletion } from '../../lib/logic'
 import { toast } from '../../lib/platform'
-import { groupsOn, toMin } from '../../lib/slots'
+import { groupsOn } from '../../lib/slots'
 import { useMe, useStore } from '../../lib/store'
 import type { Booking } from '../../lib/types'
 import { AlertCard } from './AlertCard'
@@ -30,12 +30,10 @@ export default function Home() {
   const scheduled = todays.filter((b) => b.status !== 'checked_in')
   const groups = groupsOn(db.groups, physio.id, t)
   const alerts = physioAlerts(db, physio.id)
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
   const unpaid = db.invoices.filter((i) => i.physioId === physio.id && i.status === 'unpaid')
 
   const quick = [
-    { icon: <Activity size={19} />, label: 'Care plan + treatment plan', on: () => nav('/app/patients', { state: { pick: 'plan' } }) },
+    { icon: <Activity size={19} />, label: 'Care plan', on: () => nav('/app/patients', { state: { pick: 'plan' } }) },
     { icon: <Footprints size={19} />, label: 'Walk-in', on: () => nav('/app/walk-in') },
     { icon: <CalendarDays size={19} />, label: 'New booking', on: () => nav('/app/bookings/new') },
     { icon: <UsersRound size={19} />, label: 'Group session', on: () => nav('/app/groups/new') },
@@ -54,8 +52,9 @@ export default function Home() {
         <Avatar name={physio.name} photo={physio.photo} size={44} className="lg:hidden" />
         <div className="flex-1">
           <div className="text-[13px] text-muted lg:text-[15px]">{greeting()},</div>
-          <div className="text-[20px] font-semibold tracking-[-0.01em] lg:text-[28px]">Dr. {firstName(physio.name)}</div>
+          <div className="font-display text-[22px] font-bold tracking-[-0.03em] lg:text-[30px]">Dr. {firstName(physio.name)}</div>
         </div>
+        <RefreshButton />
         <IconButton aria-label="Notifications" onClick={() => nav('/app/notifications')}>
           <NotifDot show={alerts.length > 0} />
         </IconButton>
@@ -64,30 +63,31 @@ export default function Home() {
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div>
           {prof.next && (
-            <div className="rounded-[22px] bg-brand p-4 text-white">
+            <div className="bg-hero relative overflow-hidden rounded-[24px] p-5 text-white shadow-brand">
+              <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border-[18px] border-white/[0.07]" />
               <div className="flex items-center justify-between">
-                <div className="text-[17px] font-semibold">Profile {prof.pct}% complete</div>
-                <div className="text-[13px] text-white/80">
+                <div className="font-display text-[18px] font-bold tracking-[-0.02em]">Profile {prof.pct}% complete</div>
+                <div className="rounded-full bg-white/15 px-2.5 py-0.5 text-[12px] font-semibold text-white/90">
                   {prof.done} of {prof.total}
                 </div>
               </div>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white">
-                <div className="h-full rounded-full bg-accent" style={{ width: `${prof.pct}%` }} />
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/20">
+                <div className="anim-grow h-full rounded-full bg-gradient-to-r from-[#ffe5bd] to-sun shadow-[0_0_12px_rgb(255_181_71/0.7)]" style={{ width: `${prof.pct}%` }} />
               </div>
               <p className="mt-3 text-[14px] leading-snug text-white/90">{prof.next.nudge}</p>
-              <button onClick={() => nav(prof.next!.to)} className="mt-3 inline-flex h-9 items-center gap-1 rounded-full bg-white px-3.5 text-[13px] font-semibold text-brand cursor-pointer">
+              <button onClick={() => nav(prof.next!.to)} className="pressable mt-4 inline-flex h-10 items-center gap-1 rounded-full bg-white px-4 text-[13px] font-bold text-brand shadow-[0_6px_16px_-6px_rgb(0_0_0/0.35)] cursor-pointer">
                 {prof.next.cta} <ChevronRight size={15} />
               </button>
             </div>
           )}
 
           <SectionTitle>Quick actions</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
             {quick.map((q) => (
               <button
                 key={q.label}
                 onClick={q.on}
-                className="flex min-h-[64px] items-center gap-3 rounded-2xl border border-line bg-surface px-3.5 py-3 text-left text-[15px] font-medium leading-tight hover:border-brand-line cursor-pointer"
+                className="pressable flex min-h-[96px] flex-col items-start justify-between gap-2 rounded-[18px] border border-line/70 bg-surface p-3 text-left text-[13px] font-semibold leading-tight shadow-card hover:border-brand-line hover:shadow-lift cursor-pointer"
               >
                 <IconTile tone={q.accent ? 'accent' : 'brand'}>{q.icon}</IconTile>
                 {q.label}
@@ -194,7 +194,7 @@ export default function Home() {
                       </div>
                       <BookingBadge status={row.b.status} />
                     </div>
-                    {isOpenBooking(row.b) && toMin(row.b.time) - 15 <= nowMin && (
+                    {needsAttendance(row.b, t) && (
                       <div className="mt-3 flex gap-2 pl-[68px]" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" onClick={() => (store.updateBooking(row.b.id, { status: 'checked_in' }), toast(`${firstName(row.b.patientName)} has arrived`))}>
                           <Check size={14} /> Arrived

@@ -31,7 +31,7 @@ export function PracticeModePicker({ value, onChange }: { value: PracticeMode[];
               <span className="block text-[15px] font-semibold">{m.title}</span>
               <span className="block text-[13px] leading-snug text-muted">{m.sub}</span>
             </span>
-            <span className={cx('grid h-[22px] w-[22px] shrink-0 place-items-center rounded-md border', on ? 'border-brand bg-brand text-white' : 'border-[#cfcfc8]')}>
+            <span className={cx('grid h-[22px] w-[22px] shrink-0 place-items-center rounded-md border', on ? 'border-brand bg-brand text-white' : 'border-faint/70')}>
               {on && <Check size={15} strokeWidth={3} />}
             </span>
           </button>

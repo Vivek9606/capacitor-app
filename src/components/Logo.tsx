@@ -1,11 +1,21 @@
+import logoSvg from '../assets/logo.svg?raw'
 import { cx } from './ui'
 
+/** The official Betterhood logo (mark + wordmark, same file as betterhood.in), drawn in the current text colour. */
 export function Logo({ tag, className, light }: { tag?: string; className?: string; light?: boolean }) {
   return (
-    <div className={cx('flex items-center gap-2', className)}>
-      <div className={cx('grid h-8 w-8 place-items-center rounded-lg text-[19px] font-bold', light ? 'bg-white text-brand' : 'bg-brand text-white')}>b</div>
-      <span className={cx('text-[21px] font-semibold tracking-[-0.02em]', light ? 'text-white' : 'text-brand')}>betterhood</span>
-      {tag && <span className="whitespace-nowrap rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">{tag}</span>}
+    <div className={cx('flex items-center gap-2.5', className)}>
+      <span
+        role="img"
+        aria-label="betterhood"
+        className={cx('block h-[26px] [&>svg]:h-full [&>svg]:w-auto', light ? 'text-white' : 'text-brand')}
+        dangerouslySetInnerHTML={{ __html: logoSvg }}
+      />
+      {tag && (
+        <span className={cx('whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold', light ? 'bg-white/15 text-white' : 'bg-brand-soft text-brand')}>
+          {tag}
+        </span>
+      )}
     </div>
   )
 }

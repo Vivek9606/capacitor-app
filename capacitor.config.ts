@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Betterhood',
   webDir: 'dist',
   plugins: {
-    SplashScreen: { launchShowDuration: 800, backgroundColor: '#1F5C4E' },
-    StatusBar: { style: 'LIGHT', backgroundColor: '#F4F3EE' },
+    SplashScreen: { launchShowDuration: 800, backgroundColor: '#5E1951' },
+    StatusBar: { style: 'LIGHT', backgroundColor: '#FAF6F0' },
   },
 }
 

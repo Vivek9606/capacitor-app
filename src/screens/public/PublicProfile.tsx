@@ -27,7 +27,7 @@ export default function PublicProfile() {
     return (
       <div className="mx-auto max-w-[480px] px-6 py-20 text-center">
         <Logo className="justify-center" />
-        <h1 className="mt-8 text-[22px] font-semibold">Profile not found</h1>
+        <h1 className="mt-8 font-display text-[22px] font-bold">Profile not found</h1>
         <p className="mt-2 text-muted">This physio link may have changed.</p>
       </div>
     )
@@ -53,7 +53,7 @@ export default function PublicProfile() {
           <div className="flex items-center gap-4">
             <Avatar name={physio.name} photo={physio.photo} size={84} />
             <div>
-              <h1 className="flex items-center gap-1.5 text-[24px] font-semibold leading-tight tracking-[-0.01em]">
+              <h1 className="flex items-center gap-1.5 font-display text-[24px] font-bold leading-tight tracking-[-0.01em]">
                 {physio.name}, PT
                 {physio.verification === 'verified' && <BadgeCheck size={20} className="text-wa" />}
               </h1>
@@ -159,7 +159,7 @@ export default function PublicProfile() {
 
         <aside className="mt-8 lg:mt-0">
           <Card className="p-5 lg:sticky lg:top-6">
-            <h2 className="text-[19px] font-semibold">Book a session</h2>
+            <h2 className="font-display text-[19px] font-bold">Book a session</h2>
             <p className="mt-1 text-[14px] text-muted">Pick a visit type and an open time. {doc} confirms on WhatsApp.</p>
             <div className="mt-4 flex flex-col gap-2">
               {physio.consult.inClinic.enabled && (

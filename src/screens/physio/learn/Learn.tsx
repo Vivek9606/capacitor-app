@@ -19,11 +19,11 @@ export default function Learn() {
       <PageHeader back={false} title="Learn" subtitle={COURSE.by} />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
         <div>
-          <div className="overflow-hidden rounded-[22px] bg-brand p-5 text-white">
+          <div className="overflow-hidden bg-hero rounded-[24px] shadow-brand p-5 text-white">
             <div className="flex items-center gap-2 text-[13px] text-white/75">
               <GraduationCap size={16} /> Free course · {ALL_LESSONS.length} lessons · {Math.round(mins / 5) * 5} min
             </div>
-            <h2 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.01em]">{COURSE.title}</h2>
+            <h2 className="mt-2 font-display text-[26px] font-bold leading-tight tracking-[-0.01em]">{COURSE.title}</h2>
             <p className="mt-1 text-[15px] text-white/85">{COURSE.tagline}</p>
             <div className="mt-4 flex items-center gap-3">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/25">

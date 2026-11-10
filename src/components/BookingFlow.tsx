@@ -145,7 +145,7 @@ export function BookingFlow({
           <Avatar name={physio.name} photo={physio.photo} size={44} />
           <div className="min-w-0">
             <div className="truncate text-[14px] text-muted">{physio.name}, PT</div>
-            <div className="truncate text-[18px] font-semibold leading-tight">{summary?.title ?? 'Book a session'}</div>
+            <div className="truncate font-display text-[18px] font-bold leading-tight">{summary?.title ?? 'Book a session'}</div>
           </div>
         </div>
         {summary && (
@@ -175,7 +175,7 @@ export function BookingFlow({
             <div className="anim-pop mx-auto grid h-14 w-14 place-items-center rounded-full bg-ok text-white">
               <Check size={28} strokeWidth={3} />
             </div>
-            <h2 className="mt-4 text-[20px] font-semibold">{group ? 'Seat booked' : 'Request sent'}</h2>
+            <h2 className="mt-4 font-display text-[20px] font-bold">{group ? 'Seat booked' : 'Request sent'}</h2>
             <p className="mx-auto mt-1 max-w-sm text-[14px] text-muted">
               {summary?.when}. {group ? `See you there! ${doc} will send details on WhatsApp.` : `${doc} will confirm on WhatsApp.`} {doneNote}
             </p>

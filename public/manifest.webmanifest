@@ -3,7 +3,7 @@
   "short_name": "Betterhood",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#F4F3EE",
-  "theme_color": "#1F5C4E",
+  "background_color": "#FAF6F0",
+  "theme_color": "#5E1951",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

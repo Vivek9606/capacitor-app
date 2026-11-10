@@ -168,7 +168,7 @@ export default function NewInvoice() {
                 <span>{inr(t.tax)}</span>
               </div>
             )}
-            <div className="mt-2 flex justify-between border-t border-line pt-2 text-[18px] font-semibold">
+            <div className="mt-2 flex justify-between border-t border-line pt-2 font-display text-[18px] font-bold">
               <span>Total</span>
               <span>{inr(t.total)}</span>
             </div>

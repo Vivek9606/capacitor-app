@@ -1,7 +1,7 @@
 import { CalendarDays, Check, ChevronRight, ClipboardList, Clock, FileSignature, MessageCircle, ReceiptIndianRupee } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { bookingLine, BookingBadge, isOpenBooking } from '../../components/bits'
+import { attendanceMarked, bookingLine, BookingBadge, needsAttendance } from '../../components/bits'
 import { Page } from '../../components/Shell'
 import { Badge, Button, Card, cx, Empty, Footer, IconButton, IconTile, PageHeader, Progress, WeekDots } from '../../components/ui'
 import { fmtDay, fmtMonthYear, fmtShort, fmtTime, today } from '../../lib/dates'
@@ -54,7 +54,7 @@ export default function PatientDetail() {
       <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-8">
         <div>
           <Card className="p-4">
-            <div className="text-[18px] font-semibold">{p.condition ?? 'No diagnosis yet'}</div>
+            <div className="font-display text-[18px] font-bold">{p.condition ?? 'No diagnosis yet'}</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {p.since && <span className="rounded-full border border-line px-3 py-1.5 text-[13px]">Since {fmtMonthYear(p.since)}</span>}
               <span className="rounded-full border border-line px-3 py-1.5 text-[13px]">
@@ -219,7 +219,19 @@ export default function PatientDetail() {
                     </div>
                     <BookingBadge status={b.status} />
                   </div>
-                  {b.date <= today() && isOpenBooking(b) && (
+                  {attendanceMarked(b, today()) && (
+                    <button
+                      className="mt-2 text-[13px] font-semibold text-brand cursor-pointer"
+                      onClick={() => {
+                        const status = b.status === 'no_show' ? 'done' : 'no_show'
+                        store.updateBooking(b.id, { status })
+                        toast(status === 'done' ? 'Changed to showed up' : 'Changed to no-show')
+                      }}
+                    >
+                      {b.status === 'no_show' ? 'Change to showed up' : 'Change to no-show'}
+                    </button>
+                  )}
+                  {needsAttendance(b, today()) && (
                     <div className="mt-3 flex gap-2">
                       <Button
                         size="sm"
@@ -317,7 +329,7 @@ export default function PatientDetail() {
 function Stat({ label, value, warn }: { label: string; value: number | string; warn?: boolean }) {
   return (
     <div className="rounded-2xl border border-line bg-surface px-2 py-3">
-      <div className={cx('text-[20px] font-semibold', warn ? 'text-warn' : 'text-ink')}>{value}</div>
+      <div className={cx('font-display text-[20px] font-bold', warn ? 'text-warn' : 'text-ink')}>{value}</div>
       <div className="text-[12px] text-muted">{label}</div>
     </div>
   )

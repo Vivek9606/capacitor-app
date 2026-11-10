@@ -32,7 +32,7 @@ export default function Confirmed() {
           <Check size={26} strokeWidth={3} />
         </div>
         <div>
-          <div className="text-[18px] font-semibold">{b.sendConfirmation ? `Confirmed & sent to ${name}` : 'Booked'}</div>
+          <div className="font-display text-[18px] font-bold">{b.sendConfirmation ? `Confirmed & sent to ${name}` : 'Booked'}</div>
           <div className="text-[13px] text-muted">{b.sendConfirmation ? `This is what ${name} sees on WhatsApp` : 'No WhatsApp message was sent'}</div>
         </div>
       </div>

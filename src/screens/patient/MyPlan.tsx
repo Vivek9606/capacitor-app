@@ -33,7 +33,7 @@ export default function MyPlan() {
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
           <div>
             <Card className="p-4">
-              <div className="text-[19px] font-semibold">{plan.title}</div>
+              <div className="font-display text-[19px] font-bold">{plan.title}</div>
               <div className="text-[13px] text-muted">
                 Week {v.week} of {plan.weeks} · {plan.daysPerWeek} days a week
               </div>

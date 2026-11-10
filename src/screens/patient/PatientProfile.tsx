@@ -27,7 +27,7 @@ export default function PatientProfile() {
       <Card className="flex items-center gap-4 p-4">
         <Avatar name={patient.name} size={56} />
         <div>
-          <div className="text-[18px] font-semibold">{patient.name}</div>
+          <div className="font-display text-[18px] font-bold">{patient.name}</div>
           <div className="text-[13px] text-muted">
             {[patient.age, patient.sex, fmtPhone(patient.phone)].filter(Boolean).join(' · ')}
           </div>

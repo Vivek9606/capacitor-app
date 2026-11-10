@@ -42,16 +42,16 @@ export default function Refer() {
       />
       <div className="lg:grid lg:grid-cols-2 lg:gap-8">
         <div>
-          <div className="rounded-[22px] bg-brand p-5 text-white">
+          <div className="bg-hero rounded-[24px] shadow-brand p-5 text-white">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent">
               <Gift size={20} />
             </div>
-            <div className="mt-3 text-[22px] font-semibold leading-tight">Give 1 month, get 1 month of Premium</div>
+            <div className="mt-3 font-display text-[22px] font-bold leading-tight">Give 1 month, get 1 month of Premium</div>
             <p className="mt-2 text-[14px] text-white/80">When a physio you invite sends their first care plan, you both get a month of Premium.</p>
             <div className="mt-4 flex items-center justify-between rounded-xl bg-surface px-4 py-3 text-ink">
               <div>
                 <div className="text-[11px] font-semibold tracking-wider text-muted">YOUR INVITE CODE</div>
-                <div className="text-[20px] font-bold tracking-wide text-brand">{physio.inviteCode}</div>
+                <div className="font-display text-[20px] font-bold tracking-wide text-brand">{physio.inviteCode}</div>
               </div>
               <button className="flex items-center gap-1.5 text-[14px] font-semibold text-brand cursor-pointer" onClick={() => copyText(physio.inviteCode, 'Invite code copied')}>
                 <Copy size={16} /> Copy
@@ -86,7 +86,7 @@ export default function Refer() {
                   <div
                     className={cx(
                       'grid h-7 w-7 place-items-center rounded-full text-[13px] font-bold',
-                      done ? 'bg-brand text-white' : next ? 'bg-accent text-white' : 'bg-[#eceae4] text-muted',
+                      done ? 'bg-brand text-white' : next ? 'bg-accent text-white' : 'bg-track text-muted',
                     )}
                   >
                     {done ? <Check size={15} strokeWidth={3} /> : m.n}

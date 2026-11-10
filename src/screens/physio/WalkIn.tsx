@@ -55,7 +55,7 @@ export default function WalkIn() {
             <Check size={26} strokeWidth={3} />
           </div>
           <div>
-            <div className="text-[18px] font-semibold">{pname} is in the queue</div>
+            <div className="font-display text-[18px] font-bold">{pname} is in the queue</div>
             <div className="text-[13px] text-muted">Arrived {fmtTime(now)} · walk-in</div>
           </div>
         </div>

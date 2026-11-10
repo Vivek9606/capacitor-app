@@ -43,7 +43,7 @@ export default function Join() {
             </p>
           </div>
         )}
-        <h1 className="mt-5 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em]">Care that continues after the session.</h1>
+        <h1 className="mt-5 font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em]">Care that continues after the session.</h1>
         <p className="mt-3 text-[16px] leading-relaxed text-muted">Free for physiotherapists. Works in your browser — or get the app.</p>
 
         <div className="mt-6 flex flex-col gap-3">
