@@ -267,6 +267,14 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       return id
     },
 
+    /** Demo mode only: the admin dashboard approves or rejects a physio's verification. */
+    adminSetVerificationDemo(physioId: string, status: 'verified' | 'none') {
+      mutate((d) => {
+        const p = d.physios.find((x) => x.id === physioId)
+        if (p) p.verification = status
+      })
+    },
+
     /** Demo mode only: the admin dashboard confirms a physio (API mode calls the admin endpoint itself). */
     adminAssignDemo(patientId: string, physioId: string) {
       mutate((d) => {

@@ -75,8 +75,11 @@ export const isOpenBooking = (b: Booking) => ['awaiting', 'confirmed', 'reminder
 /** Today's or past visits that still need a show / no-show mark (including requests nobody accepted). */
 export const needsAttendance = (b: Booking, todayIso: string) => b.date <= todayIso && (isOpenBooking(b) || b.status === 'requested')
 
-/** Today's or past visits already marked, so a wrong mark can be switched. */
-export const attendanceMarked = (b: Booking, todayIso: string) => b.date <= todayIso && (b.status === 'done' || b.status === 'no_show')
+/** Any visit still open (any date): the physio can mark show / no-show from the booking itself. */
+export const canMarkAttendance = (b: Booking) => isOpenBooking(b) || b.status === 'requested'
+
+/** Visits already marked, so a wrong mark can be switched. */
+export const attendanceMarked = (b: Booking, _todayIso?: string) => b.status === 'done' || b.status === 'no_show'
 
 export function NotifDot({ show }: { show: boolean }) {
   return (

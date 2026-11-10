@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, ClipboardList, LogOut, RefreshCw, Search, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Check, ClipboardList, LogOut, RefreshCw, Search, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
@@ -181,6 +181,18 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
     }
   }, [remote, store.db])
 
+  const setVerification = async (p: AdminPhysio, status: 'verified' | 'none') => {
+    try {
+      if (apiMode) {
+        await api(`/admin/physios/${p.id}/verification`, { body: { status }, token })
+        await load()
+      } else store.adminSetVerificationDemo(p.id, status)
+      toast(status === 'verified' ? `${p.name} is now verified` : `${p.name}'s verification removed`)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Couldn’t update verification')
+    }
+  }
+
   const assign = async (p: Patient, physioId: string) => {
     try {
       if (apiMode) {
@@ -203,12 +215,13 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const physioById = new Map(data.physios.map((p) => [p.id, p]))
   const latestFor = (pid: string) => data.assessments.find((a) => a.patientId === pid)
   const queue = data.patients.filter((p) => !p.physioId)
+  const pendingVerify = data.physios.filter((p) => p.verification === 'pending').length
   const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase())
 
   const TABS: { key: Tab; label: string; n: number; icon: React.ReactNode }[] = [
     { key: 'queue', label: 'To assign', n: queue.length, icon: <UserRoundSearch size={16} /> },
     { key: 'patients', label: 'Patients', n: data.counts.patients, icon: <Users size={16} /> },
-    { key: 'physios', label: 'Physios', n: data.counts.physios, icon: <Stethoscope size={16} /> },
+    { key: 'physios', label: pendingVerify ? `Physios · ${pendingVerify} to verify` : 'Physios', n: data.counts.physios, icon: <Stethoscope size={16} /> },
     { key: 'assessments', label: 'Assessments', n: data.counts.assessments, icon: <ClipboardList size={16} /> },
   ]
 
@@ -316,17 +329,42 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
 
           {tab === 'physios' && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {data.physios
+              {[...data.physios]
+                .sort((a, b) => Number(b.verification === 'pending') - Number(a.verification === 'pending'))
                 .filter((p) => match(`${p.name} ${p.phone} ${physioPlace(p)}`))
                 .map((p) => (
                   <Card key={p.id} className="p-4">
                     <div className="flex items-center gap-3">
                       <Avatar name={p.name} photo={p.photo} size={44} />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="truncate font-semibold">{p.name}</div>
                         <div className="text-[12px] text-muted">{fmtPhone(p.phone)}</div>
                       </div>
+                      {p.verification === 'verified' ? (
+                        <Badge tone="ok" icon={<BadgeCheck size={12} />}>Verified</Badge>
+                      ) : p.verification === 'pending' ? (
+                        <Badge tone="warn">Pending</Badge>
+                      ) : (
+                        <Badge tone="muted">Not verified</Badge>
+                      )}
                     </div>
+                    {p.verification === 'pending' && (
+                      <div className="mt-3 rounded-xl bg-warn-soft px-3 py-2.5 text-[13px]">
+                        <div className="font-semibold">Verification requested</div>
+                        <div className="mt-1 text-muted">
+                          Council reg. no: <b className="text-ink">{p.councilRegNo || 'not added'}</b>
+                        </div>
+                        <div className="text-muted">{[p.qualification, p.experienceYrs ? `${p.experienceYrs} yrs` : undefined].filter(Boolean).join(' · ') || 'No qualification added'}</div>
+                        <div className="mt-2.5 flex gap-2">
+                          <Button size="sm" onClick={() => setVerification(p, 'verified')}>
+                            <Check size={14} /> Verify
+                          </Button>
+                          <Button size="sm" variant="secondary" onClick={() => setVerification(p, 'none')}>
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {p.focusAreas.map((f) => (
                         <Badge key={f} tone="brand">
@@ -335,7 +373,14 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                       ))}
                     </div>
                     <div className="mt-2 line-clamp-2 text-[13px] text-muted">{physioPlace(p) || 'No location yet'}</div>
-                    <div className="mt-2 text-[13px] font-semibold">{p.patients} patients</div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-[13px] font-semibold">{p.patients} patients</span>
+                      {p.verification === 'verified' && (
+                        <button onClick={() => setVerification(p, 'none')} className="text-[12px] font-semibold text-muted cursor-pointer hover:text-danger">
+                          Remove verification
+                        </button>
+                      )}
+                    </div>
                   </Card>
                 ))}
             </div>

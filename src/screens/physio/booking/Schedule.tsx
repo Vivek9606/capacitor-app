@@ -1,7 +1,7 @@
 import { Ban, Check, ChevronLeft, ChevronRight, Clock, Footprints, Plus, Settings2, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { attendanceMarked, BookingBadge, bookingLine, isOpenBooking, needsAttendance, VISIT_LABEL } from '../../../components/bits'
+import { attendanceMarked, BookingBadge, bookingLine, canMarkAttendance, isOpenBooking, needsAttendance, VISIT_LABEL } from '../../../components/bits'
 import { Page } from '../../../components/Shell'
 import { Badge, Button, Card, Chip, cx, IconButton, Input, Label, PageHeader, Sheet, Toggle } from '../../../components/ui'
 import { physioAlerts } from '../../../lib/alerts'
@@ -257,9 +257,16 @@ export default function Schedule() {
               <BookingBadge status={open.status} />
             </div>
 
-            {needsAttendance(open, today()) && (
+            {canMarkAttendance(open) && open.date > today() && (
+              <p className="mt-4 text-[13px] text-muted">This visit is on {fmtDay(open.date)}. You can still mark it now if they came early or you already know they won’t.</p>
+            )}
+            {canMarkAttendance(open) && (
               <div className="mt-4 grid grid-cols-2 gap-2.5">
-                {open.status !== 'checked_in' ? (
+                {open.date > today() ? (
+                  <Button size="md" onClick={() => markDone(open)}>
+                    <Check size={16} /> Showed up
+                  </Button>
+                ) : open.status !== 'checked_in' ? (
                   <Button size="md" onClick={() => (store.updateBooking(open.id, { status: 'checked_in' }), setOpen(undefined), toast(`${firstName(open.patientName)} has arrived`))}>
                     <Check size={16} /> Arrived
                   </Button>

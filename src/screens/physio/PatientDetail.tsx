@@ -1,7 +1,7 @@
 import { CalendarDays, Check, ChevronRight, ClipboardList, Clock, FileSignature, MessageCircle, ReceiptIndianRupee } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { attendanceMarked, bookingLine, BookingBadge, needsAttendance } from '../../components/bits'
+import { attendanceMarked, bookingLine, BookingBadge, canMarkAttendance } from '../../components/bits'
 import { Page } from '../../components/Shell'
 import { Badge, Button, Card, cx, Empty, Footer, IconButton, IconTile, PageHeader, Progress, WeekDots } from '../../components/ui'
 import { fmtDay, fmtMonthYear, fmtShort, fmtTime, today } from '../../lib/dates'
@@ -231,8 +231,8 @@ export default function PatientDetail() {
                       {b.status === 'no_show' ? 'Change to showed up' : 'Change to no-show'}
                     </button>
                   )}
-                  {needsAttendance(b, today()) && (
-                    <div className="mt-3 flex gap-2">
+                  {canMarkAttendance(b) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         onClick={() => {
