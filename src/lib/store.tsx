@@ -387,6 +387,31 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
         d.draft = undefined
       })
     },
+    /** Saves an adjusted draft into the existing active plan (keeps its start date, sessions and progress). */
+    saveDraftEdits(reason: string, summary: string[]): string | undefined {
+      const draft = db.draft
+      const planId = draft?.editPlanId
+      if (!draft || !planId) return
+      const change = { at: nowTs(), reason, summary }
+      mutate((d) => {
+        const p = d.plans.find((x) => x.id === planId)
+        if (p) {
+          Object.assign(p, { title: draft.title || p.title, items: draft.items, daysPerWeek: draft.daysPerWeek, weeks: draft.weeks, rx: draft.rx, updatedAt: change.at })
+          p.changes = [...(p.changes ?? []), change]
+        }
+        d.draft = undefined
+      })
+      const hasRx = !!(draft.rx.diagnosis || draft.rx.advice || draft.rx.modalities.length)
+      remote((token) =>
+        api(`/physio/plans/${planId}`, {
+          method: 'PATCH',
+          body: { title: draft.title, items: draft.items, daysPerWeek: draft.daysPerWeek, weeks: draft.weeks, rx: hasRx ? draft.rx : undefined, reason, summary },
+          token,
+        }).then((row: any) => put('plans', row)),
+      )
+      return planId
+    },
+
     /** Sends the draft. `whatsapp: false` when the physio shares the link from their own WhatsApp. */
     sendDraft(physioId: string, opts: { whatsapp?: boolean } = {}): string | undefined {
       const draft = db.draft
@@ -430,6 +455,8 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     logSession(planId: string, log: Omit<SessionLog, 'id' | 'planId'>) {
       const id = uid('ss')
       mutate((d) => {
+        const pl = d.plans.find((p) => p.id === planId)
+        if (pl && !pl.openedAt) pl.openedAt = nowTs()
         d.sessions = d.sessions.filter((s) => !(s.planId === planId && s.date === log.date))
         d.sessions.push({ id, planId, ...log })
       })

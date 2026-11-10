@@ -159,7 +159,7 @@ export default function Build() {
   return (
     <Page wide>
       <PageHeader
-        title="Build care plan"
+        title={draft.editPlanId ? 'Adjust care plan' : 'Build care plan'}
         subtitle={`For ${firstName(patient.name)} · Step 1 of 3`}
         onBack={() => nav(`/app/patients/${patient.id}`)}
         right={

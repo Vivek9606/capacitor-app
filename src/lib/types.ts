@@ -161,6 +161,15 @@ export interface Plan {
   sentAt: string
   openedAt?: string
   rx?: Rx
+  /** Edits made to this plan after it was sent, each with the physio's reason. */
+  changes?: PlanChange[]
+  updatedAt?: string
+}
+
+export interface PlanChange {
+  at: string
+  reason: string
+  summary: string[]
 }
 
 export interface SessionLog {
@@ -318,6 +327,8 @@ export interface PlanDraft {
   weeks: number
   title: string
   rx: Rx
+  /** Set when adjusting the active plan: saving edits that plan instead of sending a new one. */
+  editPlanId?: string
 }
 
 export interface DB {

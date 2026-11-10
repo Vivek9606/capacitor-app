@@ -7,6 +7,7 @@ import { Page } from '../../../components/Shell'
 import { Button, Card, cx, PageHeader, WeekDots } from '../../../components/ui'
 import { doseLabel } from '../../../lib/exercises'
 import { fmtShort, fmtTime, timeAgo, today } from '../../../lib/dates'
+import { PlanChanges } from '../../../components/PlanChanges'
 import { firstName, logsFor, painSeries, painTrend, weekDots } from '../../../lib/logic'
 import { openWhatsApp, publicUrl, toast } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
@@ -45,7 +46,7 @@ export default function Tracking() {
     )
 
   const adjust = () => {
-    store.startDraft(patient.id, { items: plan.items, daysPerWeek: plan.daysPerWeek, weeks: plan.weeks, title: plan.title, ...(plan.rx ? { rx: plan.rx } : {}) })
+    store.startDraft(patient.id, { items: plan.items, daysPerWeek: plan.daysPerWeek, weeks: plan.weeks, title: plan.title, ...(plan.rx ? { rx: plan.rx } : {}), editPlanId: plan.status === 'active' ? plan.id : undefined })
     nav('/app/plan/build')
   }
 
@@ -124,6 +125,7 @@ export default function Tracking() {
         </div>
 
         <div className="mt-3 flex flex-col gap-3 lg:mt-0">
+          <PlanChanges plan={plan} />
           {(messages.length > 0 || notes.length > 0) && (
             <Card className="p-4">
               <div className="mb-3 text-[16px] font-semibold">Questions & notes</div>

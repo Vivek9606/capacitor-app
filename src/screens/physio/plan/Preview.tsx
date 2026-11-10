@@ -1,13 +1,15 @@
-import { Lock, Share2 } from 'lucide-react'
+import { History, Lock, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
-import { Button, Footer, PageHeader, WhatsAppButton } from '../../../components/ui'
+import { Button, Card, Footer, PageHeader, TextArea, WhatsAppButton } from '../../../components/ui'
 import { WhatsAppPreview } from '../../../components/WhatsAppPreview'
 import { addDays, fmtTime, today } from '../../../lib/dates'
 import { firstName } from '../../../lib/logic'
 import { haptic, openWhatsApp, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
+import { planDiff } from '../../../lib/planChanges'
 import { useMe, useStore } from '../../../lib/store'
+import type { Patient, Plan } from '../../../lib/types'
 
 // R4 · Preview & send
 export default function Preview() {
@@ -19,6 +21,9 @@ export default function Preview() {
   if (!draft || !physio) return <Navigate to="/app/patients" replace />
   const patient = store.db.patients.find((p) => p.id === draft.patientId)
   if (!patient) return <Navigate to="/app/patients" replace />
+
+  const editing = draft.editPlanId ? store.db.plans.find((p) => p.id === draft.editPlanId && p.status === 'active') : undefined
+  if (editing) return <SaveChanges plan={editing} patient={patient} />
 
   const rxOnly = draft.items.length === 0
   const hasRx = !!(draft.rx.diagnosis || draft.rx.advice)
@@ -136,6 +141,68 @@ export default function Preview() {
             <Share2 size={18} />
           </Button>
         </div>
+      </Footer>
+    </Page>
+  )
+}
+
+/** Adjusting the active plan: same plan, same start date and progress; the reason is logged and shown to the patient. */
+function SaveChanges({ plan, patient }: { plan: Plan; patient: Patient }) {
+  const store = useStore()
+  const nav = useNavigate()
+  const [reason, setReason] = useState('')
+  const draft = store.db.draft!
+  const summary = planDiff(plan, draft, store.db.exercises)
+  const name = firstName(patient.name)
+  const ok = reason.trim().length >= 3 && summary.length > 0
+
+  const save = (tell: boolean) => {
+    const why = reason.trim()
+    store.saveDraftEdits(why, summary)
+    if (tell) openWhatsApp(patient.phone, `Hi ${name}, I’ve updated your care plan: ${why}. Open it here: ${publicUrl(`/plan/${patient.linkToken}`)}`)
+    haptic('success')
+    toast(`Plan updated for ${name}`)
+    nav(`/app/plans/${plan.id}`, { replace: true })
+  }
+
+  return (
+    <Page>
+      <PageHeader title="Save changes" subtitle={`${name}’s current plan · progress is kept`} />
+      <Card className="p-4">
+        <div className="text-[13px] font-semibold text-muted">What’s changing</div>
+        {summary.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">Nothing has changed yet. Go back to adjust exercises, doses or the schedule.</p>
+        ) : (
+          <ul className="mt-2 flex flex-col gap-1.5 text-[14px]">
+            {summary.map((s) => (
+              <li key={s} className="flex gap-2">
+                <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+                {s}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      <div className="mt-4">
+        <TextArea
+          label="Why are you changing the plan? *"
+          placeholder={`e.g. ${name} reported less pain, progressing to the next level`}
+          rows={3}
+          maxLength={500}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-muted">
+          <History size={13} /> Saved in the plan’s change log. {name} sees it with the updated plan.
+        </p>
+      </div>
+      <Footer className="flex flex-col gap-2">
+        <Button block disabled={!ok} onClick={() => save(false)}>
+          Save changes
+        </Button>
+        <Button variant="ghost" size="md" disabled={!ok} onClick={() => save(true)}>
+          Save and tell {name} on my WhatsApp
+        </Button>
       </Footer>
     </Page>
   )

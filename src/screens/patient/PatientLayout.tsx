@@ -31,10 +31,12 @@ export default function PatientLayout() {
   const loc = useLocation()
   const myPhysio = patient?.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
 
+  // Opening the app opens the plan, including plans sent after the patient first consented.
+  const activePlanId = patient ? store.db.plans.find((p) => p.patientId === patient.id && p.status === 'active')?.id : undefined
   useEffect(() => {
     if (patient?.consentAt) store.markPlansOpened(patient.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patient?.id, patient?.consentAt])
+  }, [patient?.id, patient?.consentAt, activePlanId])
 
   if (!session) return <Navigate to="/welcome" replace />
   if (physio) return <Navigate to="/app" replace />

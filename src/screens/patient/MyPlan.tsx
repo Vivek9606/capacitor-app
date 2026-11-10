@@ -11,6 +11,7 @@ import { firstName, painSeries } from '../../lib/logic'
 import { patientView } from '../../lib/patientData'
 import { useMe, useStore } from '../../lib/store'
 import type { Exercise, PlanItem } from '../../lib/types'
+import { PlanChanges } from '../../components/PlanChanges'
 
 // Patient · My plan
 export default function MyPlan() {
@@ -49,6 +50,11 @@ export default function MyPlan() {
                 </>
               )}
             </Card>
+            {plan.changes?.length ? (
+              <div className="mt-3">
+                <PlanChanges plan={plan} forPatient physioName={v.physio.name} />
+              </div>
+            ) : null}
             <SectionTitle>Exercises</SectionTitle>
             <div className="flex flex-col gap-2.5">
               {plan.items.map((item, i) => {
