@@ -102,18 +102,21 @@ export interface Patient {
   match?: { status: 'pending' | 'suggested' | 'confirmed'; suggestedPhysioId?: string }
 }
 
-/** A betterhood pain-assessment result. */
+/** A result from one of the betterhood.in assessments (taken on the website's flow, inside the app). */
 export interface Assessment {
   id: string
   patientId: string
   slug: string
-  area: 'back' | 'neck' | 'shoulder' | 'knee'
+  /** pain (level 1) → a likely cause; health (level 2) and longevity → scores out of 10. Older rows: pain. */
+  kind: 'pain' | 'health' | 'longevity'
+  area: 'back' | 'neck' | 'shoulder' | 'knee' | 'overall'
   title: string
   cat?: 'muscle' | 'nerve' | 'bone' | 'joint'
   condition?: string
   result?: string // betterhood.in result page slug
   advisory?: string
   totals: Record<string, number>
+  scores?: { overall?: number | null; strength?: number | null; balance?: number | null; mobility?: number | null }
   createdAt: string
 }
 

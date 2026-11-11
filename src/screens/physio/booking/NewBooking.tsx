@@ -8,6 +8,7 @@ import { fmtDay, fmtTime, today } from '../../../lib/dates'
 import { fmtPhone } from '../../../lib/logic'
 import { haptic } from '../../../lib/platform'
 import { fromMin, toMin, visitMinutes } from '../../../lib/slots'
+import { apiMode } from '../../../lib/api'
 import { useMe, useStore } from '../../../lib/store'
 import type { VisitType } from '../../../lib/types'
 
@@ -130,7 +131,13 @@ export default function NewBooking() {
             <Chip selected={visit === 'home_visit'} onClick={() => (setVisit('home_visit'), setTime(undefined))}>
               Home visit · {visitMinutes(physio, 'home_visit')} min
             </Chip>
-            <Chip disabled>Teleconsult · soon</Chip>
+            {apiMode ? (
+              <Chip selected={visit === 'teleconsult'} onClick={() => (setVisit('teleconsult'), setTime(undefined))}>
+                Video consult · {visitMinutes(physio, 'teleconsult')} min
+              </Chip>
+            ) : (
+              <Chip disabled>Video consult · live app only</Chip>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import { Activity, CalendarDays, Check, ChevronRight, Footprints, Gift, GraduationCap, ReceiptIndianRupee, UsersRound, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { bookingLine, BookingBadge, needsAttendance, NotifDot } from '../../components/bits'
+import { JoinCall } from '../../components/JoinCall'
 import { Page } from '../../components/Shell'
 import { Avatar, Badge, Button, Card, cx, Empty, IconButton, IconTile, RefreshButton, SectionTitle } from '../../components/ui'
 import { physioAlerts } from '../../lib/alerts'
@@ -194,6 +195,7 @@ export default function Home() {
                       </div>
                       <BookingBadge status={row.b.status} />
                     </div>
+                    <JoinCall booking={row.b} physio={physio} className="ml-[68px] mt-3" />
                     {needsAttendance(row.b, t) && (
                       <div className="mt-3 flex gap-2 pl-[68px]" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm" onClick={() => (store.updateBooking(row.b.id, { status: 'checked_in' }), toast(`${firstName(row.b.patientName)} has arrived`))}>

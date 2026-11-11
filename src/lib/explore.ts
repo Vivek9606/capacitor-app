@@ -50,7 +50,7 @@ export interface Tool {
 
 export const TOOLS: Tool[] = [
   { key: 'slouch', label: 'Slouch Catcher', desc: 'Catch a friend slouching and reveal their posture animal.', href: 'https://betterhood.in/slouch-catcher/' },
-  { key: 'assess', label: 'Pain assessments', desc: 'A 5-minute, physio-designed check of your back, neck, shoulder or knee.', to: '/me/assess' },
+  { key: 'assess', label: 'Assessments', desc: 'Physio-designed pain checks and health scores for your back, neck, shoulder or knee.', to: '/me/assess' },
   { key: 'corner', label: 'betterYou corner', desc: 'Routines and reading for back, neck, shoulder and knee health.', href: 'https://betterhood.in/better-you-corner-back-health/' },
   { key: 'directory', label: 'Physio directory', desc: 'Find betterhood-certified physiotherapists near you.', href: 'https://betterhood.in/physio-directory/' },
   { key: 'learn', label: 'Learn', desc: 'Short, physio-written guides on pain, posture and recovery.', href: 'https://betterhood.in/learn/' },

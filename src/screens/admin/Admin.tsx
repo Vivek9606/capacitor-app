@@ -24,6 +24,8 @@ interface Overview {
   physios: AdminPhysio[]
   patients: Patient[]
   assessments: Assessment[]
+  /** betterhood.in directory listings (API mode only). They go live without review; admins can hide one. */
+  listings?: { physioId: string; slug: string; status: 'live' | 'hidden'; url: string; updatedAt: string }[]
 }
 
 function loadAuth(): { phone: string; token?: string } | undefined {
@@ -190,6 +192,16 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
       toast(status === 'verified' ? `${p.name} is now verified` : `${p.name}'s verification removed`)
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Couldn’t update verification')
+    }
+  }
+
+  const setListing = async (p: AdminPhysio, status: 'live' | 'hidden') => {
+    try {
+      await api(`/admin/directory/${p.id}/status`, { body: { status }, token })
+      await load()
+      toast(status === 'hidden' ? `${p.name}'s profile is coming off betterhood.in` : `${p.name}'s profile is going back on betterhood.in`)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Couldn’t update the listing')
     }
   }
 
@@ -373,6 +385,20 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                       ))}
                     </div>
                     <div className="mt-2 line-clamp-2 text-[13px] text-muted">{physioPlace(p) || 'No location yet'}</div>
+                    {(() => {
+                      const l = data.listings?.find((x) => x.physioId === p.id)
+                      if (!l) return null
+                      return (
+                        <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-bg px-3 py-2 text-[13px]">
+                          <a href={l.url} target="_blank" rel="noopener" className="flex min-w-0 items-center gap-1 font-semibold text-brand">
+                            <span className="truncate">Directory {l.status === 'live' ? 'profile' : 'profile (hidden)'}</span> <ArrowUpRight size={13} className="shrink-0" />
+                          </a>
+                          <button onClick={() => setListing(p, l.status === 'live' ? 'hidden' : 'live')} className="shrink-0 text-[12px] font-semibold text-muted cursor-pointer hover:text-danger">
+                            {l.status === 'live' ? 'Hide' : 'Show again'}
+                          </button>
+                        </div>
+                      )
+                    })()}
                     <div className="mt-2 flex items-center justify-between">
                       <span className="text-[13px] font-semibold">{p.patients} patients</span>
                       {p.verification === 'verified' && (
@@ -399,7 +425,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                       <div className="text-[12px] text-muted">{fmtShort(a.createdAt.slice(0, 10))}</div>
                     </div>
                     <div className="min-w-[200px] flex-1">
-                      {a.title}: <b>{a.condition ?? '—'}</b>
+                      {a.title}: <b>{a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '—')}</b>
                     </div>
                     {a.advisory && <Badge tone="accent">See a doctor</Badge>}
                     {a.result && (

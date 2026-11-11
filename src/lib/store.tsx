@@ -253,7 +253,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       mutate((d) => {
         d.assessments.push({ ...input, id, patientId, createdAt: nowTs() })
         const p = d.patients.find((x) => x.id === patientId)
-        if (p && !p.physioId && p.match?.status !== 'confirmed') {
+        if (input.kind === 'pain' && p && !p.physioId && p.match?.status !== 'confirmed') {
           const sug = suggestPhysio(d, input.cat, p.city)
           p.match = sug ? { status: 'suggested', suggestedPhysioId: sug } : { status: 'pending' }
           p.condition ??= input.condition

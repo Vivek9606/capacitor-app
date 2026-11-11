@@ -322,8 +322,8 @@ export function seed(): DB {
     invoices,
     consents,
     assessments: [
-      { id: 'as_divya', patientId: 'pt_divya', slug: 'assessment-lower-back-pain', area: 'back', title: 'Lower back pain', cat: 'nerve', condition: 'Nerve Compression', result: 'result-lower-back-pain-nerve', totals: { muscle: 6, nerve: 14, bone: 2, joint: 5 }, createdAt: ts(1) },
-      { id: 'as_riya', patientId: 'pt_riya', slug: 'assessment-lower-back-pain', area: 'back', title: 'Lower back pain', cat: 'muscle', condition: 'Muscular Imbalance', result: 'result-lower-back-pain-muscle', totals: { muscle: 12, nerve: 4, bone: 1, joint: 3 }, createdAt: ts(62) },
+      { id: 'as_divya', patientId: 'pt_divya', slug: 'assessment-lower-back-pain', kind: 'pain', area: 'back', title: 'Lower back pain', cat: 'nerve', condition: 'Nerve Compression', result: 'result-lower-back-pain-nerve', totals: { muscle: 6, nerve: 14, bone: 2, joint: 5 }, createdAt: ts(1) },
+      { id: 'as_riya', patientId: 'pt_riya', slug: 'assessment-lower-back-pain', kind: 'pain', area: 'back', title: 'Lower back pain', cat: 'muscle', condition: 'Muscular Imbalance', result: 'result-lower-back-pain-muscle', totals: { muscle: 12, nerve: 4, bone: 1, joint: 3 }, createdAt: ts(62) },
     ],
   }
 }

@@ -1,5 +1,5 @@
 import { AlertCircle, Check } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { initNative, listenDeepLinks, registerToast } from './lib/platform'
 import { StoreProvider, useMe } from './lib/store'
@@ -60,6 +60,11 @@ import EditProfile from './screens/physio/profile/EditProfile'
 import Profile from './screens/physio/profile/Profile'
 import PublicBook from './screens/public/PublicBook'
 import PublicProfile from './screens/public/PublicProfile'
+import WebPage from './screens/WebPage'
+import DirectoryListing from './screens/physio/profile/DirectoryListing'
+
+// Loaded only when someone joins a call (keeps the video SDK out of the main bundle).
+const Call = lazy(() => import('./screens/call/Call'))
 
 function RootRedirect() {
   const { session, physio, patient } = useMe()
@@ -141,6 +146,12 @@ export default function App() {
           <Route path="/dr/:slug/book" element={<PublicBook />} />
           <Route path="/join" element={<Join />} />
 
+          {/* betterhood.in pages shown inside the app (shared flows live on the website) */}
+          <Route path="/web" element={<WebPage />} />
+
+          {/* Video consult (physio and patient) */}
+          <Route path="/call/:id" element={<Suspense fallback={<div className="fixed inset-0 bg-scrim" />}><Call /></Suspense>} />
+
           {/* Physio */}
           <Route path="/app" element={<PhysioLayout />}>
             <Route index element={<Home />} />
@@ -170,6 +181,7 @@ export default function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
             <Route path="profile/clinic" element={<Clinic />} />
+            <Route path="profile/directory" element={<DirectoryListing />} />
             <Route path="refer" element={<Refer />} />
             <Route path="partner" element={<Partner />} />
             <Route path="community" element={<Community />} />

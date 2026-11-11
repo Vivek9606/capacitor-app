@@ -46,7 +46,9 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Take a profile photo or a photo of your council certificate.</string>
+	<string>Take a profile photo or a certificate photo, and show your video during video consults.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Talk to your physio or patient during video consults.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a profile photo or certificate from your photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -1,4 +1,4 @@
-import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, RotateCcw, UsersRound } from 'lucide-react'
+import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, Globe, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, RotateCcw, UsersRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
 import { Avatar, Badge, Card, cx, IconButton, Progress, RefreshButton, WhatsAppButton } from '../../../components/ui'
@@ -6,7 +6,9 @@ import { courseProgress } from '../../../lib/course'
 import { profileCompletion } from '../../../lib/logic'
 import { modeLabels, modesOf } from '../../../lib/practice'
 import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
+import { useDirectoryListing } from '../../../lib/directory'
 import { useMe, useStore } from '../../../lib/store'
+import { webRoute } from '../../../lib/web'
 
 // P1 · My profile
 export default function Profile() {
@@ -19,6 +21,7 @@ export default function Profile() {
   const url = publicUrl(path)
   const meta = [physio.qualification, physio.experienceYrs ? `${physio.experienceYrs} yrs` : undefined, physio.clinic?.area].filter(Boolean).join(' · ')
   const course = courseProgress(physio.courseProgress)
+  const listing = useDirectoryListing()
 
   const changePhoto = async () => {
     const photo = await pickPhoto()
@@ -86,6 +89,44 @@ export default function Profile() {
         </div>
 
         <div className="mt-3 flex flex-col gap-3 lg:mt-0">
+          <Card className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-[16px] font-semibold">
+                <Globe size={18} className="text-brand" /> betterhood.in directory
+              </div>
+              {listing && <Badge tone={listing.status === 'live' ? 'ok' : 'muted'}>{listing.status === 'live' ? 'Listed' : 'Hidden'}</Badge>}
+            </div>
+            {listing ? (
+              <>
+                <div className="mt-3 flex items-center justify-between rounded-xl bg-bg px-3.5 py-3">
+                  <span className="truncate text-[14px] font-semibold text-brand">{listing.url.replace(/^https?:\/\//, '')}</span>
+                  <button aria-label="Copy link" className="text-muted hover:text-ink cursor-pointer" onClick={() => copyText(listing.url, 'Directory link copied')}>
+                    <Copy size={17} />
+                  </button>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button onClick={() => nav('/app/profile/directory')} className="pressable h-11 rounded-xl bg-brand-soft text-[14px] font-semibold text-brand cursor-pointer">
+                    Edit listing
+                  </button>
+                  <button onClick={() => nav(webRoute(`/physio/${listing.slug}/`, 'My directory profile'))} className="pressable h-11 rounded-xl border border-line text-[14px] font-semibold cursor-pointer">
+                    View
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-1 text-[13px] text-muted">Patients across India find physios on betterhood.in. Create your public profile there. It gets its own link and goes live within minutes.</p>
+                {store.apiMode ? (
+                  <button onClick={() => nav('/app/profile/directory')} className="pressable mt-3 h-11 w-full rounded-xl bg-brand text-[15px] font-semibold text-white shadow-brand cursor-pointer">
+                    List my practice
+                  </button>
+                ) : (
+                  <p className="mt-3 text-[12px] text-faint">Available when the app is connected to the Betterhood API.</p>
+                )}
+              </>
+            )}
+          </Card>
+
           <div className="rounded-2xl bg-brand-soft p-4">
             <div className="text-[16px] font-semibold">Your booking page</div>
             <p className="mt-1 text-[13px] text-muted">Patients pick a visit type, day and open time — like Calendly. Put it in your WhatsApp and Instagram bio.</p>

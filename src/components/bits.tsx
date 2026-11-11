@@ -56,7 +56,7 @@ export function BookingBadge({ status }: { status: BookingStatus }) {
 export const VISIT_LABEL: Record<VisitType, string> = {
   in_clinic: 'In-clinic',
   home_visit: 'Home visit',
-  teleconsult: 'Teleconsult',
+  teleconsult: 'Video consult',
 }
 
 export function bookingLine(b: Booking) {

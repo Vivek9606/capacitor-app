@@ -35,6 +35,24 @@ export default function AssessResult() {
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">
           <ResultCard a={a} />
+          {a.scores && (
+            <Card className="p-4">
+              <div className="text-[13px] font-semibold text-muted">Your scores</div>
+              <div className="mt-3 flex flex-col gap-2.5">
+                {(['strength', 'balance', 'mobility'] as const)
+                  .filter((k) => a.scores?.[k] != null)
+                  .map((k) => (
+                    <div key={k} className="flex items-center gap-3 text-[13px]">
+                      <span className="w-16 shrink-0 font-medium capitalize">{k}</span>
+                      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-track">
+                        <span className="anim-grow block h-full rounded-full bg-brand" style={{ width: `${(a.scores![k]! / 10) * 100}%` }} />
+                      </span>
+                      <span className="w-10 text-right tabular-nums text-muted">{a.scores![k]}/10</span>
+                    </div>
+                  ))}
+              </div>
+            </Card>
+          )}
           {totals.length > 0 && (
             <Card className="p-4">
               <div className="text-[13px] font-semibold text-muted">How your answers scored</div>

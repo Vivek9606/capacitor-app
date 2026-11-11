@@ -17,7 +17,7 @@ export default function Confirmed() {
   const b = db.bookings.find((x) => x.id === id)
   if (!b || !physio) return <Navigate to="/app/schedule" replace />
   const name = firstName(b.patientName)
-  const where = b.visitType === 'home_visit' ? 'Home visit' : visitPlace(physio) ?? physio.name
+  const where = b.visitType === 'home_visit' ? 'Home visit' : b.visitType === 'teleconsult' ? 'Video call in the Betterhood app' : visitPlace(physio) ?? physio.name
   const remindAt = (() => {
     const [h, m] = b.time.split(':').map(Number)
     const t = h * 60 + m - 120

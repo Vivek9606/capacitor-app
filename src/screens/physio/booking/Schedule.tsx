@@ -2,6 +2,7 @@ import { Ban, Check, ChevronLeft, ChevronRight, Clock, Footprints, Plus, Setting
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { attendanceMarked, BookingBadge, bookingLine, canMarkAttendance, isOpenBooking, needsAttendance, VISIT_LABEL } from '../../../components/bits'
+import { JoinCall } from '../../../components/JoinCall'
 import { Page } from '../../../components/Shell'
 import { Badge, Button, Card, Chip, cx, IconButton, Input, Label, PageHeader, Sheet, Toggle } from '../../../components/ui'
 import { physioAlerts } from '../../../lib/alerts'
@@ -163,6 +164,7 @@ export default function Schedule() {
                       <BookingBadge status={r.booking.status} />
                     </div>
                     <div className="mt-1 truncate text-[13px] text-muted">{bookingLine(r.booking)}</div>
+                    <JoinCall booking={r.booking} physio={physio} className="mt-2.5" />
                     {needsAttendance(r.booking, today()) && (
                       <div className="mt-2.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
                         {r.booking.status === 'checked_in' ? (
@@ -256,6 +258,7 @@ export default function Schedule() {
             <div className="mt-3">
               <BookingBadge status={open.status} />
             </div>
+            <JoinCall booking={open} physio={physio} size="md" block className="mt-4" />
 
             {canMarkAttendance(open) && open.date > today() && (
               <p className="mt-4 text-[13px] text-muted">This visit is on {fmtDay(open.date)}. You can still mark it now if they came early or you already know they won’t.</p>

@@ -2,6 +2,7 @@ import { CalendarDays, ChevronRight, MapPin, Navigation, Plus, UsersRound } from
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookingBadge, VISIT_LABEL } from '../../components/bits'
+import { JoinCall } from '../../components/JoinCall'
 import { Page } from '../../components/Shell'
 import { Badge, Button, Card, Empty, PageHeader, SectionTitle, Sheet, TextArea } from '../../components/ui'
 import { inr } from '../../lib/invoices'
@@ -61,6 +62,7 @@ export default function Appointments() {
                   {b.status === 'requested' && <p className="mt-2 text-[13px] text-muted">Waiting for {doc} to accept. You’ll get a WhatsApp message.</p>}
                   {b.status === 'reschedule' && <p className="mt-2 text-[13px] text-muted">{doc} will suggest a new time on WhatsApp.</p>}
                   <div className="mt-3 flex flex-wrap gap-2">
+                    <JoinCall booking={b} physio={v.physio} />
                     {(b.status === 'awaiting' || b.status === 'reminder_sent') && (
                       <Button
                         size="sm"

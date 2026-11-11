@@ -2,7 +2,8 @@ import { AlertTriangle, ArrowUpRight, BookOpen, Camera, ClipboardCheck, Hourglas
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Card, cx } from '../../components/ui'
-import { resultUrl } from '../../lib/assessments'
+import { resultPath } from '../../lib/assessments'
+import { webRoute } from '../../lib/web'
 import { productUrl, type Product, type Tool } from '../../lib/explore'
 import { fmtShort } from '../../lib/dates'
 import { openLink } from '../../lib/platform'
@@ -68,16 +69,28 @@ export function ToolCard({ t }: { t: Tool }) {
   )
 }
 
-/** The latest assessment outcome, linking to the full result page on betterhood.in. */
+/** The latest assessment outcome. Pain results link to the full result page from betterhood.in, shown in the app. */
 export function ResultCard({ a, onOpen }: { a: Assessment; onOpen?: () => void }) {
+  const nav = useNavigate()
+  const scored = (a.kind ?? 'pain') !== 'pain'
+  const overall = a.scores?.overall
   return (
     <Card className="overflow-hidden p-0" onClick={onOpen}>
       <div className="bg-hero p-4 text-white">
         <div className="text-[12px] font-semibold uppercase tracking-wider text-white/70">
           {a.title} · {fmtShort(a.createdAt.slice(0, 10))}
         </div>
-        <div className="mt-1 font-display text-[22px] font-bold leading-tight">{a.condition ?? 'Result ready'}</div>
-        <div className="mt-1 text-[13px] text-white/80">Most likely cause of your pain, based on your answers.</div>
+        {scored ? (
+          <>
+            <div className="mt-1 font-display text-[22px] font-bold leading-tight">{overall != null ? `${overall} / 10` : 'Result ready'}</div>
+            <div className="mt-1 text-[13px] text-white/80">{a.kind === 'longevity' ? 'Your longevity target for musculoskeletal health.' : 'Overall score, combining strength, balance and mobility.'}</div>
+          </>
+        ) : (
+          <>
+            <div className="mt-1 font-display text-[22px] font-bold leading-tight">{a.condition ?? 'Result ready'}</div>
+            <div className="mt-1 text-[13px] text-white/80">Most likely cause of your pain, based on your answers.</div>
+          </>
+        )}
       </div>
       {a.advisory && (
         <div className="flex gap-2.5 border-b border-line bg-accent-soft px-4 py-3 text-[13px] text-ink">
@@ -89,7 +102,7 @@ export function ResultCard({ a, onOpen }: { a: Assessment; onOpen?: () => void }
         <button
           onClick={(e) => {
             e.stopPropagation()
-            openLink(resultUrl(a.result!))
+            nav(webRoute(resultPath(a.result!), a.condition ?? a.title))
           }}
           className="flex w-full items-center justify-between px-4 py-3 text-[14px] font-semibold text-brand cursor-pointer hover:bg-brand-soft/50"
         >
