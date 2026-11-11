@@ -1,9 +1,10 @@
 import { CalendarDays, ClipboardList, Compass, House, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../../components/Logo'
 import { Shell, type NavItem } from '../../components/Shell'
 import { Avatar, Button, Card, Checkbox } from '../../components/ui'
+import { takeWebsiteResult, toInput } from '../../lib/assessments'
 import { firstName } from '../../lib/logic'
 import { useMe, useStore } from '../../lib/store'
 
@@ -29,6 +30,7 @@ export default function PatientLayout() {
   const { patient, physio, session } = useMe()
   const store = useStore()
   const loc = useLocation()
+  const nav = useNavigate()
   const myPhysio = patient?.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
 
   // Opening the app opens the plan, including plans sent after the patient first consented.
@@ -37,6 +39,16 @@ export default function PatientLayout() {
     if (patient?.consentAt) store.markPlansOpened(patient.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?.id, patient?.consentAt, activePlanId])
+
+  // A result taken on the website before signing in: save it to this account and show it.
+  useEffect(() => {
+    if (!patient) return
+    const pending = takeWebsiteResult()
+    if (!pending) return
+    const id = store.saveAssessment(patient.id, toInput(pending.info, pending.result))
+    nav(`/me/assess/result/${id}`, { replace: true, state: { fresh: true } })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patient?.id])
 
   if (!session) return <Navigate to="/welcome" replace />
   if (physio) return <Navigate to="/app" replace />

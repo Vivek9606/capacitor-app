@@ -1,37 +1,9 @@
 import { useRef } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { WebFlow } from '../../../components/WebFlow'
-import { assessmentBySlug, type AssessmentInfo } from '../../../lib/assessments'
+import { assessmentBySlug, toInput } from '../../../lib/assessments'
 import { haptic } from '../../../lib/platform'
-import { useMe, useStore, type NewAssessmentInput } from '../../../lib/store'
-import type { SiteAssessmentResult } from '../../../lib/web'
-
-const round = (n: number | null | undefined) => (typeof n === 'number' && Number.isFinite(n) ? Math.round(n * 10) / 10 : null)
-
-/** The website's result record → the patient's saved assessment. Slug, kind, area and title come from our own list. */
-function toInput(info: AssessmentInfo, r: SiteAssessmentResult): NewAssessmentInput {
-  if (info.kind === 'pain') {
-    return {
-      slug: info.slug,
-      kind: 'pain',
-      area: info.area,
-      title: info.title,
-      cat: r.cat,
-      condition: r.condition,
-      result: r.result,
-      advisory: r.advisory ? 'Critical advisory' : undefined,
-      totals: Object.fromEntries((r.totals ?? []).map((t) => [t.cat, round(t.score) ?? 0])),
-    }
-  }
-  return {
-    slug: info.slug,
-    kind: info.kind,
-    area: info.area,
-    title: info.title,
-    totals: {},
-    scores: { overall: round(r.overall), strength: round(r.strength), balance: round(r.balance), mobility: round(r.mobility) },
-  }
-}
+import { useMe, useStore } from '../../../lib/store'
 
 // Patient · take an assessment. Runs the website's assessment in the app; the result is saved to the patient's account.
 export default function AssessRun() {
