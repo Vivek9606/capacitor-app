@@ -8,7 +8,7 @@ import { formById } from './consents'
 import { nextInvoiceNumber, totals } from './invoices'
 import { nowHHMM } from './slots'
 import { suggestPhysio } from './match'
-import type { Assessment, Block, Booking, Consent, DB, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, PlanDraft, Role, Session, SessionLog } from './types'
+import type { Assessment, Block, Booking, Consent, DB, Discharge, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, Plan, PlanDraft, Role, Session, SessionLog } from './types'
 
 /**
  * App data layer. Screens read `db` synchronously and call actions; each action updates local
@@ -81,6 +81,9 @@ export interface NewSelfPatientInput {
 export type NewAssessmentInput = Omit<Assessment, 'id' | 'patientId' | 'createdAt'>
 
 export type OtpResult = { role: Role } | { signup: true; signupToken?: string }
+
+/** Switching profile on the same number: done, or (no physio account yet) go through quick setup. */
+export type SwitchResult = { role: Role } | { setup: { phone: string; signupToken?: string } }
 
 interface Bootstrap {
   session: Session
@@ -171,6 +174,48 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     logout() {
       setSession(undefined)
       if (apiMode) setDb(() => EMPTY)
+    },
+    /** Same phone number, other profile: physio ↔ consumer. A consumer profile is created if there isn't one. */
+    async switchRole(to: 'physio' | 'patient'): Promise<SwitchResult> {
+      if (!session) throw new ApiError(401, 'unauthenticated', 'Please log in again.')
+      if (session.role === to) return { role: to }
+      const me = session.role === 'physio' ? db.physios.find((p) => p.id === session.userId) : db.patients.find((p) => p.id === session.userId)
+      if (!me) throw new ApiError(401, 'unauthenticated', 'Please log in again.')
+      if (apiMode) {
+        const r = await api<{ token?: string; role?: Role; userId?: string; signupToken?: string }>('/auth/switch', { body: { to }, token: session.token })
+        if (r.signupToken) return { setup: { phone: me.phone, signupToken: r.signupToken } }
+        await startSession({ role: r.role!, userId: r.userId!, token: r.token })
+        return { role: r.role! }
+      }
+      if (to === 'physio') {
+        const ph = db.physios.find((p) => p.phone === me.phone)
+        if (!ph) return { setup: { phone: me.phone } }
+        setSession({ role: 'physio', userId: ph.id })
+        return { role: 'physio' }
+      }
+      let pt = [...db.patients].filter((p) => p.phone === me.phone).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+      if (!pt) {
+        const id = uid('pt')
+        pt = {
+          id,
+          phone: me.phone,
+          name: me.name.replace(/^Dr\.?\s*/i, ''),
+          since: today(),
+          tags: [],
+          visits: 0,
+          linkToken: `self-${id.slice(-6)}`,
+          consentAt: nowTs(),
+          createdAt: nowTs(),
+          selfSignup: true,
+          match: { status: 'pending' },
+        }
+        const row = pt
+        mutate((d) => {
+          d.patients.push(row)
+        })
+      }
+      setSession({ role: 'patient', userId: pt.id })
+      return { role: 'patient' }
     },
     async signupPhysio(input: NewPhysioInput): Promise<string> {
       if (apiMode) {
@@ -300,7 +345,10 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     // ---------- patients ----------
     addPatient(physioId: string, input: NewPatientInput): string {
       const existing = db.patients.find((p) => p.phone === input.phone && p.physioId === physioId)
-      if (existing) return existing.id
+      if (existing) {
+        if (existing.dischargedAt) self.readmitPatient(existing.id)
+        return existing.id
+      }
       // Someone who signed up on their own: this physio takes them on (keeps their assessments).
       const solo = db.patients.find((p) => p.phone === input.phone && !p.physioId)
       if (solo) {
@@ -343,6 +391,29 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
         put('patients', await api<Patient>('/patient/consent', { method: 'POST', token }))
         await api('/patient/plans/opened', { method: 'POST', token })
       })
+    },
+
+    /** End of an episode of care: active plans are completed, the reason and advice are kept on the patient. */
+    dischargePatient(patientId: string, input: Omit<Discharge, 'at'>) {
+      const discharge: Discharge = { ...input, at: nowTs() }
+      mutate((d) => {
+        const p = d.patients.find((x) => x.id === patientId)
+        if (p) Object.assign(p, { dischargedAt: discharge.at, discharge })
+        d.plans.filter((pl) => pl.patientId === patientId && pl.status === 'active').forEach((pl) => (pl.status = 'completed'))
+      })
+      remote(async (token) => {
+        const r = await api<{ patient: Patient; plans: Plan[] }>(`/physio/patients/${patientId}/discharge`, { body: input, token })
+        put('patients', r.patient)
+        r.plans.forEach((pl) => put('plans', pl))
+      })
+    },
+    /** Take a discharged patient on again. */
+    readmitPatient(patientId: string) {
+      mutate((d) => {
+        const p = d.patients.find((x) => x.id === patientId)
+        if (p) p.dischargedAt = undefined
+      })
+      remote((token) => api<Patient>(`/physio/patients/${patientId}/readmit`, { method: 'POST', token }).then((row) => put('patients', row)))
     },
 
     markPlansOpened(patientId: string) {
@@ -485,6 +556,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
               minutes: b.minutes,
               reason: b.reason,
               address: b.address,
+              location: b.location,
               isNewPatient: b.isNewPatient,
               status: b.status === 'confirmed' || b.status === 'checked_in' ? b.status : 'awaiting',
               sendConfirmation: b.sendConfirmation,
@@ -494,7 +566,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
             token,
           }).then((row) => put('bookings', row)),
         )
-      else if (role === 'patient') remote((token) => api<Booking>('/patient/bookings', { body: { id, date: b.date, time: b.time, visitType: b.visitType, reason: b.reason, address: b.address }, token }).then((row) => put('bookings', row)))
+      else if (role === 'patient') remote((token) => api<Booking>('/patient/bookings', { body: { id, date: b.date, time: b.time, visitType: b.visitType, reason: b.reason, address: b.address, location: b.location }, token }).then((row) => put('bookings', row)))
       return id
     },
     updateBooking(id: string, patch: Partial<Booking>) {

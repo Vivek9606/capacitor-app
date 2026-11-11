@@ -21,9 +21,10 @@ import { firstName } from '../../../lib/logic'
 import { haptic, toast } from '../../../lib/platform'
 import { useStore } from '../../../lib/store'
 import type { Exercise, PlanItem } from '../../../lib/types'
+import { stepLabel } from './RxNotes'
 import { TEMPLATES } from './templates'
 
-// R2 · Protocol builder (step 1 of 3)
+// Care plan: home exercises (step 3 of 4; the first screen when adjusting an active plan)
 export default function Build() {
   const store = useStore()
   const { db } = store
@@ -160,8 +161,8 @@ export default function Build() {
     <Page wide>
       <PageHeader
         title={draft.editPlanId ? 'Adjust care plan' : 'Build care plan'}
-        subtitle={`For ${firstName(patient.name)} · Step 1 of 3`}
-        onBack={() => nav(`/app/patients/${patient.id}`)}
+        subtitle={draft.editPlanId ? `For ${firstName(patient.name)} · progress is kept` : `For ${firstName(patient.name)} · ${stepLabel(draft, 'build')}`}
+        onBack={() => (draft.editPlanId ? nav(-1) : nav('/app/plan/rx', { replace: true }))}
         right={
           <button className="text-[14px] font-semibold text-brand cursor-pointer" onClick={() => setTplOpen(true)}>
             Templates
@@ -186,8 +187,8 @@ export default function Build() {
       </div>
 
       <Footer className="lg:mt-6 lg:flex lg:justify-end">
-        <Button block className="lg:w-[400px]" disabled={draft.items.length === 0} onClick={() => nav('/app/plan/rx')}>
-          Next: add treatment plan
+        <Button block className="lg:w-[400px]" disabled={draft.items.length === 0} onClick={() => nav('/app/plan/preview', { replace: true })}>
+          {draft.editPlanId ? 'Next: review changes' : `Preview what ${firstName(patient.name)} sees`}
         </Button>
       </Footer>
 
@@ -210,9 +211,9 @@ export default function Build() {
       <Sheet open={schedOpen} onClose={() => setSchedOpen(false)} title="Schedule">
         <Label>Days per week</Label>
         <div className="flex flex-wrap gap-2">
-          {[3, 4, 5, 6, 7].map((n) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
             <Chip key={n} selected={draft.daysPerWeek === n} onClick={() => store.updateDraft({ daysPerWeek: n })}>
-              {n} days
+              {n} day{n > 1 ? 's' : ''}
             </Chip>
           ))}
         </div>

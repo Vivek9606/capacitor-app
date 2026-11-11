@@ -17,7 +17,12 @@ import Ask from './screens/patient/Ask'
 import AssessPick from './screens/patient/assess/AssessPick'
 import AssessResult from './screens/patient/assess/AssessResult'
 import AssessRun from './screens/patient/assess/AssessRun'
-import Explore from './screens/patient/Explore'
+import Care from './screens/patient/CareHub'
+import Diagnostics from './screens/patient/Diagnostics'
+import LearnHub from './screens/patient/LearnHub'
+import Product from './screens/patient/Product'
+import Shop from './screens/patient/Shop'
+import Tools from './screens/patient/Tools'
 import Book from './screens/patient/Book'
 import ConsentSign from './screens/patient/ConsentSign'
 import PatientInvoice from './screens/patient/PatientInvoice'
@@ -47,13 +52,14 @@ import Availability from './screens/physio/profile/Availability'
 import Partner from './screens/physio/growth/Partner'
 import Refer from './screens/physio/growth/Refer'
 import Home from './screens/physio/Home'
+import PhysioTools from './screens/physio/Tools'
 import Notifications from './screens/physio/Notifications'
 import PatientDetail from './screens/physio/PatientDetail'
 import Patients from './screens/physio/Patients'
 import PhysioLayout from './screens/physio/PhysioLayout'
 import Build from './screens/physio/plan/Build'
 import Preview from './screens/physio/plan/Preview'
-import RxNotes from './screens/physio/plan/RxNotes'
+import RxNotes, { Consult } from './screens/physio/plan/RxNotes'
 import Tracking from './screens/physio/plan/Tracking'
 import Clinic from './screens/physio/profile/Clinic'
 import EditProfile from './screens/physio/profile/EditProfile'
@@ -171,6 +177,7 @@ export default function App() {
             <Route path="learn" element={<Learn />} />
             <Route path="learn/:id" element={<Lesson />} />
             <Route path="profile/availability" element={<Availability />} />
+            <Route path="plan/consult" element={<Consult />} />
             <Route path="plan/build" element={<Build />} />
             <Route path="plan/rx" element={<RxNotes />} />
             <Route path="plan/preview" element={<Preview />} />
@@ -185,6 +192,7 @@ export default function App() {
             <Route path="refer" element={<Refer />} />
             <Route path="partner" element={<Partner />} />
             <Route path="community" element={<Community />} />
+            <Route path="tools" element={<PhysioTools />} />
           </Route>
 
           {/* Patient */}
@@ -197,7 +205,13 @@ export default function App() {
             <Route path="book" element={<Book />} />
             <Route path="ask" element={<Ask />} />
             <Route path="profile" element={<PatientProfile />} />
-            <Route path="explore" element={<Explore />} />
+            <Route path="care" element={<Care />} />
+            <Route path="shop" element={<Shop />} />
+            <Route path="shop/:handle" element={<Product />} />
+            <Route path="learn" element={<LearnHub />} />
+            <Route path="tools" element={<Tools />} />
+            <Route path="diagnostics" element={<Diagnostics />} />
+            <Route path="explore" element={<Navigate to="/me/shop" replace />} />
             <Route path="assess" element={<AssessPick />} />
             <Route path="assess/result/:id" element={<AssessResult />} />
             <Route path="assess/:slug" element={<AssessRun />} />

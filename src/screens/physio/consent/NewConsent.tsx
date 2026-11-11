@@ -15,7 +15,9 @@ export default function NewConsent() {
   const { physio } = useMe()
   const store = useStore()
   const nav = useNavigate()
-  const st = (useLocation().state ?? {}) as { formId?: string }
+  const st = (useLocation().state ?? {}) as { formId?: string; returnToFlow?: boolean }
+  // Opened from the plan flow: go back to the step the physio was on, with everything they typed.
+  const done = () => (st.returnToFlow ? nav(-1) : nav(`/app/patients/${id}`, { replace: true, state: { tab: 'Consents' } }))
   const [formId, setFormId] = useState<string | undefined>(st.formId)
   const [mode, setMode] = useState<'choose' | 'sign'>('choose')
   const patient = store.db.patients.find((p) => p.id === id)
@@ -77,7 +79,7 @@ export default function NewConsent() {
     const url = publicUrl(`/plan/${patient.linkToken}`)
     if (ownWhatsApp) openWhatsApp(patient.phone, `Hi ${name}, please read and sign the “${form.title}” consent form before your treatment: ${url}`)
     toast(ownWhatsApp ? 'Consent form saved — send the message in WhatsApp' : `Sent to ${name} on WhatsApp`)
-    nav(`/app/patients/${patient.id}`, { replace: true, state: { tab: 'Consents' } })
+    done()
   }
 
   return (
@@ -126,7 +128,7 @@ export default function NewConsent() {
                 store.requestConsent(physio.id, patient.id, form.id, v)
                 haptic('success')
                 toast('Consent signed and saved to the patient record')
-                nav(`/app/patients/${patient.id}`, { replace: true, state: { tab: 'Consents' } })
+                done()
               }}
             />
           )}

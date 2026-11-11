@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, Compass, House, User } from 'lucide-react'
+import { BookOpen, HeartPulse, House, LayoutGrid, ShoppingBag, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../../components/Logo'
@@ -8,23 +8,20 @@ import { takeWebsiteResult, toInput } from '../../lib/assessments'
 import { firstName } from '../../lib/logic'
 import { useMe, useStore } from '../../lib/store'
 
+// Main navigation: Shop, Learn, Care, Tools (plus Home). Profile is on the home screen (and in the desktop sidebar).
 const ITEMS: NavItem[] = [
-  { to: '/me', label: 'Today', icon: House, end: true },
-  { to: '/me/plan', label: 'My plan', icon: ClipboardList },
-  { to: '/me/appointments', label: 'Visits', icon: CalendarDays },
-  { to: '/me/explore', label: 'Explore', icon: Compass },
-  { to: '/me/profile', label: 'Profile', icon: User },
-]
-
-/** Signed up on their own, no physio yet: assessment, store and tools only. */
-const SOLO_ITEMS: NavItem[] = [
   { to: '/me', label: 'Home', icon: House, end: true },
-  { to: '/me/explore', label: 'Explore', icon: Compass },
-  { to: '/me/profile', label: 'Profile', icon: User },
+  { to: '/me/care', label: 'Care', icon: HeartPulse },
+  { to: '/me/shop', label: 'Shop', icon: ShoppingBag },
+  { to: '/me/learn', label: 'Learn', icon: BookOpen },
+  { to: '/me/tools', label: 'Tools', icon: LayoutGrid },
+  { to: '/me/profile', label: 'Profile', icon: User, mobile: false },
 ]
-const SOLO_OK = [/^\/me\/?$/, /^\/me\/(explore|profile|assess)/]
 
-const FLOW = [/^\/me\/assess\//, /^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//]
+/** Signed up on their own, no physio yet: everything except the physio's plan, visits and messages. */
+const SOLO_OK = [/^\/me\/?$/, /^\/me\/(care|shop|learn|tools|diagnostics|explore|profile|assess)/]
+
+const FLOW = [/^\/me\/assess\//, /^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//, /^\/me\/shop\/.+/]
 
 export default function PatientLayout() {
   const { patient, physio, session } = useMe()
@@ -56,7 +53,7 @@ export default function PatientLayout() {
 
   if (!myPhysio) {
     if (!SOLO_OK.some((r) => r.test(loc.pathname))) return <Navigate to="/me" replace />
-    return <Shell items={SOLO_ITEMS} hideTabsOn={(p) => FLOW.some((r) => r.test(p))} user={{ name: patient.name, sub: 'Finding your physio' }} />
+    return <Shell items={ITEMS} hideTabsOn={(p) => FLOW.some((r) => r.test(p))} user={{ name: patient.name, sub: 'Finding your physio' }} />
   }
   if (!patient.consentAt) return <ConsentGate />
 

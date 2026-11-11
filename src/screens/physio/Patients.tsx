@@ -13,13 +13,13 @@ export function usePick(): PickMode {
   return (loc.state as { pick?: PickMode } | null)?.pick
 }
 
-/** Starts a plan/Rx draft for a patient and routes into the builder. */
+/** Starts a plan/Rx draft for a patient. Both start with the consultation, then the treatment plan. */
 export function useStartPlan() {
   const store = useStore()
   const nav = useNavigate()
-  return (patientId: string, mode: 'plan' | 'rx') => {
-    store.startDraft(patientId, mode === 'rx' ? { items: [], title: 'Treatment plan' } : {})
-    nav(mode === 'rx' ? '/app/plan/rx' : '/app/plan/build')
+  return (patientId: string, mode: 'plan' | 'rx', opts: { replace?: boolean } = {}) => {
+    store.startDraft(patientId, mode === 'rx' ? { items: [], title: 'Treatment plan', mode: 'rx' } : { mode: 'plan' })
+    nav('/app/plan/consult', { replace: opts.replace })
   }
 }
 
@@ -36,7 +36,7 @@ export default function Patients() {
   const list = db.patients
     .filter((p) => p.physioId === physio.id)
     .filter((p) => !q || `${p.name} ${p.phone} ${p.condition ?? ''}`.toLowerCase().includes(q.toLowerCase()))
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => Number(!!a.dischargedAt) - Number(!!b.dischargedAt) || a.name.localeCompare(b.name))
 
   return (
     <Page wide>
@@ -75,7 +75,9 @@ export default function Patients() {
                   <div className="truncate text-[15px] font-semibold">{p.name}</div>
                   <div className="truncate text-[13px] text-muted">{p.condition ?? 'No diagnosis yet'}</div>
                 </div>
-                {plan ? (
+                {p.dischargedAt ? (
+                  <Badge tone="ok">Discharged</Badge>
+                ) : plan ? (
                   plan.openedAt ? (
                     <Badge tone={adh && adh.pct >= 70 ? 'brand' : 'accent'}>{adh?.pct ?? 0}% adherence</Badge>
                   ) : (

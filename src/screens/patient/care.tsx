@@ -1,22 +1,22 @@
-import { AlertTriangle, ArrowUpRight, BookOpen, Camera, ClipboardCheck, Hourglass, MapPin, Star, Stethoscope, UserRoundCheck } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, BookOpen, Camera, ChevronRight, ClipboardCheck, Hourglass, MapPin, ShoppingBag, Star, Stethoscope, UserRoundCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Card, cx } from '../../components/ui'
 import { resultPath } from '../../lib/assessments'
 import { webRoute } from '../../lib/web'
-import { productUrl, type Product, type Tool } from '../../lib/explore'
+import type { Product, Tool } from '../../lib/explore'
 import { fmtShort } from '../../lib/dates'
-import { openLink } from '../../lib/platform'
 import type { Assessment, Patient, Physio } from '../../lib/types'
 
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
-/** One betterhood store product. Buying happens on shop.betterhood.in. */
+/** One betterhood store product. Opens its page in the app; checkout happens on shop.betterhood.in. */
 export function ProductCard({ p, className }: { p: Product; className?: string }) {
+  const nav = useNavigate()
   const off = p.compare && p.compare > p.price ? Math.round((1 - p.price / p.compare) * 100) : 0
   return (
     <button
-      onClick={() => openLink(productUrl(p.handle))}
+      onClick={() => nav(`/me/shop/${p.handle}`)}
       className={cx('pressable group flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-surface text-left shadow-card cursor-pointer hover:border-brand-line', className)}
     >
       <div className="relative aspect-square w-full bg-[#f6f1ea]">
@@ -37,7 +37,7 @@ export function ProductCard({ p, className }: { p: Product; className?: string }
             {off > 0 && <div className="text-[11px] text-faint line-through">{inr(p.compare!)}</div>}
           </div>
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-brand transition-colors group-hover:bg-brand group-hover:text-white">
-            <ArrowUpRight size={16} />
+            <ChevronRight size={16} />
           </span>
         </div>
       </div>
@@ -48,23 +48,24 @@ export function ProductCard({ p, className }: { p: Product; className?: string }
 const TOOL_ICON: Record<string, ReactNode> = {
   slouch: <Camera size={20} />,
   assess: <ClipboardCheck size={20} />,
+  diagnostics: <Stethoscope size={20} />,
   corner: <Stethoscope size={20} />,
+  shop: <ShoppingBag size={20} />,
   directory: <MapPin size={20} />,
   learn: <BookOpen size={20} />,
 }
 
+/** A tool: an app screen, or a betterhood.in page shown inside the app. */
 export function ToolCard({ t }: { t: Tool }) {
   const nav = useNavigate()
   return (
-    <Card className="flex items-center gap-3.5 p-4" onClick={() => (t.to ? nav(t.to) : openLink(t.href!))}>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">{TOOL_ICON[t.key]}</span>
+    <Card className="flex items-center gap-3.5 p-4" onClick={() => nav(t.to ?? webRoute(t.site!, t.label))}>
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">{TOOL_ICON[t.key] ?? <Stethoscope size={20} />}</span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-[15px] font-semibold">
-          {t.label}
-          {t.href && <ArrowUpRight size={14} className="text-faint" />}
-        </div>
+        <div className="text-[15px] font-semibold">{t.label}</div>
         <div className="text-[13px] leading-snug text-muted">{t.desc}</div>
       </div>
+      <ChevronRight size={18} className="shrink-0 text-faint" />
     </Card>
   )
 }

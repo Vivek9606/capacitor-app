@@ -1,4 +1,4 @@
-import { ChevronRight, ClipboardCheck, ExternalLink, LogOut, MessageCircle, MessageSquare, RotateCcw, ShieldCheck } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, ExternalLink, LogOut, MessageCircle, MessageSquare, Repeat, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
 import { Avatar, Badge, Card, PageHeader, SectionTitle } from '../../components/ui'
@@ -7,6 +7,7 @@ import { fmtShort } from '../../lib/dates'
 import { firstName, fmtPhone } from '../../lib/logic'
 import { isNative, openWhatsApp, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
+import { useSwitchProfile } from '../../lib/switchProfile'
 
 const CONSENT_TONE = { pending: 'accent', signed: 'ok', declined: 'muted', revoked: 'muted' } as const
 const CONSENT_LABEL = { pending: 'To sign', signed: 'Signed', declined: 'Declined', revoked: 'Withdrawn' } as const
@@ -16,6 +17,7 @@ export default function PatientProfile() {
   const { patient } = useMe()
   const store = useStore()
   const nav = useNavigate()
+  const switchProfile = useSwitchProfile()
   if (!patient) return null
   const physio = patient.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
   const doc = physio ? `Dr. ${firstName(physio.name)}` : 'your physio'
@@ -130,6 +132,14 @@ export default function PatientProfile() {
         >
           <RotateCcw size={18} className="text-muted" /> Reset demo data
         </button>)}
+        <button onClick={() => switchProfile('physio')} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
+          <Repeat size={18} className="text-brand" />
+          <span className="min-w-0 flex-1">
+            Switch to physio profile
+            <span className="block truncate text-[12px] text-muted">For physiotherapists · same number</span>
+          </span>
+          <ChevronRight size={17} className="text-muted" />
+        </button>
         <button
           onClick={() => {
             store.logout()

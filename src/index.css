@@ -368,3 +368,44 @@ select:focus-visible {
   line-height: 1.6;
   color: var(--color-ink);
 }
+
+/* Product descriptions from the betterhood shop (screens/patient/Product.tsx) */
+.product-copy p,
+.product-copy ul,
+.product-copy ol {
+  margin: 0 0 10px;
+}
+.product-copy ul,
+.product-copy ol {
+  padding-left: 20px;
+}
+.product-copy ul {
+  list-style: disc;
+}
+.product-copy ol {
+  list-style: decimal;
+}
+.product-copy h1,
+.product-copy h2,
+.product-copy h3,
+.product-copy h4 {
+  margin: 16px 0 6px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.product-copy img,
+.product-copy video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.product-copy table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.product-copy td,
+.product-copy th {
+  border: 1px solid var(--color-line);
+  padding: 6px 8px;
+}

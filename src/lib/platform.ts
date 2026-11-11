@@ -53,8 +53,29 @@ export function openWhatsApp(phone: string | undefined, text: string) {
   window.open(url, '_blank', 'noopener')
 }
 
-/** Open a betterhood.in / shop page in the browser (outside the app). */
+/** Open a page outside the app's own screens: the system browser on the web, an in-app browser sheet in the app. */
 export function openLink(url: string) {
+  if (isNative) {
+    openInApp(url)
+    return
+  }
+  window.open(url, '_blank', 'noopener')
+}
+
+/**
+ * Pages that can't be framed (the Shopify checkout): an in-app browser sheet on top of the app (Custom Tabs /
+ * SFSafariViewController) that closes back into the app. On the web, a new tab.
+ */
+export async function openInApp(url: string) {
+  if (isNative) {
+    try {
+      const { Browser } = await import('@capacitor/browser')
+      await Browser.open({ url, toolbarColor: '#5E1951', presentationStyle: 'popover' })
+      return
+    } catch {
+      /* fall through */
+    }
+  }
   window.open(url, '_blank', 'noopener')
 }
 
@@ -76,31 +97,68 @@ export async function haptic(kind: 'light' | 'medium' | 'success' = 'light') {
   }
 }
 
+/**
+ * Shrinks a photo to a small square-ish JPEG (longest side `max` px) so it fits the API's limit (~300 KB).
+ * Phone camera photos are several MB, which the server rejects.
+ */
+export function shrinkPhoto(src: string, max = 512, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
+      const w = Math.max(1, Math.round(img.naturalWidth * scale))
+      const h = Math.max(1, Math.round(img.naturalHeight * scale))
+      const c = document.createElement('canvas')
+      c.width = w
+      c.height = h
+      const ctx = c.getContext('2d')
+      if (!ctx) return reject(new Error('no canvas'))
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, w, h)
+      ctx.drawImage(img, 0, 0, w, h)
+      resolve(c.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => reject(new Error('Couldn’t read that image'))
+    img.src = src
+  })
+}
+
 /** Pick a photo: native camera/gallery sheet, or the browser file picker (which also offers the camera on phones). */
 export async function pickPhoto(): Promise<string | undefined> {
+  let raw: string | undefined
   if (isNative) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera')
-      const photo = await Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Prompt, quality: 80, width: 600 })
-      return photo.dataUrl
+      const photo = await Camera.getPhoto({ resultType: CameraResultType.DataUrl, source: CameraSource.Prompt, quality: 80, width: 800, correctOrientation: true })
+      raw = photo.dataUrl
     } catch {
       return undefined
     }
+  } else {
+    raw = await new Promise<string | undefined>((resolve) => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*'
+      input.onchange = () => {
+        const file = input.files?.[0]
+        if (!file) return resolve(undefined)
+        const url = URL.createObjectURL(file)
+        resolve(url)
+      }
+      input.click()
+    })
   }
-  return new Promise((resolve) => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (!file) return resolve(undefined)
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = () => resolve(undefined)
-      reader.readAsDataURL(file)
-    }
-    input.click()
-  })
+  if (!raw) return undefined
+  try {
+    let out = await shrinkPhoto(raw)
+    if (out.length > 380_000) out = await shrinkPhoto(raw, 384, 0.72)
+    return out
+  } catch {
+    toast('Couldn’t use that photo. Try a different one.')
+    return undefined
+  } finally {
+    if (raw.startsWith('blob:')) URL.revokeObjectURL(raw)
+  }
 }
 
 /** Public web address of the app, e.g. https://vivek9606.github.io/capacitor-app (no trailing slash). */

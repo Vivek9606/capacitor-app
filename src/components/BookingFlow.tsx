@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { dayShort, fmtDay, fmtTime, relDay, today } from '../lib/dates'
 import { inr } from '../lib/invoices'
 import { firstName } from '../lib/logic'
-import { modesOf } from '../lib/practice'
+import { modesOf, placeLabel, practicesOf, type PracticePlace } from '../lib/practice'
 import { fromMin, toMin, visitFee, visitMinutes, type Calendar } from '../lib/slots'
 import type { GroupSession, Physio, VisitType } from '../lib/types'
 import { SlotPicker } from './SlotPicker'
@@ -17,9 +17,11 @@ export interface BookingSubmit {
   phone: string
   reason?: string
   address?: string
+  /** The practice picked, for physios who see patients at more than one place. */
+  location?: string
 }
 
-type Choice = { kind: 'visit'; visitType: VisitType } | { kind: 'group'; groupId: string }
+type Choice = { kind: 'visit'; visitType: VisitType; placeId?: string } | { kind: 'group'; groupId: string }
 
 /** Where an in-person visit happens on a given day (individual practitioners consult at different places). */
 function placeFor(p: Physio, date?: string): string | undefined {
@@ -61,15 +63,28 @@ export function BookingFlow({
   doneNote?: string
 }) {
   const groups = openGroups(physio, cal.groups)
-  const types: { visitType: VisitType; title: string; icon: React.ReactNode; sub: string }[] = []
+  const types: { visitType: VisitType; title: string; icon: React.ReactNode; sub: string; place?: PracticePlace }[] = []
   const modes = modesOf(physio)
-  if (physio.consult.inClinic.enabled)
-    types.push({
-      visitType: 'in_clinic',
-      title: modes.includes('clinic') ? 'In-clinic consultation' : 'Consultation',
-      icon: <Building2 size={19} />,
-      sub: placeFor(physio) ?? 'In person',
-    })
+  const places = practicesOf(physio)
+  if (physio.consult.inClinic.enabled) {
+    if (places.length > 1)
+      // More than one practice: the patient picks where.
+      for (const pl of places)
+        types.push({
+          visitType: 'in_clinic',
+          title: `Consultation · ${pl.name}`,
+          icon: <Building2 size={19} />,
+          sub: [pl.address, pl.days ? pl.days.join(', ') : undefined].filter(Boolean).join(' · ') || 'In person',
+          place: pl,
+        })
+    else
+      types.push({
+        visitType: 'in_clinic',
+        title: modes.includes('clinic') ? 'In-clinic consultation' : 'Consultation',
+        icon: <Building2 size={19} />,
+        sub: placeFor(physio) ?? 'In person',
+      })
+  }
   if (physio.consult.homeVisit.enabled)
     types.push({
       visitType: 'home_visit',
@@ -90,8 +105,11 @@ export function BookingFlow({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const visitType = choice?.kind === 'visit' ? choice.visitType : undefined
+  const place = choice?.kind === 'visit' && choice.placeId ? places.find((pl) => pl.id === choice.placeId) : undefined
   const group = choice?.kind === 'group' ? groups.find((g) => g.id === choice.groupId) : undefined
-  const opts = useMemo(() => ({ visitType: visitType ?? 'in_clinic', forPatient: true }) as const, [visitType])
+  const placeDays = place?.days?.join(',')
+  const opts = useMemo(() => ({ visitType: visitType ?? 'in_clinic', forPatient: true, days: placeDays ? placeDays.split(',') : undefined }), [visitType, placeDays])
+  const chosenType = types.find((t) => t.visitType === visitType && t.place?.id === place?.id)
   const digits = phone.replace(/\D/g, '')
   const detailsOk = name.trim().length > 1 && /^[6-9]\d{9}$/.test(digits) && (visitType !== 'home_visit' || address.trim().length > 5)
   const doc = `Dr. ${firstName(physio.name)}`
@@ -100,10 +118,10 @@ export function BookingFlow({
     ? { title: group.title, minutes: group.minutes, fee: group.fee, where: group.location, when: `${fmtDay(group.date)}, ${fmtTime(group.time)}` }
     : visitType
       ? {
-          title: types.find((t) => t.visitType === visitType)!.title,
+          title: chosenType?.title ?? 'Consultation',
           minutes: visitMinutes(physio, visitType),
           fee: visitFee(physio, visitType),
-          where: visitType === 'home_visit' ? 'At your home' : placeFor(physio, date),
+          where: visitType === 'home_visit' ? 'At your home' : place ? placeLabel(place) : placeFor(physio, date),
           when: date && time ? `${fmtDay(date)}, ${fmtTime(time)}–${fmtTime(fromMin(toMin(time) + visitMinutes(physio, visitType)))}` : undefined,
         }
       : undefined
@@ -114,7 +132,17 @@ export function BookingFlow({
     setError('')
     try {
       if (group) await onJoinGroup(group.id, { name: name.trim(), phone: digits })
-      else if (visitType && date && time) await onBook({ visitType, date, time, name: name.trim(), phone: digits, reason: reason.trim() || undefined, address: visitType === 'home_visit' ? address.trim() : undefined })
+      else if (visitType && date && time)
+        await onBook({
+          visitType,
+          date,
+          time,
+          name: name.trim(),
+          phone: digits,
+          reason: reason.trim() || undefined,
+          address: visitType === 'home_visit' ? address.trim() : undefined,
+          location: visitType === 'home_visit' ? undefined : place ? placeLabel(place) : placeFor(physio, date),
+        })
       setStep('done')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn’t book. Please try again.')
@@ -183,10 +211,11 @@ export function BookingFlow({
         ) : !choice ? (
           <div className="flex flex-col gap-2.5">
             <div className="mb-1 text-[16px] font-semibold">What would you like to book?</div>
+            {places.length > 1 && physio.consult.inClinic.enabled && <p className="-mt-1 mb-1 text-[13px] text-muted">{doc} sees patients at {places.length} places. Pick the one that suits you.</p>}
             {types.map((t) => (
               <button
-                key={t.visitType}
-                onClick={() => setChoice({ kind: 'visit', visitType: t.visitType })}
+                key={`${t.visitType}:${t.place?.id ?? ''}`}
+                onClick={() => setChoice({ kind: 'visit', visitType: t.visitType, placeId: t.place?.id })}
                 className="flex items-center gap-3 rounded-2xl border border-line p-4 text-left hover:border-brand cursor-pointer"
               >
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">{t.icon}</span>

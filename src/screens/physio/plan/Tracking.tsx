@@ -46,7 +46,7 @@ export default function Tracking() {
     )
 
   const adjust = () => {
-    store.startDraft(patient.id, { items: plan.items, daysPerWeek: plan.daysPerWeek, weeks: plan.weeks, title: plan.title, ...(plan.rx ? { rx: plan.rx } : {}), editPlanId: plan.status === 'active' ? plan.id : undefined })
+    store.startDraft(patient.id, { items: plan.items, daysPerWeek: plan.daysPerWeek, weeks: plan.weeks, title: plan.title, ...(plan.rx ? { rx: plan.rx } : {}), editPlanId: plan.status === 'active' ? plan.id : undefined, mode: 'plan' })
     nav('/app/plan/build')
   }
 

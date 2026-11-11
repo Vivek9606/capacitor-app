@@ -1,4 +1,4 @@
-import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, Globe, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, RotateCcw, UsersRound } from 'lucide-react'
+import { Briefcase, CalendarClock, Camera, Check, ChevronRight, Copy, ExternalLink, Gift, Globe, GraduationCap, Handshake, LogOut, MessageSquare, Pencil, ReceiptIndianRupee, Repeat, RotateCcw, UsersRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
 import { Avatar, Badge, Card, cx, IconButton, Progress, RefreshButton, WhatsAppButton } from '../../../components/ui'
@@ -8,6 +8,7 @@ import { modeLabels, modesOf } from '../../../lib/practice'
 import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
 import { useDirectoryListing } from '../../../lib/directory'
 import { useMe, useStore } from '../../../lib/store'
+import { useSwitchProfile } from '../../../lib/switchProfile'
 import { webRoute } from '../../../lib/web'
 
 // P1 · My profile
@@ -22,6 +23,7 @@ export default function Profile() {
   const meta = [physio.qualification, physio.experienceYrs ? `${physio.experienceYrs} yrs` : undefined, physio.clinic?.area].filter(Boolean).join(' · ')
   const course = courseProgress(physio.courseProgress)
   const listing = useDirectoryListing()
+  const switchProfile = useSwitchProfile()
 
   const changePhoto = async () => {
     const photo = await pickPhoto()
@@ -52,7 +54,7 @@ export default function Profile() {
               </span>
             </button>
             <div className="min-w-0">
-              <div className="font-display text-[18px] font-bold">{physio.name}, PT</div>
+              <div className="font-display text-[18px] font-bold">{physio.name} (PT)</div>
               {meta && <div className="text-[13px] text-muted">{meta}</div>}
               <div className="mt-1.5">
                 {physio.verification === 'verified' ? (
@@ -178,6 +180,14 @@ export default function Profile() {
               <RotateCcw size={18} className="text-muted" />
               <span className="flex-1">Reset demo data</span>
             </button>)}
+            <button onClick={() => switchProfile('patient')} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
+              <Repeat size={18} className="text-brand" />
+              <span className="min-w-0 flex-1">
+                Switch to consumer profile
+                <span className="block truncate text-[12px] text-muted">Use betterhood for your own health, same number</span>
+              </span>
+              <ChevronRight size={17} className="text-muted" />
+            </button>
             <button
               onClick={() => {
                 store.logout()

@@ -60,7 +60,7 @@ export const VISIT_LABEL: Record<VisitType, string> = {
 }
 
 export function bookingLine(b: Booking) {
-  return [b.source === 'walk_in' ? 'Walk-in' : b.isNewPatient ? 'New patient' : undefined, b.reason?.replace(/^Walk-in( · )?/, '') || undefined, VISIT_LABEL[b.visitType]]
+  return [b.source === 'walk_in' ? 'Walk-in' : b.isNewPatient ? 'New patient' : undefined, b.reason?.replace(/^Walk-in( · )?/, '') || undefined, VISIT_LABEL[b.visitType], b.location?.split(',')[0]]
     .filter(Boolean)
     .join(' · ')
 }

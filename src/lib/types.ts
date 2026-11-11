@@ -100,6 +100,18 @@ export interface Patient {
   selfSignup?: boolean
   /** Physio matching for self-signups: suggested from the assessment, confirmed by an admin. */
   match?: { status: 'pending' | 'suggested' | 'confirmed'; suggestedPhysioId?: string }
+  /** Set when the physio discharges the patient (end of an episode of care). Cleared when taken on again. */
+  dischargedAt?: string
+  discharge?: Discharge
+}
+
+export type DischargeOutcome = 'goals_met' | 'improved' | 'referred' | 'stopped' | 'other'
+
+export interface Discharge {
+  outcome: DischargeOutcome
+  note: string
+  advice: string
+  at: string
 }
 
 /** A result from one of the betterhood.in assessments (taken on the website's flow, inside the app). */
@@ -142,6 +154,9 @@ export interface PlanItem extends Dose {
 }
 
 export interface Rx {
+  /** Consultation: what the patient came in with, and what the examination found. */
+  complaint?: string
+  findings?: string
   diagnosis: string
   advice: string
   modalities: string[]
@@ -209,6 +224,8 @@ export interface Booking {
   minutes?: number // defaults to the visit type's length
   reason?: string
   address?: string // home visits
+  /** In-person visits for physios with more than one practice: "Name, address". */
+  location?: string
   isNewPatient: boolean
   status: BookingStatus
   sendConfirmation: boolean
@@ -332,6 +349,8 @@ export interface PlanDraft {
   rx: Rx
   /** Set when adjusting the active plan: saving edits that plan instead of sending a new one. */
   editPlanId?: string
+  /** 'plan': consultation → treatment plan → care plan (exercises) → send. 'rx': without the exercises. */
+  mode?: 'plan' | 'rx'
 }
 
 export interface DB {

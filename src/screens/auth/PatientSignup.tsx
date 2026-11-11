@@ -12,7 +12,7 @@ const SEX: { v: NonNullable<Patient['sex']>; label: string }[] = [
   { v: 'O', label: 'Other' },
 ]
 
-// Patient sign-up (no physio yet) → pain assessment → physio match
+// Patient sign-up (no physio yet) → home. The assessment is there when they want it, not a gate.
 export default function PatientSignup() {
   const nav = useNavigate()
   const state = useLocation().state as { phone?: string; signupToken?: string } | null
@@ -35,7 +35,7 @@ export default function PatientSignup() {
     try {
       await store.signupPatient({ phone: state.phone!, signupToken: state.signupToken, name: name.trim(), age: ageN, sex, city: city.trim() })
       haptic('success')
-      nav('/me/assess', { replace: true })
+      nav('/me', { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn’t create your account')
     } finally {
@@ -54,7 +54,7 @@ export default function PatientSignup() {
         }}
       >
         <h1 className="mt-2 font-display text-[28px] font-bold leading-tight tracking-[-0.02em]">Let’s get you better</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">A few details, then a 5-minute pain assessment. We use it to match you with the right physio near you.</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted">Just a few details and you’re in. Take a pain assessment whenever you like to get matched with the right physio.</p>
         <div className="mt-6 flex flex-col gap-4">
           <Input label="Your name" autoComplete="name" autoFocus placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
           <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-3">
@@ -83,7 +83,7 @@ export default function PatientSignup() {
         <div className="flex-1 lg:hidden" />
         <Footer>
           <Button block type="submit" disabled={!ready || busy}>
-            {busy ? 'Creating account…' : 'Continue to assessment'}
+            {busy ? 'Creating account…' : 'Continue'}
           </Button>
         </Footer>
       </form>

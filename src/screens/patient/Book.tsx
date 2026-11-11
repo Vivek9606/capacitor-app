@@ -34,6 +34,7 @@ export default function Book() {
             visitType: v.visitType,
             reason: v.reason || 'Follow-up',
             address: v.address,
+            location: v.location,
             isNewPatient: false,
             status: 'requested',
             sendConfirmation: true,

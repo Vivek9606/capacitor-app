@@ -50,6 +50,8 @@ export function RxDocument({
         </div>
         <div className="text-muted">{fmtShort(date)}</div>
       </div>
+      {rx.complaint && <Section title="Presenting complaint">{rx.complaint}</Section>}
+      {rx.findings && <Section title="Examination findings">{rx.findings}</Section>}
       <Section title="Diagnosis">{rx.diagnosis || '—'}</Section>
       {rx.advice && <Section title="Advice">{rx.advice}</Section>}
       {rx.modalities.length > 0 && <Section title="In-clinic modalities">{rx.modalities.join(', ')}</Section>}

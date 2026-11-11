@@ -118,6 +118,8 @@ export interface SlotOptions {
   forPatient?: boolean
   excludeBookingId?: string
   now?: Date
+  /** Only these weekdays ('Mon'..'Sun'), e.g. the days a physio is at one of their practices. */
+  days?: string[]
 }
 
 /** Every start time inside the physio's hours on a date, ignoring what's booked. */
@@ -125,6 +127,7 @@ export function daySlots(physio: Physio, date: string, opts: SlotOptions = {}): 
   const a = effectiveAvailability(physio)
   const len = opts.minutes ?? visitMinutes(physio, opts.visitType ?? 'in_clinic')
   const step = Math.max(5, a.slotStepMin || 30)
+  if (opts.days?.length && !opts.days.includes(dayShort(date))) return []
   const out: string[] = []
   for (const w of windowsFor(physio, date)) {
     for (let m = toMin(w.start); m + len <= toMin(w.end); m += step) out.push(fromMin(m))

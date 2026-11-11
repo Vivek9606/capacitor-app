@@ -10,6 +10,7 @@ import { haptic, openWhatsApp, publicUrl, shareLink, toast, WEB_HOST } from '../
 import { planDiff } from '../../../lib/planChanges'
 import { useMe, useStore } from '../../../lib/store'
 import type { Patient, Plan } from '../../../lib/types'
+import { isRxOnly, stepLabel } from './RxNotes'
 
 // R4 · Preview & send
 export default function Preview() {
@@ -25,7 +26,7 @@ export default function Preview() {
   const editing = draft.editPlanId ? store.db.plans.find((p) => p.id === draft.editPlanId && p.status === 'active') : undefined
   if (editing) return <SaveChanges plan={editing} patient={patient} />
 
-  const rxOnly = draft.items.length === 0
+  const rxOnly = isRxOnly(draft) || draft.items.length === 0
   const hasRx = !!(draft.rx.diagnosis || draft.rx.advice)
   const path = `/plan/${patient.linkToken}`
   const now = new Date()
@@ -69,7 +70,7 @@ export default function Preview() {
 
   return (
     <Page>
-      <PageHeader title="Preview" subtitle={`Step ${rxOnly ? '2 of 2' : '3 of 3'} · exactly what ${name} will see`} />
+      <PageHeader title="Preview" subtitle={`${stepLabel(draft, 'preview')} · exactly what ${name} will see`} onBack={() => nav(rxOnly ? '/app/plan/rx' : '/app/plan/build', { replace: true })} />
       <WhatsAppPreview
         onBehalfOf={physio.name}
         time={time}
@@ -167,7 +168,7 @@ function SaveChanges({ plan, patient }: { plan: Plan; patient: Patient }) {
 
   return (
     <Page>
-      <PageHeader title="Save changes" subtitle={`${name}’s current plan · progress is kept`} />
+      <PageHeader title="Save changes" subtitle={`${name}’s current plan · progress is kept`} onBack={() => nav('/app/plan/build', { replace: true })} />
       <Card className="p-4">
         <div className="text-[13px] font-semibold text-muted">What’s changing</div>
         {summary.length === 0 ? (

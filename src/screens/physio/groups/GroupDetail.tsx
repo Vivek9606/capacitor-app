@@ -1,4 +1,4 @@
-import { Check, MapPin, ReceiptIndianRupee, Search, Share2, UserPlus, X } from 'lucide-react'
+import { Check, MapPin, Pencil, ReceiptIndianRupee, Search, Share2, UserPlus, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Page } from '../../../components/Shell'
@@ -9,6 +9,7 @@ import { firstName, fmtPhone } from '../../../lib/logic'
 import { haptic, openWhatsApp, publicUrl, shareLink, toast } from '../../../lib/platform'
 import { useMe, useStore } from '../../../lib/store'
 import type { GroupParticipant } from '../../../lib/types'
+import { EditGroupSheet } from './EditGroup'
 import { seatsTaken } from './Groups'
 
 export default function GroupDetail() {
@@ -18,6 +19,7 @@ export default function GroupDetail() {
   const { db } = store
   const nav = useNavigate()
   const [adding, setAdding] = useState(false)
+  const [editing, setEditing] = useState(false)
   const g = db.groups.find((x) => x.id === id)
   if (!physio) return null
   if (!g) return <Navigate to="/app/groups" replace />
@@ -36,9 +38,16 @@ export default function GroupDetail() {
         title={g.title}
         subtitle={`${fmtDay(g.date)} · ${fmtTime(g.time)} · ${g.minutes} min`}
         right={
-          <Button size="sm" variant="soft" onClick={() => shareLink({ title: g.title, text: invite, url: bookUrl })}>
-            <Share2 size={15} /> Invite
-          </Button>
+          <div className="flex gap-2">
+            {g.status === 'scheduled' && (
+              <Button size="sm" variant="soft" onClick={() => setEditing(true)}>
+                <Pencil size={15} /> Edit
+              </Button>
+            )}
+            <Button size="sm" variant="soft" onClick={() => shareLink({ title: g.title, text: invite, url: bookUrl })}>
+              <Share2 size={15} /> Invite
+            </Button>
+          </div>
         }
       />
       <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-8">
@@ -192,6 +201,7 @@ export default function GroupDetail() {
       </div>
       <div className="h-6" />
       <AddParticipant open={adding} onClose={() => setAdding(false)} groupId={g.id} />
+      {editing && <EditGroupSheet g={g} open={editing} onClose={() => setEditing(false)} />}
     </Page>
   )
 }

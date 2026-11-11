@@ -48,7 +48,7 @@ export default function PublicBook() {
           onBook={async (v) => {
             if (apiMode) {
               await api(`/public/physios/${encodeURIComponent(physio.slug)}/booking-requests`, {
-                body: { name: v.name, phone: v.phone, date: v.date, time: v.time, visitType: v.visitType, reason: v.reason, address: v.address },
+                body: { name: v.name, phone: v.phone, date: v.date, time: v.time, visitType: v.visitType, reason: v.reason, address: v.address, location: v.location },
               })
               reload()
               return
@@ -64,6 +64,7 @@ export default function PublicBook() {
               visitType: v.visitType,
               reason: v.reason,
               address: v.address,
+              location: v.location,
               isNewPatient: !pt,
               status: 'requested',
               sendConfirmation: true,

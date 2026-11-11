@@ -1,4 +1,4 @@
-import { Activity, CalendarDays, Check, ChevronRight, Footprints, Gift, GraduationCap, ReceiptIndianRupee, UsersRound, X } from 'lucide-react'
+import { Activity, CalendarDays, Check, ChevronRight, ClipboardList, FileSignature, Footprints, Gift, GraduationCap, Inbox, ReceiptIndianRupee, TrendingUp, UsersRound, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { bookingLine, BookingBadge, needsAttendance, NotifDot } from '../../components/bits'
 import { JoinCall } from '../../components/JoinCall'
@@ -7,7 +7,7 @@ import { Avatar, Badge, Button, Card, cx, Empty, IconButton, IconTile, RefreshBu
 import { physioAlerts } from '../../lib/alerts'
 import { COURSE, courseProgress } from '../../lib/course'
 import { fmtTime, greeting, timeAgo, today } from '../../lib/dates'
-import { firstName, profileCompletion } from '../../lib/logic'
+import { adherence, firstName, profileCompletion } from '../../lib/logic'
 import { toast } from '../../lib/platform'
 import { groupsOn } from '../../lib/slots'
 import { useMe, useStore } from '../../lib/store'
@@ -33,6 +33,23 @@ export default function Home() {
   const alerts = physioAlerts(db, physio.id)
   const unpaid = db.invoices.filter((i) => i.physioId === physio.id && i.status === 'unpaid')
 
+  // Overview: the numbers a physio checks first thing.
+  const myPatients = db.patients.filter((p) => p.physioId === physio.id)
+  const activePlans = db.plans.filter((pl) => pl.physioId === physio.id && pl.status === 'active' && myPatients.some((p) => p.id === pl.patientId && !p.dischargedAt))
+  const adh = activePlans.filter((pl) => pl.openedAt).map((pl) => adherence(pl, db.sessions).pct)
+  const avgAdh = adh.length ? Math.round(adh.reduce((s, x) => s + x, 0) / adh.length) : undefined
+  const requests = db.bookings.filter((b) => b.physioId === physio.id && b.status === 'requested' && b.date >= t)
+  const pendingConsents = db.consents.filter((c) => c.physioId === physio.id && c.status === 'pending')
+  const owed = unpaid.reduce((s, i) => s + i.total, 0)
+  const stats = [
+    { icon: <CalendarDays size={17} />, value: todays.length + groups.length, label: 'Today', to: '/app/schedule' },
+    { icon: <Inbox size={17} />, value: requests.length, label: 'Requests', to: '/app/schedule', warn: requests.length > 0 },
+    { icon: <ClipboardList size={17} />, value: activePlans.length, label: 'Active plans', to: '/app/patients' },
+    { icon: <TrendingUp size={17} />, value: avgAdh === undefined ? '–' : `${avgAdh}%`, label: 'Adherence', to: '/app/patients', warn: avgAdh !== undefined && avgAdh < 60 },
+    { icon: <ReceiptIndianRupee size={17} />, value: owed ? `₹${owed.toLocaleString('en-IN')}` : '₹0', label: 'Outstanding', to: '/app/invoices', warn: owed > 0 },
+    { icon: <FileSignature size={17} />, value: pendingConsents.length, label: 'Consents due', to: '/app/patients', warn: pendingConsents.length > 0 },
+  ]
+
   const quick = [
     { icon: <Activity size={19} />, label: 'Care plan', on: () => nav('/app/patients', { state: { pick: 'plan' } }) },
     { icon: <Footprints size={19} />, label: 'Walk-in', on: () => nav('/app/walk-in') },
@@ -50,16 +67,34 @@ export default function Home() {
   return (
     <Page wide>
       <header className="flex items-center gap-3">
-        <Avatar name={physio.name} photo={physio.photo} size={44} className="lg:hidden" />
+        <button aria-label="My profile" onClick={() => nav('/app/profile')} className="rounded-full cursor-pointer lg:hidden">
+          <Avatar name={physio.name} photo={physio.photo} size={44} />
+        </button>
         <div className="flex-1">
           <div className="text-[13px] text-muted lg:text-[15px]">{greeting()},</div>
-          <div className="font-display text-[22px] font-bold tracking-[-0.03em] lg:text-[30px]">Dr. {firstName(physio.name)}</div>
+          <div className="font-display text-[22px] font-bold tracking-[-0.03em] lg:text-[30px]">
+            Dr. {firstName(physio.name)} <span className="text-[0.7em] font-semibold text-muted">(PT)</span>
+          </div>
         </div>
         <RefreshButton />
         <IconButton aria-label="Notifications" onClick={() => nav('/app/notifications')}>
           <NotifDot show={alerts.length > 0} />
         </IconButton>
       </header>
+
+      <section aria-label="Overview" className="mt-5 grid grid-cols-3 gap-2 lg:grid-cols-6 lg:gap-3">
+        {stats.map((s) => (
+          <button
+            key={s.label}
+            onClick={() => nav(s.to)}
+            className="pressable flex flex-col items-start gap-1 rounded-[18px] border border-line/70 bg-surface p-3 text-left shadow-card hover:border-brand-line cursor-pointer"
+          >
+            <span className={cx('grid h-7 w-7 place-items-center rounded-[10px]', s.warn ? 'bg-accent-soft text-accent' : 'bg-brand-soft text-brand')}>{s.icon}</span>
+            <span className="mt-1 truncate font-display text-[19px] font-bold leading-none">{s.value}</span>
+            <span className="text-[12px] text-muted">{s.label}</span>
+          </button>
+        ))}
+      </section>
 
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div>

@@ -20,7 +20,7 @@ export interface Alert {
 export function physioAlerts(db: DB, physioId: string): Alert[] {
   const out: Alert[] = []
   const t = today()
-  const patients = db.patients.filter((p) => p.physioId === physioId)
+  const patients = db.patients.filter((p) => p.physioId === physioId && !p.dischargedAt)
 
   for (const b of db.bookings.filter((b) => b.physioId === physioId && b.date >= t)) {
     if (b.status === 'requested')

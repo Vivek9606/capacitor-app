@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Handshake,
   House,
+  LayoutGrid,
   MessageSquare,
   ReceiptIndianRupee,
   User,
@@ -25,11 +26,12 @@ const ITEMS: NavItem[] = [
   { to: '/app', label: 'Home', icon: House, end: true },
   { to: '/app/schedule', label: 'Schedule', icon: CalendarDays },
   { to: '/app/patients', label: 'Patients', icon: Users },
+  { to: '/app/tools', label: 'Tools', icon: LayoutGrid },
   { to: '/app/groups', label: 'Group sessions', icon: UsersRound, mobile: false },
   { to: '/app/invoices', label: 'Invoices', icon: ReceiptIndianRupee, mobile: false },
   { to: '/app/learn', label: 'Learn', icon: GraduationCap, mobile: false },
   { to: '/app/community', label: 'Community', icon: MessageSquare, soon: true, mobile: false },
-  { to: '/app/profile', label: 'Profile', icon: User },
+  { to: '/app/profile', label: 'Profile', icon: User, mobile: false },
 ]
 const EXTRA: NavItem[] = [
   { to: '/app/refer', label: 'Refer a physio', icon: Gift },
@@ -63,7 +65,7 @@ export default function PhysioLayout() {
       extraItems={EXTRA}
       tag="for Physios"
       hideTabsOn={(p) => FLOW.some((r) => r.test(p))}
-      user={{ name: physio.name, sub: physio.qualification ?? 'Physiotherapist', photo: physio.photo }}
+      user={{ name: `${physio.name} (PT)`, sub: physio.qualification ?? 'Physiotherapist', photo: physio.photo }}
       createSheet={(open, close) => <CreateSheet open={open} onClose={close} />}
     />
   )

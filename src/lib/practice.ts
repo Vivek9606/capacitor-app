@@ -40,3 +40,21 @@ export function visitPlace(p: Physio): string | undefined {
   const loc = p.practice?.locations?.[0]
   return loc ? `${loc.name}, ${loc.address}` : undefined
 }
+
+/** A place this physio sees patients in person: their clinic and/or the places they consult at. */
+export interface PracticePlace {
+  id: string
+  name: string
+  address: string
+  /** Days they're there ('Mon'..'Sun'); undefined = any working day. */
+  days?: string[]
+}
+
+export function practicesOf(p: Physio): PracticePlace[] {
+  const out: PracticePlace[] = []
+  if (p.clinic?.address) out.push({ id: 'clinic', name: p.clinic.name || 'My clinic', address: [p.clinic.area, p.clinic.address].filter(Boolean).join(', ') })
+  for (const l of p.practice?.locations ?? []) if (l.name || l.address) out.push({ id: l.id, name: l.name || 'Practice', address: l.address, days: l.days?.length ? l.days : undefined })
+  return out
+}
+
+export const placeLabel = (pl: PracticePlace) => [pl.name, pl.address].filter(Boolean).join(', ')

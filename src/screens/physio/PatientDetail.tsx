@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronRight, ClipboardList, Clock, FileSignature, MessageCircle, ReceiptIndianRupee } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { attendanceMarked, bookingLine, BookingBadge, canMarkAttendance } from '../../components/bits'
@@ -11,6 +11,7 @@ import { adherence, fmtPhone, painTrend, planWeek, weekDots } from '../../lib/lo
 import { openWhatsApp, toast } from '../../lib/platform'
 import { useStore } from '../../lib/store'
 import type { Plan } from '../../lib/types'
+import { DischargeSheet, outcomeLabel } from './Discharge'
 import { useStartPlan } from './Patients'
 
 const TABS = ['Overview', 'Plans', 'Treatment', 'Visits', 'Consents', 'Bills'] as const
@@ -25,6 +26,7 @@ export default function PatientDetail() {
   const startPlan = useStartPlan()
   const initial = (useLocation().state as { tab?: Tab } | null)?.tab
   const [tab, setTab] = useState<Tab>(initial && TABS.includes(initial) ? initial : 'Overview')
+  const [discharging, setDischarging] = useState(false)
   const p = db.patients.find((x) => x.id === id)
   if (!p) return <Navigate to="/app/patients" replace />
 
@@ -53,6 +55,26 @@ export default function PatientDetail() {
       />
       <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-8">
         <div>
+          {p.dischargedAt && (
+            <Card className="mb-3 border-ok/40 bg-ok-soft/40 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[15px] font-semibold">Discharged · {fmtShort(p.dischargedAt.slice(0, 10))}</div>
+                <Badge tone="ok">{outcomeLabel(p.discharge?.outcome)}</Badge>
+              </div>
+              {p.discharge?.note && <p className="mt-2 whitespace-pre-line text-[13px] text-muted">{p.discharge.note}</p>}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="mt-3"
+                onClick={() => {
+                  store.readmitPatient(p.id)
+                  toast(`${p.name.split(' ')[0]} is an active patient again`)
+                }}
+              >
+                <RotateCcw size={14} /> Take on again
+              </Button>
+            </Card>
+          )}
           <Card className="p-4">
             <div className="font-display text-[18px] font-bold">{p.condition ?? 'No diagnosis yet'}</div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -85,6 +107,11 @@ export default function PatientDetail() {
                 <ReceiptIndianRupee size={16} /> Invoice
               </Button>
             </div>
+            {!p.dischargedAt && (
+              <Button variant="ghost" size="md" onClick={() => setDischarging(true)}>
+                <DoorOpen size={16} /> Discharge patient
+              </Button>
+            )}
           </div>
         </div>
 
@@ -317,11 +344,17 @@ export default function PatientDetail() {
           )}
         </div>
       </div>
+      {!p.dischargedAt && (
+        <button onClick={() => setDischarging(true)} className="mt-6 flex w-full items-center justify-center gap-2 py-2 text-[14px] font-semibold text-muted cursor-pointer lg:hidden">
+          <DoorOpen size={16} /> Discharge patient
+        </button>
+      )}
       <Footer className="lg:hidden">
         <Button block onClick={() => startPlan(p.id, 'plan')}>
           {active ? 'Start new care plan' : 'Build care plan'}
         </Button>
       </Footer>
+      <DischargeSheet patient={p} open={discharging} onClose={() => setDischarging(false)} />
     </Page>
   )
 }

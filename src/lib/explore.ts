@@ -40,18 +40,34 @@ export function recommendedFor(a?: Pick<Assessment, 'result' | 'area'>): Product
   })
 }
 
+/** Shopify cart permalink: straight to checkout with this variant. */
+export const checkoutUrl = (variantId: number, qty = 1) => `${SHOP}/cart/${variantId}:${qty}`
+
+/** Tools, grouped by what the person wants to do. `to` is an app screen; `site` a betterhood.in page shown in the app. */
+export type ToolGroupKey = 'check' | 'relief' | 'care' | 'learn'
+
+export const TOOL_GROUPS: { key: ToolGroupKey; title: string; sub: string }[] = [
+  { key: 'check', title: 'Check yourself', sub: 'Find out what’s causing the pain' },
+  { key: 'relief', title: 'Feel better', sub: 'Routines and products that help' },
+  { key: 'care', title: 'Get care', sub: 'Physios near you' },
+  { key: 'learn', title: 'Learn', sub: 'Short guides written by physios' },
+]
+
 export interface Tool {
   key: string
+  group: ToolGroupKey
   label: string
   desc: string
-  href?: string
   to?: string
+  site?: string
 }
 
 export const TOOLS: Tool[] = [
-  { key: 'slouch', label: 'Slouch Catcher', desc: 'Catch a friend slouching and reveal their posture animal.', href: 'https://betterhood.in/slouch-catcher/' },
-  { key: 'assess', label: 'Assessments', desc: 'Physio-designed pain checks and health scores for your back, neck, shoulder or knee.', to: '/me/assess' },
-  { key: 'corner', label: 'betterYou corner', desc: 'Routines and reading for back, neck, shoulder and knee health.', href: 'https://betterhood.in/better-you-corner-back-health/' },
-  { key: 'directory', label: 'Physio directory', desc: 'Find betterhood-certified physiotherapists near you.', href: 'https://betterhood.in/physio-directory/' },
-  { key: 'learn', label: 'Learn', desc: 'Short, physio-written guides on pain, posture and recovery.', href: 'https://betterhood.in/learn/' },
+  { key: 'assess', group: 'check', label: 'Assessments', desc: 'Physio-designed pain checks and health scores for your back, neck, shoulder or knee.', to: '/me/assess' },
+  { key: 'diagnostics', group: 'check', label: 'Diagnostics', desc: 'What each common condition means, what causes it and what helps.', to: '/me/diagnostics' },
+  { key: 'slouch', group: 'check', label: 'Slouch Catcher', desc: 'Catch a friend slouching and reveal their posture animal.', site: '/slouch-catcher/' },
+  { key: 'corner', group: 'relief', label: 'betterYou corner', desc: 'Routines and reading for back, neck, shoulder and knee health.', site: '/better-you-corner-back-health/' },
+  { key: 'shop', group: 'relief', label: 'Shop', desc: 'Supports, cushions and recovery products picked by physios.', to: '/me/shop' },
+  { key: 'directory', group: 'care', label: 'Physio directory', desc: 'Find physiotherapists near you.', site: '/physio-directory/' },
+  { key: 'learn', group: 'learn', label: 'Learn', desc: 'Short, physio-written guides on pain, posture and recovery.', to: '/me/learn' },
 ]
