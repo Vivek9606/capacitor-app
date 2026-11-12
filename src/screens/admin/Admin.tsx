@@ -1,4 +1,4 @@
-import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, RefreshCw, Route as RouteIcon, Search, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
@@ -11,7 +11,9 @@ import { isNative, toast } from '../../lib/platform'
 import { DEMO } from '../../lib/seed'
 import { useStore } from '../../lib/store'
 import type { Assessment, Patient, Physio } from '../../lib/types'
-import { ConsumersTab, type Journeys, OverviewTab, PhysioJourneyTab, type Subject, SubjectDrawer, WebsiteTab } from './Journeys'
+import { ConsumersPage, OverviewPage, PhysiosPage, WebsitePage } from './Growth'
+import { type Journeys, type Subject, SubjectDrawer } from './Journeys'
+import { PageHeading, type Period, PERIODS, Segmented } from './kit'
 
 /**
  * Web-only admin dashboard (/admin on the web app): self-signed-up patients, their assessments,
@@ -142,6 +144,21 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
 
 type Tab = 'overview' | 'consumers' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
 
+/**
+ * The admin pages use a cooler, denser look than the consumer app (white panels on a neutral grey, thin
+ * borders). These override the app's colour tokens for everything inside the dashboard; the brand plum stays.
+ */
+const ADMIN_THEME = {
+  '--color-bg': '#f7f8fa',
+  '--color-line': '#e4e7ec',
+  '--color-track': '#f0f2f5',
+  '--color-ink': '#101828',
+  '--color-muted': '#5d6b82',
+  '--color-faint': '#98a2b3',
+} as React.CSSProperties
+/** Brings the app's rounder cards in line with the dashboard's panels. */
+const OPS_CARD = 'rounded-xl! shadow-none! border border-line'
+
 function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const store = useStore()
   const [remote, setRemote] = useState<Overview>()
@@ -151,6 +168,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const [subject, setSubject] = useState<Subject>()
   const [tab, setTab] = useState<Tab>(apiMode ? 'overview' : 'queue')
   const [q, setQ] = useState('')
+  const [period, setPeriod] = useState<Period>('28')
 
   const load = useCallback(async () => {
     if (!apiMode) return
@@ -236,79 +254,123 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const pendingVerify = data.physios.filter((p) => p.verification === 'pending').length
   const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase())
 
-  const TABS: { key: Tab; label: string; n?: number; icon: React.ReactNode }[] = [
+  type Nav = { key: Tab; label: string; icon: React.ReactNode; n?: number; alert?: boolean }
+  const NAV: { label: string; items: Nav[] }[] = [
     ...(journeys
-      ? ([
-          { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
-          { key: 'consumers', label: 'Consumer journey', n: journeys.consumers.length, icon: <Users size={16} /> },
-          { key: 'journey', label: 'Physio journey', n: journeys.physios.length, icon: <RouteIcon size={16} /> },
-          { key: 'website', label: 'Website', n: journeys.web.total, icon: <Globe size={16} /> },
-        ] as const)
+      ? [
+          {
+            label: 'Growth',
+            items: [
+              { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
+              { key: 'consumers', label: 'Consumer journey', icon: <Users size={16} />, n: journeys.consumers.length },
+              { key: 'journey', label: 'Physio journey', icon: <Stethoscope size={16} />, n: journeys.physios.length },
+              { key: 'website', label: 'Website', icon: <Globe size={16} />, n: journeys.web.total },
+            ] as Nav[],
+          },
+        ]
       : []),
-    { key: 'queue', label: 'To assign', n: queue.length, icon: <UserRoundSearch size={16} /> },
-    // The consumer journey replaces this list when the API is connected.
-    ...(journeys ? [] : ([{ key: 'patients', label: 'Patients', n: data.counts.patients, icon: <Users size={16} /> }] as const)),
-    { key: 'physios', label: pendingVerify ? `Physio profiles · ${pendingVerify} to verify` : 'Physio profiles', n: data.counts.physios, icon: <Stethoscope size={16} /> },
-    { key: 'assessments', label: 'Assessments', n: data.counts.assessments, icon: <ClipboardList size={16} /> },
+    {
+      label: 'Operations',
+      items: [
+        { key: 'queue', label: 'Assign a physio', icon: <UserRoundSearch size={16} />, n: queue.length, alert: queue.length > 0 },
+        // The consumer journey replaces this list when the API is connected.
+        ...(journeys ? [] : ([{ key: 'patients', label: 'Patients', icon: <Users size={16} />, n: data.counts.patients }] as Nav[])),
+        { key: 'physios', label: 'Verification & listings', icon: <ShieldCheck size={16} />, n: pendingVerify, alert: pendingVerify > 0 },
+        { key: 'assessments', label: 'Assessments', icon: <ClipboardList size={16} />, n: data.counts.assessments },
+      ] as Nav[],
+    },
   ]
+  const show = (t: Tab) => {
+    setTab(t)
+    window.scrollTo(0, 0)
+  }
+  const growth = tab === 'overview' || tab === 'consumers' || tab === 'journey' || tab === 'website'
+  const ctx = journeys && { j: journeys, period, q, open: setSubject, go: (p: 'overview' | 'consumers' | 'physios' | 'website') => show(p === 'physios' ? 'journey' : p) }
+  const OPS_HEAD: Partial<Record<Tab, [string, string]>> = {
+    queue: ['Assign a physio', `${queue.length} consumer${queue.length === 1 ? '' : 's'} signed up on their own and ${queue.length === 1 ? 'is' : 'are'} waiting for a physio. The best fits are listed first.`],
+    patients: ['Patients', 'Everyone with a consumer account.'],
+    physios: ['Verification & listings', `${pendingVerify} physio${pendingVerify === 1 ? '' : 's'} asked to be verified. You can also take a directory listing off betterhood.in here.`],
+    assessments: ['Assessments', 'The latest 500 assessment results saved to an account in the app.'],
+  }
+  const navButton = (n: Nav, pill = false) => (
+    <button
+      key={n.key}
+      onClick={() => show(n.key)}
+      aria-current={tab === n.key ? 'page' : undefined}
+      className={cx(
+        'flex items-center gap-2.5 text-[14px] cursor-pointer',
+        pill ? 'h-8 shrink-0 rounded-full border px-3' : 'h-9 w-full rounded-md px-2',
+        tab === n.key ? (pill ? 'border-brand bg-brand text-white' : 'bg-track font-medium text-ink') : pill ? 'border-line bg-surface text-muted' : 'text-muted hover:bg-track/60 hover:text-ink',
+      )}
+    >
+      {n.icon}
+      <span className="truncate">{n.label}</span>
+      {n.n !== undefined && !pill && <span className={cx('ml-auto rounded-full px-1.5 text-[11px] font-semibold tabular-nums', n.alert ? 'bg-warn-soft text-warn' : 'text-faint')}>{n.n}</span>}
+    </button>
+  )
 
   return (
-    <div className="min-h-full">
-      <header className="sticky top-0 z-20 border-b border-line bg-glass">
-        <div className="mx-auto flex max-w-[1320px] items-center gap-3 px-5 py-3">
+    <div className="flex min-h-full bg-bg font-sans text-ink" style={ADMIN_THEME}>
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-surface lg:flex">
+        <div className="flex h-14 items-center border-b border-line px-4">
           <Logo tag="Admin" />
-          <div className="flex-1" />
-          {apiMode && (
-            <button onClick={load} aria-label="Refresh" className="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface text-muted cursor-pointer hover:text-brand">
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            </button>
-          )}
-          <button onClick={onOut} className="flex items-center gap-1.5 rounded-full px-3 py-2 text-[14px] font-semibold text-muted cursor-pointer hover:text-danger">
-            <LogOut size={16} /> Sign out
-          </button>
         </div>
-      </header>
-
-      <main className="stagger mx-auto max-w-[1320px] px-5 py-6">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            ['Waiting for a physio', data.counts.unassigned, 'text-accent'],
-            ['Self sign-ups', data.counts.self, 'text-brand'],
-            ['Consumers', data.counts.patients, 'text-ink'],
-            ['Physios', data.counts.physios, 'text-ink'],
-          ].map(([label, n, tone]) => (
-            <Card key={label as string} className="p-4">
-              <div className={cx('font-display text-[30px] font-bold leading-none', tone as string)}>{n as number}</div>
-              <div className="mt-1.5 text-[13px] text-muted">{label as string}</div>
-            </Card>
+        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Main">
+          {NAV.map((s) => (
+            <div key={s.label}>
+              <div className="mb-1.5 px-2 text-[11px] font-medium uppercase tracking-wider text-faint">{s.label}</div>
+              <div className="space-y-0.5">{s.items.map((n) => navButton(n))}</div>
+            </div>
           ))}
-        </div>
+        </nav>
+        <button onClick={onOut} className="m-3 flex h-9 items-center gap-2 rounded-md px-2 text-[14px] text-muted cursor-pointer hover:bg-track/60 hover:text-danger">
+          <LogOut size={16} /> Sign out
+        </button>
+      </aside>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <div className="no-scrollbar flex gap-1 overflow-x-auto rounded-full bg-track p-1">
-            {TABS.map((t) => (
+      <div className="min-w-0 flex-1 overflow-x-clip">
+        <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur">
+          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+            <div className="lg:hidden">
+              <Logo tag="Admin" />
+            </div>
+            {tab !== 'overview' && (
+              <label className="hidden h-9 w-[300px] items-center gap-2 rounded-md border border-line bg-surface px-3 text-[14px] sm:flex">
+                <Search size={15} className="shrink-0 text-faint" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, phone, city, tag" aria-label="Search" className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint" />
+              </label>
+            )}
+            <div className="flex-1" />
+            {journeys && growth && <Segmented label="Period" value={period} onChange={setPeriod} options={PERIODS} />}
+            {apiMode && (
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={cx('flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[14px] font-semibold cursor-pointer', tab === t.key ? 'bg-surface text-brand shadow-card' : 'text-muted')}
+                onClick={load}
+                aria-label="Refresh"
+                title={journeys ? `Data from ${new Date(journeys.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Refresh'}
+                className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-muted cursor-pointer hover:text-ink"
               >
-                {t.icon} {t.label} {t.n !== undefined && <span className="text-[12px] opacity-70">{t.n}</span>}
+                <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
               </button>
-            ))}
+            )}
+            <button onClick={onOut} aria-label="Sign out" className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-muted cursor-pointer hover:text-danger lg:hidden">
+              <LogOut size={15} />
+            </button>
           </div>
-          <div className="ml-auto w-full sm:w-[280px]">
-            <Input prefix={<Search size={16} className="text-faint" />} placeholder="Search name, phone, city, tag" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
-        </div>
+          <nav className="no-scrollbar flex gap-1.5 overflow-x-auto border-t border-line px-4 py-2 lg:hidden" aria-label="Main">
+            {NAV.flatMap((s) => s.items).map((n) => navButton(n, true))}
+          </nav>
+        </header>
 
-        <div key={tab} className="anim-page mt-4">
-          {journeys && tab === 'overview' && <OverviewTab j={journeys} open={setSubject} />}
-          {journeys && tab === 'consumers' && <ConsumersTab j={journeys} q={q} open={setSubject} />}
-          {journeys && tab === 'journey' && <PhysioJourneyTab j={journeys} q={q} open={setSubject} />}
-          {journeys && tab === 'website' && <WebsiteTab j={journeys} q={q} open={setSubject} />}
+        <main key={tab} className="anim-page mx-auto flex max-w-[1400px] flex-col gap-5 px-4 py-6 sm:px-6">
+          {ctx && tab === 'overview' && <OverviewPage {...ctx} />}
+          {ctx && tab === 'consumers' && <ConsumersPage {...ctx} />}
+          {ctx && tab === 'journey' && <PhysiosPage {...ctx} />}
+          {ctx && tab === 'website' && <WebsitePage {...ctx} />}
+          {OPS_HEAD[tab] && <PageHeading title={OPS_HEAD[tab]![0]}>{OPS_HEAD[tab]![1]}</PageHeading>}
+          {!apiMode && <p className="rounded-md border border-line bg-surface px-3 py-2 text-[13px] text-muted">Demo mode: the growth pages need the live API, so only the operations pages are shown.</p>}
           {tab === 'queue' &&
             (queue.length === 0 ? (
-              <Card className="p-10 text-center text-muted">Everyone has a physio. New self sign-ups show up here.</Card>
+              <Card className={cx(OPS_CARD, 'p-10 text-center text-muted')}>Everyone has a physio. New self sign-ups show up here.</Card>
             ) : (
               <div className="grid gap-3 lg:grid-cols-2">
                 {queue
@@ -320,7 +382,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
             ))}
 
           {tab === 'patients' && (
-            <Card className="overflow-x-auto p-0">
+            <Card className={cx(OPS_CARD, 'overflow-x-auto p-0')}>
               <table className="w-full min-w-[720px] text-left text-[14px]">
                 <thead className="border-b border-line text-[12px] uppercase tracking-wider text-faint">
                   <tr>
@@ -364,7 +426,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                 .sort((a, b) => Number(b.verification === 'pending') - Number(a.verification === 'pending'))
                 .filter((p) => match(`${p.name} ${p.phone} ${physioPlace(p)}`))
                 .map((p) => (
-                  <Card key={p.id} className="p-4">
+                  <Card key={p.id} className={cx(OPS_CARD, 'p-4')}>
                     <div className="flex items-center gap-3">
                       <Avatar name={p.name} photo={p.photo} size={44} />
                       <div className="min-w-0 flex-1">
@@ -432,7 +494,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
           )}
 
           {tab === 'assessments' && (
-            <Card className="divide-y divide-line p-0">
+            <Card className={cx(OPS_CARD, 'divide-y divide-line p-0')}>
               {data.assessments.length === 0 && <div className="p-10 text-center text-muted">No assessments yet.</div>}
               {data.assessments.map((a) => {
                 const p = data.patients.find((x) => x.id === a.patientId)
@@ -457,8 +519,8 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
               })}
             </Card>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
       <SubjectDrawer subject={subject} token={token} onClose={() => setSubject(undefined)} onChanged={load} />
     </div>
   )
@@ -477,7 +539,7 @@ function QueueCard({ p, a, physios, byId, onAssign }: { p: Patient; a?: Assessme
   const chosen = byId.get(pick)
 
   return (
-    <Card className="p-4">
+    <Card className={cx(OPS_CARD, 'p-4')}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[16px] font-semibold">{p.name}</div>

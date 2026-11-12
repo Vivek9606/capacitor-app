@@ -1,6 +1,6 @@
 import { ArrowUpRight, Check, Download, StickyNote, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Badge, type BadgeTone, Button, Card, cx, TextArea } from '../../components/ui'
+import { Badge, type BadgeTone, Button, cx, TextArea } from '../../components/ui'
 import { api } from '../../lib/api'
 import { fmtPhone } from '../../lib/logic'
 import { toast } from '../../lib/platform'
@@ -18,6 +18,7 @@ export interface ConsumerRow {
   phone: string
   city?: string
   condition?: string
+  painArea?: string
   physioId?: string
   physioName?: string
   origin: 'self' | 'physio'
@@ -29,9 +30,13 @@ export interface ConsumerRow {
   firstWebAt?: string
   webSubmissions: number
   assessments: number
+  firstAssessmentAt?: string
   bookings: number
+  firstBookingAt?: string
   plans: number
+  firstPlanAt?: string
   planOpenedAt?: string
+  firstSessionAt?: string
   sessionsDone: number
   sessionsSkipped: number
   lastSessionAt?: string
@@ -58,6 +63,8 @@ export interface PhysioRow {
   lastActiveAt?: string
   listing?: { status: string; url: string }
   patients: number
+  firstPatientAt?: string
+  firstPlanAt?: string
   activePatients: number
   discharged: number
   plans: number
@@ -88,28 +95,27 @@ export interface WebRow {
   tags: string[]
   notes: number
 }
-interface Step {
-  label: string
-  n: number
-  hint?: string
-}
-type Week = { week: string; consumers: number; physios: number; assessments: number; web: number; bookings: number; plans: number; sessions: number }
+export type Daily = { day: string; consumers: number; physios: number; assessments: number; web: number; bookings: number; plans: number; sessions: number; skipped: number; revenue: number }
 export interface Journeys {
   generatedAt: string
   consumers: ConsumerRow[]
   physios: PhysioRow[]
   web: { total: number; forms: number; assessments: number; with_phone: number; converted: number; recent: WebRow[] }
-  weeks: Week[]
-  consumerSteps: Step[]
-  physioSteps: Step[]
+  /** One row per day for the last 180 days, oldest first. */
+  daily: Daily[]
+  cohorts: { cohort: string; size: number; weeks: number[] }[]
+  /** [day, consumer id, physio id] for every day someone did their exercises (last 180 days). */
+  sessionDays: [string, string, string][]
+  bookingEvents: { day: string; type: string; source: string; status: string }[]
+  assessmentEvents: { day: string; kind: string; area: string }[]
   health: { consumers: Record<Health, number>; physios: Record<Exclude<Health, 'discharged'>, number> }
 }
 export type Subject = { type: 'patient'; row: ConsumerRow } | { type: 'physio'; row: PhysioRow } | { type: 'lead'; row: WebRow }
 
 // ---------- labels ----------
-const C_STAGE: Record<ConsumerRow['stage'], string> = { signed_up: 'Signed up', assessed: 'Assessed', matched: 'Has a physio', booked: 'Booked', on_plan: 'On a plan', exercising: 'Exercising', discharged: 'Discharged' }
-const P_STAGE: Record<PhysioRow['stage'], string> = { signed_up: 'Signed up', set_up: 'Profile set up', first_patient: 'First patient', treating: 'Treating', running: 'Running practice' }
-const HEALTH: Record<Health, { label: string; tone: BadgeTone }> = {
+export const C_STAGE: Record<ConsumerRow['stage'], string> = { signed_up: 'Signed up', assessed: 'Assessed', matched: 'Has a physio', booked: 'Booked', on_plan: 'On a plan', exercising: 'Exercising', discharged: 'Discharged' }
+export const P_STAGE: Record<PhysioRow['stage'], string> = { signed_up: 'Signed up', set_up: 'Profile set up', first_patient: 'First patient', treating: 'Treating', running: 'Running practice' }
+export const HEALTH: Record<Health, { label: string; tone: BadgeTone }> = {
   active: { label: 'Active', tone: 'ok' },
   slipping: { label: 'Slipping', tone: 'warn' },
   inactive: { label: 'Inactive', tone: 'accent' },
@@ -118,18 +124,18 @@ const HEALTH: Record<Health, { label: string; tone: BadgeTone }> = {
 const SETUP: Record<string, string> = { photo: 'Photo', qualification: 'Qualification', focusAreas: 'Focus areas', place: 'Place', availability: 'Availability', billing: 'Billing' }
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-const day = (ts?: string) => {
+export const day = (ts?: string) => {
   if (!ts) return '—'
   const d = new Date(ts)
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`
 }
-const ago = (ts?: string) => {
+export const ago = (ts?: string) => {
   if (!ts) return 'never'
   const d = Math.floor((Date.now() - new Date(ts).getTime()) / 86_400_000)
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d < 60 ? `${d} days ago` : `${Math.round(d / 30)} months ago`
 }
 const rupees = (n: number) => `₹${n.toLocaleString('en-IN')}`
-const formName = (w: WebRow) => (w.kind === 'assessment' ? String(w.data.title ?? w.form.replace(/^assessment-/, '').replace(/-/g, ' ')) : w.form.replace(/[-_:]/g, ' '))
+export const formName = (w: WebRow) => (w.kind === 'assessment' ? String(w.data.title ?? w.form.replace(/^assessment-/, '').replace(/-/g, ' ')) : w.form.replace(/[-_:]/g, ' '))
 
 function downloadCsv(name: string, rows: Record<string, unknown>[]) {
   if (!rows.length) return toast('Nothing to export')
@@ -166,70 +172,7 @@ function Pills<T extends string>({ value, onChange, options }: { value: T; onCha
   )
 }
 
-/** Milestones as horizontal bars. One hue: the bars show how many, the labels say what. */
-function Milestones({ title, sub, steps }: { title: string; sub: string; steps: Step[] }) {
-  const total = Math.max(steps[0]?.n ?? 0, 1)
-  return (
-    <Card className="p-5">
-      <h3 className="font-display text-[18px] font-bold">{title}</h3>
-      <p className="mt-0.5 text-[13px] text-muted">{sub}</p>
-      <div className="mt-4 flex flex-col gap-2.5">
-        {steps.map((s, i) => (
-          <div key={s.label} title={s.hint} className="grid grid-cols-[150px_1fr_84px] items-center gap-3 text-[13px]">
-            <span className="truncate text-ink">{s.label}</span>
-            <div className="h-3.5 rounded-[4px] bg-track">
-              <div className="h-full rounded-[4px] bg-brand" style={{ width: `${(s.n / total) * 100}%`, minWidth: s.n ? 4 : 0 }} />
-            </div>
-            <span className="text-right tabular-nums">
-              <b className="text-ink">{s.n}</b>
-              {i > 0 && <span className="ml-1.5 text-faint">{Math.round((s.n / total) * 100)}%</span>}
-            </span>
-          </div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-/** Twelve weeks of one measure. Hovering (or focusing) a bar reads out its week and value. */
-function Trend({ title, weeks, pick }: { title: string; weeks: Week[]; pick: (w: Week) => number }) {
-  const [hover, setHover] = useState<number>()
-  const vals = weeks.map(pick)
-  const max = Math.max(...vals, 1)
-  const total = vals.reduce((a, b) => a + b, 0)
-  const shown = hover ?? weeks.length - 1
-  return (
-    <Card className="p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="text-[14px] font-semibold">{title}</h3>
-        <span className="text-[12px] text-faint">{total} in 12 weeks</span>
-      </div>
-      <div className="mt-1 text-[13px] text-muted">
-        <b className="font-display text-[22px] text-ink">{vals[shown] ?? 0}</b> <span>{hover === undefined ? 'this week' : `week of ${day(weeks[shown].week)}`}</span>
-      </div>
-      <div className="mt-3 flex h-[72px] items-end gap-[3px]" onMouseLeave={() => setHover(undefined)}>
-        {weeks.map((w, i) => (
-          <button
-            key={w.week}
-            aria-label={`Week of ${day(w.week)}: ${vals[i]}`}
-            onMouseEnter={() => setHover(i)}
-            onFocus={() => setHover(i)}
-            onBlur={() => setHover(undefined)}
-            className="flex h-full flex-1 cursor-default items-end"
-          >
-            <span className={cx('block w-full rounded-t-[4px]', i === shown ? 'bg-brand' : 'bg-brand-line')} style={{ height: vals[i] ? `${Math.max((vals[i] / max) * 100, 5)}%` : 2 }} />
-          </button>
-        ))}
-      </div>
-      <div className="mt-1.5 flex justify-between text-[11px] text-faint">
-        <span>{day(weeks[0]?.week)}</span>
-        <span>{day(weeks[weeks.length - 1]?.week)}</span>
-      </div>
-    </Card>
-  )
-}
-
-function HealthBadge({ h }: { h: Health }) {
+export function HealthBadge({ h }: { h: Health }) {
   return <Badge tone={HEALTH[h].tone}>{HEALTH[h].label}</Badge>
 }
 
@@ -276,93 +219,9 @@ function TableShell({ count, noun, onExport, filters, caption, children }: { cou
           </Button>
         </div>
       </div>
-      <Card className="overflow-x-auto p-0">{children}</Card>
+      <div className="overflow-x-auto rounded-xl border border-line bg-surface">{children}</div>
       {caption && <p className="mt-2 text-[12px] text-faint">{caption}</p>}
     </>
-  )
-}
-
-// ---------- overview ----------
-export function OverviewTab({ j, open }: { j: Journeys; open: (s: Subject) => void }) {
-  const stuck = j.consumers.filter((c) => c.health !== 'active' && c.health !== 'discharged' && c.plans > 0).slice(0, 6)
-  const waiting = j.physios.filter((p) => p.patients === 0 && Date.now() - new Date(p.createdAt).getTime() > 3 * 86_400_000).slice(0, 6)
-  const leads = j.web.recent.filter((w) => w.phone && !w.patientId && !w.physioId).slice(0, 6)
-  const hc = j.health.consumers
-  const hp = j.health.physios
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Milestones title="Consumer journey" sub="How many consumers have reached each step. Percentages are of all accounts." steps={j.consumerSteps} />
-        <Milestones title="Physio journey" sub="How many physios have reached each step. Percentages are of all accounts." steps={j.physioSteps} />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {(
-          [
-            ['Consumers by activity', [['active', hc.active], ['slipping', hc.slipping], ['inactive', hc.inactive], ['discharged', hc.discharged]]],
-            ['Physios by activity', [['active', hp.active], ['slipping', hp.slipping], ['inactive', hp.inactive]]],
-          ] as [string, [Health, number][]][]
-        ).map(([title, rows]) => (
-          <Card key={title} className="p-4">
-            <h3 className="text-[14px] font-semibold">{title}</h3>
-            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
-              {rows.map(([h, n]) => (
-                <div key={h} className="flex items-center gap-2">
-                  <span className="font-display text-[24px] font-bold leading-none">{n}</span>
-                  <HealthBadge h={h} />
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-[12px] text-faint">Active: did something in the last 7 days. Slipping: 8 to 21 days. Inactive: longer.</p>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Trend title="New consumers" weeks={j.weeks} pick={(w) => w.consumers} />
-        <Trend title="New physios" weeks={j.weeks} pick={(w) => w.physios} />
-        <Trend title="Website submissions" weeks={j.weeks} pick={(w) => w.web} />
-        <Trend title="Exercise sessions done" weeks={j.weeks} pick={(w) => w.sessions} />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Attention title="On a plan but gone quiet" empty="Everyone on a plan has been active this week.">
-          {stuck.map((c) => (
-            <AttentionRow key={c.id} name={c.name} sub={`Last active ${ago(c.lastActiveAt)} · ${c.physioName ?? 'no physio'}`} onClick={() => open({ type: 'patient', row: c })} />
-          ))}
-        </Attention>
-        <Attention title="Physios with no patients yet" empty="Every physio who joined more than 3 days ago has a patient.">
-          {waiting.map((p) => (
-            <AttentionRow key={p.id} name={p.name} sub={`Joined ${ago(p.createdAt)} · setup ${p.setupDone}/${p.setupTotal}`} onClick={() => open({ type: 'physio', row: p })} />
-          ))}
-        </Attention>
-        <Attention title="Website leads without an account" empty="No open website leads with a phone number.">
-          {leads.map((w) => (
-            <AttentionRow key={w.id} name={w.name || fmtPhone(w.phone!)} sub={`${formName(w)} · ${ago(w.createdAt)}`} onClick={() => open({ type: 'lead', row: w })} />
-          ))}
-        </Attention>
-      </div>
-    </div>
-  )
-}
-
-function Attention({ title, empty, children }: { title: string; empty: string; children: React.ReactNode[] }) {
-  return (
-    <Card className="p-4">
-      <h3 className="text-[14px] font-semibold">{title}</h3>
-      {children.length === 0 ? <p className="mt-3 text-[13px] text-muted">{empty}</p> : <div className="mt-2 divide-y divide-line">{children}</div>}
-    </Card>
-  )
-}
-function AttentionRow({ name, sub, onClick }: { name: string; sub: string; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="flex w-full items-center justify-between gap-2 py-2.5 text-left cursor-pointer hover:text-brand">
-      <span className="min-w-0">
-        <span className="block truncate text-[14px] font-semibold">{name}</span>
-        <span className="block truncate text-[12px] text-muted">{sub}</span>
-      </span>
-      <ArrowUpRight size={15} className="shrink-0 text-faint" />
-    </button>
   )
 }
 
@@ -559,21 +418,6 @@ export function WebsiteTab({ j, q, open }: { j: Journeys; q: string; open: (s: S
   )
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {(
-          [
-            ['Submissions', j.web.total],
-            ['Lead forms', j.web.forms],
-            ['Assessments taken', j.web.assessments],
-            ['People who also have an account', j.web.converted],
-          ] as [string, number][]
-        ).map(([label, n]) => (
-          <Card key={label} className="p-4">
-            <div className="font-display text-[26px] font-bold leading-none">{n}</div>
-            <div className="mt-1.5 text-[13px] text-muted">{label}</div>
-          </Card>
-        ))}
-      </div>
       <TableShell
         count={rows.length}
         noun="submissions"
