@@ -1,4 +1,4 @@
-import { ArrowUpRight, BadgeCheck, Check, ClipboardList, LogOut, RefreshCw, Search, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, RefreshCw, Route as RouteIcon, Search, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
@@ -11,6 +11,7 @@ import { isNative, toast } from '../../lib/platform'
 import { DEMO } from '../../lib/seed'
 import { useStore } from '../../lib/store'
 import type { Assessment, Patient, Physio } from '../../lib/types'
+import { ConsumersTab, type Journeys, OverviewTab, PhysioJourneyTab, type Subject, SubjectDrawer, WebsiteTab } from './Journeys'
 
 /**
  * Web-only admin dashboard (/admin on the web app): self-signed-up patients, their assessments,
@@ -139,20 +140,25 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
   )
 }
 
-type Tab = 'queue' | 'patients' | 'physios' | 'assessments'
+type Tab = 'overview' | 'consumers' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
 
 function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const store = useStore()
   const [remote, setRemote] = useState<Overview>()
   const [loading, setLoading] = useState(false)
-  const [tab, setTab] = useState<Tab>('queue')
+  // Journeys come from the API; the local demo only has the older tabs.
+  const [journeys, setJourneys] = useState<Journeys>()
+  const [subject, setSubject] = useState<Subject>()
+  const [tab, setTab] = useState<Tab>(apiMode ? 'overview' : 'queue')
   const [q, setQ] = useState('')
 
   const load = useCallback(async () => {
     if (!apiMode) return
     setLoading(true)
     try {
-      setRemote(await api<Overview>('/admin/overview', { token }))
+      const [o, j] = await Promise.all([api<Overview>('/admin/overview', { token }), api<Journeys>('/admin/journeys', { token })])
+      setRemote(o)
+      setJourneys(j)
     } catch (e) {
       if (e instanceof ApiError && (e.status === 401 || e.status === 403)) onOut()
       toast(e instanceof Error ? e.message : 'Couldn’t load')
@@ -230,17 +236,26 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const pendingVerify = data.physios.filter((p) => p.verification === 'pending').length
   const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase())
 
-  const TABS: { key: Tab; label: string; n: number; icon: React.ReactNode }[] = [
+  const TABS: { key: Tab; label: string; n?: number; icon: React.ReactNode }[] = [
+    ...(journeys
+      ? ([
+          { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
+          { key: 'consumers', label: 'Consumer journey', n: journeys.consumers.length, icon: <Users size={16} /> },
+          { key: 'journey', label: 'Physio journey', n: journeys.physios.length, icon: <RouteIcon size={16} /> },
+          { key: 'website', label: 'Website', n: journeys.web.total, icon: <Globe size={16} /> },
+        ] as const)
+      : []),
     { key: 'queue', label: 'To assign', n: queue.length, icon: <UserRoundSearch size={16} /> },
-    { key: 'patients', label: 'Patients', n: data.counts.patients, icon: <Users size={16} /> },
-    { key: 'physios', label: pendingVerify ? `Physios · ${pendingVerify} to verify` : 'Physios', n: data.counts.physios, icon: <Stethoscope size={16} /> },
+    // The consumer journey replaces this list when the API is connected.
+    ...(journeys ? [] : ([{ key: 'patients', label: 'Patients', n: data.counts.patients, icon: <Users size={16} /> }] as const)),
+    { key: 'physios', label: pendingVerify ? `Physio profiles · ${pendingVerify} to verify` : 'Physio profiles', n: data.counts.physios, icon: <Stethoscope size={16} /> },
     { key: 'assessments', label: 'Assessments', n: data.counts.assessments, icon: <ClipboardList size={16} /> },
   ]
 
   return (
     <div className="min-h-full">
       <header className="sticky top-0 z-20 border-b border-line bg-glass">
-        <div className="mx-auto flex max-w-[1200px] items-center gap-3 px-5 py-3">
+        <div className="mx-auto flex max-w-[1320px] items-center gap-3 px-5 py-3">
           <Logo tag="Admin" />
           <div className="flex-1" />
           {apiMode && (
@@ -254,12 +269,12 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
         </div>
       </header>
 
-      <main className="stagger mx-auto max-w-[1200px] px-5 py-6">
+      <main className="stagger mx-auto max-w-[1320px] px-5 py-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             ['Waiting for a physio', data.counts.unassigned, 'text-accent'],
             ['Self sign-ups', data.counts.self, 'text-brand'],
-            ['Patients', data.counts.patients, 'text-ink'],
+            ['Consumers', data.counts.patients, 'text-ink'],
             ['Physios', data.counts.physios, 'text-ink'],
           ].map(([label, n, tone]) => (
             <Card key={label as string} className="p-4">
@@ -277,16 +292,20 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                 onClick={() => setTab(t.key)}
                 className={cx('flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[14px] font-semibold cursor-pointer', tab === t.key ? 'bg-surface text-brand shadow-card' : 'text-muted')}
               >
-                {t.icon} {t.label} <span className="text-[12px] opacity-70">{t.n}</span>
+                {t.icon} {t.label} {t.n !== undefined && <span className="text-[12px] opacity-70">{t.n}</span>}
               </button>
             ))}
           </div>
           <div className="ml-auto w-full sm:w-[280px]">
-            <Input prefix={<Search size={16} className="text-faint" />} placeholder="Search name, phone, city" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Input prefix={<Search size={16} className="text-faint" />} placeholder="Search name, phone, city, tag" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
 
         <div key={tab} className="anim-page mt-4">
+          {journeys && tab === 'overview' && <OverviewTab j={journeys} open={setSubject} />}
+          {journeys && tab === 'consumers' && <ConsumersTab j={journeys} q={q} open={setSubject} />}
+          {journeys && tab === 'journey' && <PhysioJourneyTab j={journeys} q={q} open={setSubject} />}
+          {journeys && tab === 'website' && <WebsiteTab j={journeys} q={q} open={setSubject} />}
           {tab === 'queue' &&
             (queue.length === 0 ? (
               <Card className="p-10 text-center text-muted">Everyone has a physio. New self sign-ups show up here.</Card>
@@ -440,6 +459,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
           )}
         </div>
       </main>
+      <SubjectDrawer subject={subject} token={token} onClose={() => setSubject(undefined)} onChanged={load} />
     </div>
   )
 }
