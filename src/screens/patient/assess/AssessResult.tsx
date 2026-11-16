@@ -29,7 +29,7 @@ export default function AssessResult() {
       <PageHeader title={fresh ? 'Your result' : a.title} onBack={() => nav('/me')} />
       {fresh && (
         <div className="anim-pop mb-4 flex items-center gap-3 rounded-2xl bg-ok-soft px-4 py-3 text-[14px] font-semibold text-ok">
-          <PartyPopper size={18} /> Done, {firstName(patient.name)}! Here’s what your answers point to.
+          <PartyPopper size={18} /> Your health check-in is complete, {firstName(patient.name)}! Here’s what your answers show.
         </div>
       )}
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
@@ -37,7 +37,7 @@ export default function AssessResult() {
           <ResultCard a={a} />
           {a.scores && (
             <Card className="p-4">
-              <div className="text-[13px] font-semibold text-muted">Your scores</div>
+              <div className="text-[13px] font-semibold text-muted">{a.kind === 'longevity' ? 'What you’re working towards' : 'Your strength, balance & mobility snapshot'}</div>
               <div className="mt-3 flex flex-col gap-2.5">
                 {(['strength', 'balance', 'mobility'] as const)
                   .filter((k) => a.scores?.[k] != null)
@@ -47,7 +47,7 @@ export default function AssessResult() {
                       <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-track">
                         <span className="anim-grow block h-full rounded-full bg-brand" style={{ width: `${(a.scores![k]! / 10) * 100}%` }} />
                       </span>
-                      <span className="w-10 text-right tabular-nums text-muted">{a.scores![k]}/10</span>
+                      <span className="w-10 text-right tabular-nums text-muted">{a.scores![k]}</span>
                     </div>
                   ))}
               </div>

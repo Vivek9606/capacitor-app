@@ -83,8 +83,8 @@ export function ResultCard({ a, onOpen }: { a: Assessment; onOpen?: () => void }
         </div>
         {scored ? (
           <>
-            <div className="mt-1 font-display text-[22px] font-bold leading-tight">{overall != null ? `${overall} / 10` : 'Result ready'}</div>
-            <div className="mt-1 text-[13px] text-white/80">{a.kind === 'longevity' ? 'Your longevity target for musculoskeletal health.' : 'Overall score, combining strength, balance and mobility.'}</div>
+            <div className="mt-1 font-display text-[22px] font-bold leading-tight">{overall != null ? overall : 'Your results are ready'}</div>
+            <div className="mt-1 text-[13px] text-white/80">{a.kind === 'longevity' ? 'Your longevity goals snapshot: the strength, balance and mobility you want at 70.' : 'Your current health snapshot, bringing together strength, balance and mobility.'}</div>
           </>
         ) : (
           <>
