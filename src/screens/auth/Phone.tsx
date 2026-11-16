@@ -71,7 +71,7 @@ export default function Phone() {
         {!apiMode && (<div className="mt-6 flex gap-2.5 rounded-xl border border-dashed border-brand-line bg-brand-soft/50 p-3 text-[13px] leading-relaxed text-brand">
           <Info size={16} className="mt-0.5 shrink-0" />
           <div>
-            <b>Demo</b> — physio{' '}
+            <b>Demo</b>: physio{' '}
             <button type="button" className="underline cursor-pointer" onClick={() => setPhone(DEMO.physioPhone)}>
               {DEMO.physioPhone}
             </button>

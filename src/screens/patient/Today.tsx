@@ -144,7 +144,7 @@ export default function Today() {
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand font-display text-[18px] font-bold text-white">b</div>
               <div className="flex-1">
                 <div className="text-[15px] font-semibold">Get the Betterhood app</div>
-                <div className="text-[13px] text-muted">Reminders and offline videos. Optional — this page works too.</div>
+                <div className="text-[13px] text-muted">Reminders and offline videos. Optional: this page works too.</div>
               </div>
               <Button size="sm" variant="soft" onClick={() => toast('Store links go live at launch')}>
                 <Download size={15} /> Get
@@ -179,7 +179,7 @@ export default function Today() {
                     onClick={(e) => {
                       e.stopPropagation()
                       store.updateBooking(next.id, { status: 'confirmed' })
-                      toast(`Confirmed — see you ${relDay(next.date).toLowerCase()}`)
+                      toast(`Confirmed: see you ${relDay(next.date).toLowerCase()}`)
                     }}
                   >
                     Confirm

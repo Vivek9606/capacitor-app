@@ -27,7 +27,7 @@ export default function Refer() {
   const invite = () =>
     openWhatsApp(
       undefined,
-      `Hey! I use Betterhood to send exercise plans and treatment plans to patients on WhatsApp — it’s free. Sign up with my code ${physio.inviteCode} and we both get a month of Premium: ${link}`,
+      `Hey! I use Betterhood to send exercise plans and treatment plans to patients on WhatsApp, it’s free. Sign up with my code ${physio.inviteCode} and we both get a month of Premium: ${link}`,
     )
 
   return (
@@ -130,7 +130,7 @@ export default function Refer() {
         <ol className="flex flex-col gap-3 text-[15px]">
           {[
             'Share your code or link with a physio friend.',
-            'They sign up with your code — in the browser or the app.',
+            'They sign up with your code, in the browser or the app.',
             'When they send their first care plan, the invite is activated.',
             'You both get a month of Premium. More activations unlock badges and a free course.',
           ].map((s, i) => (

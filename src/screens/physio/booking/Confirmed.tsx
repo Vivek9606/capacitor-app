@@ -55,14 +55,14 @@ export default function Confirmed() {
       <div className="flex flex-col gap-3.5 text-[14px]">
         {b.reminder && (
           <div className="flex items-center gap-3">
-            <Bell size={18} className="shrink-0 text-muted" /> {remindAt} — automatic reminder with directions
+            <Bell size={18} className="shrink-0 text-muted" /> {remindAt}, automatic reminder with directions
           </div>
         )}
         <div className="flex items-center gap-3">
           <RefreshCw size={18} className="shrink-0 text-muted" /> If {name} taps Reschedule, a request appears on Home
         </div>
         <div className="flex items-center gap-3">
-          <Activity size={18} className="shrink-0 text-muted" /> After the visit — prompt to send a care plan
+          <Activity size={18} className="shrink-0 text-muted" /> After the visit: prompt to send a care plan
         </div>
       </div>
       <p className="mt-4 text-[12px] text-faint">Demo: messages aren’t really sent. Log in as the patient to tap Confirm or Reschedule.</p>

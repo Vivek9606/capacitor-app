@@ -473,7 +473,7 @@ export function BlockSheet({ open, onClose, defaultDate }: { open: boolean; onCl
         <Input placeholder="Note (only you see this)" value={BLOCK_REASONS.includes(reason) ? '' : reason} onChange={(e) => setReason(e.target.value)} />
         {clashing > 0 && (
           <p className="rounded-xl bg-warn-soft px-3 py-2 text-[13px] text-warn">
-            {clashing} existing booking{clashing === 1 ? '' : 's'} in this time stay{clashing === 1 ? 's' : ''} on your calendar — reschedule {clashing === 1 ? 'it' : 'them'} if needed.
+            {clashing} existing booking{clashing === 1 ? '' : 's'} in this time stay{clashing === 1 ? 's' : ''} on your calendar, reschedule {clashing === 1 ? 'it' : 'them'} if needed.
           </p>
         )}
         <Button

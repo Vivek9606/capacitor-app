@@ -14,7 +14,7 @@ import type { Invoice, InvoiceItem, PaymentMethod } from '../../../lib/types'
 
 const EXTRAS = ['IFT', 'TENS', 'Ultrasound', 'Taping', 'Dry needling', 'Manual therapy', 'Exercise band', 'Session package']
 
-// New invoice — prefilled from a visit, a walk-in or a group seat.
+// New invoice, prefilled from a visit, a walk-in or a group seat.
 export default function NewInvoice() {
   const { physio } = useMe()
   const store = useStore()

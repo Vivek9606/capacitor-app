@@ -52,7 +52,7 @@ export function RxDocument({
       </div>
       {rx.complaint && <Section title="Presenting complaint">{rx.complaint}</Section>}
       {rx.findings && <Section title="Examination findings">{rx.findings}</Section>}
-      <Section title="Diagnosis">{rx.diagnosis || '—'}</Section>
+      <Section title="Diagnosis">{rx.diagnosis || '-'}</Section>
       {rx.advice && <Section title="Advice">{rx.advice}</Section>}
       {rx.modalities.length > 0 && <Section title="In-clinic modalities">{rx.modalities.join(', ')}</Section>}
       {items.length > 0 && (
@@ -60,7 +60,7 @@ export function RxDocument({
           <ol className="list-decimal pl-5">
             {items.map((it) => (
               <li key={it.exerciseId}>
-                {exercises.find((e) => e.id === it.exerciseId)?.name} — {doseLabel(it)}
+                {exercises.find((e) => e.id === it.exerciseId)?.name}, {doseLabel(it)}
               </li>
             ))}
           </ol>
@@ -68,7 +68,7 @@ export function RxDocument({
       )}
       <Section title="Follow-up">
         {FOLLOW[rx.followUp]}
-        {rx.followUp === 'custom' && rx.followUpDate ? ` — ${fmtShort(rx.followUpDate)}` : ''}
+        {rx.followUp === 'custom' && rx.followUpDate ? `: ${fmtShort(rx.followUpDate)}` : ''}
       </Section>
       {rx.letterhead && (
         <div className="mt-8 flex justify-end">

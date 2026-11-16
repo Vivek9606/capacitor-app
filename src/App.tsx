@@ -1,8 +1,9 @@
 import { AlertCircle, Check } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { initNative, listenDeepLinks, registerToast } from './lib/platform'
-import { StoreProvider, useMe } from './lib/store'
+import { takeHandoff } from './lib/handoff'
+import { initNative, listenDeepLinks, registerToast, toast } from './lib/platform'
+import { StoreProvider, useMe, useStore } from './lib/store'
 import Admin from './screens/admin/Admin'
 import Join from './screens/auth/Join'
 import Otp from './screens/auth/Otp'
@@ -97,6 +98,37 @@ function NativeBridge() {
   return null
 }
 
+/** Arriving from betterhood.in signed in (#handoff=…): sign in as that account, then open the page it asked for. */
+function HandoffGate() {
+  const store = useStore()
+  const nav = useNavigate()
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    const h = takeHandoff()
+    if (!h || !store.apiMode) return
+    setBusy(true)
+    store
+      .redeemHandoff(h.code)
+      .then((role) => {
+        const want = h.path && !/^\/(welcome|login)?\/?$/.test(h.path) ? h.path : '/'
+        // a physio link for a consumer account (or the other way round) lands on their own home
+        nav(role === 'physio' ? (want.startsWith('/app') ? want : '/app') : want.startsWith('/me') ? want : '/me', { replace: true })
+      })
+      .catch(() => toast('That sign-in link has expired. Please log in with your number.'))
+      .finally(() => setBusy(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  if (!busy) return null
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-bg/95 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3 text-[15px] font-semibold text-muted">
+        <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-brand-line border-t-brand" />
+        Signing you in…
+      </div>
+    </div>
+  )
+}
+
 function Toaster() {
   const [msg, setMsg] = useState<{ text: string; id: number }>()
   useEffect(() => {
@@ -135,6 +167,7 @@ export default function App() {
     <StoreProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <NativeBridge />
+        <HandoffGate />
         <Routes>
           <Route path="/" element={<RootRedirect />} />
           <Route path="/welcome" element={<GuestOnly><Welcome /></GuestOnly>} />

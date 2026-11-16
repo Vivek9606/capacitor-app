@@ -90,7 +90,7 @@ export default function EditProfile() {
             </Card>
           ) : (
             <p className="text-[13px] text-muted">
-              Verification is {physio.verification === 'pending' ? 'in progress — usually within 48 hours' : 'complete'}.
+              Verification is {physio.verification === 'pending' ? 'in progress, usually within 48 hours' : 'complete'}.
             </p>
           )}
         </div>

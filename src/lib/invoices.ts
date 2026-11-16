@@ -41,12 +41,12 @@ export function invoiceMessage(physio: Physio, inv: Invoice) {
   const lines = [
     `Hi ${first}, here is your invoice ${inv.number} from ${physio.clinic?.name || physio.name}.`,
     '',
-    ...inv.items.map((i) => `• ${i.description}${i.qty > 1 ? ` × ${i.qty}` : ''} — ${inr(i.qty * i.rate)}`),
+    ...inv.items.map((i) => `• ${i.description}${i.qty > 1 ? ` × ${i.qty}` : ''}, ${inr(i.qty * i.rate)}`),
     inv.discount ? `Discount: −${inr(inv.discount)}` : '',
     inv.taxPct ? `GST (${inv.taxPct}%) included` : '',
     `Total: ${inr(inv.total)}`,
     '',
-    inv.status === 'paid' ? `Paid${inv.method ? ` by ${PAYMENT_LABEL[inv.method]}` : ''} — thank you!` : b.upiId ? `Pay by UPI to ${b.upiId}` : 'Please pay at your next visit.',
+    inv.status === 'paid' ? `Paid${inv.method ? ` by ${PAYMENT_LABEL[inv.method]}` : ''}, thank you!` : b.upiId ? `Pay by UPI to ${b.upiId}` : 'Please pay at your next visit.',
   ]
   return lines.filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n')
 }

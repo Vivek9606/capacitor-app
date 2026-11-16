@@ -8,6 +8,7 @@ import { formById } from './consents'
 import { nextInvoiceNumber, totals } from './invoices'
 import { nowHHMM } from './slots'
 import { suggestPhysio } from './match'
+import { site } from './web'
 import type { Assessment, Block, Booking, Consent, DB, Discharge, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, Plan, PlanDraft, Role, Session, SessionLog } from './types'
 
 /**
@@ -170,6 +171,23 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     },
     login(s: Session) {
       setSession(s)
+    },
+    /** #handoff=… from betterhood.in: become the account that was signed in there. */
+    async redeemHandoff(code: string): Promise<Role> {
+      const r = await api<{ token: string; role: Role; userId: string }>('/auth/handoff/redeem', { body: { code } })
+      await startSession({ role: r.role, userId: r.userId, token: r.token })
+      return r.role
+    },
+    /** A betterhood.in link that signs the website in as this account (falls back to the plain page). */
+    async websiteLink(path: string): Promise<string> {
+      const url = site(path)
+      if (!apiMode || !session?.token) return url
+      try {
+        const r = await api<{ code: string }>('/auth/handoff', { body: {}, token: session.token })
+        return `${url}#handoff=${r.code}`
+      } catch {
+        return url
+      }
     },
     logout() {
       setSession(undefined)
@@ -424,7 +442,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       remote((token) => api('/patient/plans/opened', { method: 'POST', token }))
     },
 
-    // ---------- care plan draft (R2 -> R3 -> R4) — local until sent ----------
+    // ---------- care plan draft (R2 -> R3 -> R4): local until sent ----------
     startDraft(patientId: string, from?: Partial<PlanDraft>) {
       mutate((d) => {
         if (d.draft?.patientId === patientId && !from) return

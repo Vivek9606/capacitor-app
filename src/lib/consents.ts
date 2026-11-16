@@ -19,7 +19,7 @@ export const CONSENT_FORMS: ConsentForm[] = [
   {
     id: 'general',
     title: 'Assessment & treatment',
-    sub: 'General physiotherapy consent — take at the first visit',
+    sub: 'General physiotherapy consent: take at the first visit',
     body: (p) =>
       `I consent to a physiotherapy assessment and treatment by ${who(p)}.\n\nThe assessment may include questions about my health, observation, and hands-on examination of movement, strength and joints. Treatment may include exercise, manual therapy, electrotherapy, heat or cold, taping and advice.\n\nThe benefits, likely outcomes, and risks have been explained to me. Common risks include temporary soreness, stiffness or fatigue, usually settling within 24–48 hours. I will tell my physiotherapist about any change in my health, medication, pregnancy, or symptoms during treatment.\n\n${RIGHTS}`,
   },
@@ -29,7 +29,7 @@ export const CONSENT_FORMS: ConsentForm[] = [
     sub: 'Required before dry needling',
     modalities: ['Dry needling'],
     body: (p) =>
-      `I consent to dry needling by ${who(p)}.\n\nDry needling uses fine, sterile, single-use needles inserted into muscle to reduce pain and tightness. It is not acupuncture and no medicine is injected.\n\nPossible effects include soreness or bruising at the needle site, temporary increase in symptoms, light-headedness or fainting, and — rarely — infection, nerve irritation, or a punctured lung (pneumothorax) when needling near the chest wall.\n\nI have told my physiotherapist if I am pregnant, have a bleeding disorder or take blood thinners, have diabetes, epilepsy, a weakened immune system, a metal allergy, or a fear of needles.\n\n${RIGHTS}`,
+      `I consent to dry needling by ${who(p)}.\n\nDry needling uses fine, sterile, single-use needles inserted into muscle to reduce pain and tightness. It is not acupuncture and no medicine is injected.\n\nPossible effects include soreness or bruising at the needle site, temporary increase in symptoms, light-headedness or fainting, and, rarely, infection, nerve irritation, or a punctured lung (pneumothorax) when needling near the chest wall.\n\nI have told my physiotherapist if I am pregnant, have a bleeding disorder or take blood thinners, have diabetes, epilepsy, a weakened immune system, a metal allergy, or a fear of needles.\n\n${RIGHTS}`,
   },
   {
     id: 'manual_therapy',
@@ -73,7 +73,7 @@ export const CONSENT_FORMS: ConsentForm[] = [
     title: 'Online consultation',
     sub: 'Video or phone sessions',
     body: (p) =>
-      `I consent to physiotherapy by video or phone with ${who(p)}.\n\nAn online session has limits — the physiotherapist cannot examine me by hand. I will take part from a safe space and have someone nearby if needed. I understand that an in-person visit may be recommended.\n\n${RIGHTS}`,
+      `I consent to physiotherapy by video or phone with ${who(p)}.\n\nAn online session has limits, the physiotherapist cannot examine me by hand. I will take part from a safe space and have someone nearby if needed. I understand that an in-person visit may be recommended.\n\n${RIGHTS}`,
   },
 ]
 

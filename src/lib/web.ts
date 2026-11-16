@@ -9,6 +9,8 @@ export const WEBSITE_URL = String(import.meta.env.VITE_WEBSITE_URL || 'https://b
 export const WEBSITE_ORIGIN = new URL(WEBSITE_URL).origin
 
 /** Absolute URL of a website page, e.g. site('/result-lower-back-pain-nerve/'). */
+/** A physio's personal assessment link: patients who save their result from it join that physio's list. */
+export const inviteLink = (physioSlug: string) => site(`/quiz-landing-page/?physio=${encodeURIComponent(physioSlug)}`)
 export const site = (path: string) => `${WEBSITE_URL}${path.startsWith('/') ? path : `/${path}`}`
 
 /** The same page in embed mode, telling it which origin to answer. */

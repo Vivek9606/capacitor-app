@@ -1,4 +1,4 @@
-// PhysioPreneurship — a short, practical course on running a physiotherapy practice.
+// PhysioPreneurship, a short, practical course on running a physiotherapy practice.
 // Text lessons for now; each has an action that links into the app where it can be done.
 
 export interface Lesson {
@@ -36,7 +36,7 @@ export const MODULES: CourseModule[] = [
         points: [
           'Own clinic: highest fixed cost (rent, equipment, staff) but builds a brand and lets you see 8–14 patients a day.',
           'Home visits: no rent, premium fees (often 1.5–2× clinic), but travel caps you at 5–7 visits a day. Cluster visits by area.',
-          'Individual / visiting practice: consult at hospitals, gyms, sports clubs or other clinics. Low risk, fast start — negotiate a revenue share (typically 50–70% to you).',
+          'Individual / visiting practice: consult at hospitals, gyms, sports clubs or other clinics. Low risk, fast start, negotiate a revenue share (typically 50–70% to you).',
           'A common path: start individual or home-visit, build a patient base, then open a clinic in the area where most of them live.',
         ],
         action: { text: 'Set up how you practise so your booking page shows the right options.', to: '/app/profile/clinic', cta: 'Set practice model' },
@@ -68,7 +68,7 @@ export const MODULES: CourseModule[] = [
           'Floor price = (monthly costs + the salary you want) ÷ realistic sessions per month. Never go below it.',
           'Home visits should include travel time: a 45-minute visit often takes 90 minutes of your day.',
           'Raise fees for new patients first; give existing patients a month’s notice.',
-          'Show your fee upfront on your booking page — it filters out price shoppers before they take a slot.',
+          'Show your fee upfront on your booking page, it filters out price shoppers before they take a slot.',
         ],
         action: { text: 'Review your consult fees.', to: '/app/profile/clinic', cta: 'Edit fees' },
       },
@@ -99,7 +99,7 @@ export const MODULES: CourseModule[] = [
         points: [
           'List 10 orthopaedic surgeons, gynaecologists, GPs and sports coaches within 5 km. Visit two a week.',
           'Bring a one-page summary of what you treat and how you report back.',
-          'Send the referrer a short progress note after the 1st and last visit — it’s the single best way to get the next referral.',
+          'Send the referrer a short progress note after the 1st and last visit, it’s the single best way to get the next referral.',
         ],
         action: { text: 'Invite a fellow physio and grow your network.', to: '/app/refer', cta: 'Refer a physio' },
       },
@@ -110,7 +110,7 @@ export const MODULES: CourseModule[] = [
         summary: 'Most patients search, read reviews, then message. Make every step easy.',
         points: [
           'Claim your Google Business Profile, add photos, hours and your Betterhood booking link.',
-          'Ask every patient who finishes a plan for a Google review — send the link on WhatsApp the same day.',
+          'Ask every patient who finishes a plan for a Google review, send the link on WhatsApp the same day.',
           'Put your booking link in your WhatsApp Business profile, Instagram bio and visiting card.',
           'Post one useful tip a week (a 30-second exercise video works best).',
         ],
@@ -128,7 +128,7 @@ export const MODULES: CourseModule[] = [
         minutes: 5,
         summary: 'Every no-show is lost income and a patient who isn’t getting better.',
         points: [
-          'Confirm on WhatsApp when booking and remind 2 hours before — this alone cuts no-shows sharply.',
+          'Confirm on WhatsApp when booking and remind 2 hours before, this alone cuts no-shows sharply.',
           'Track show/no-show for every visit. Call anyone with two no-shows.',
           'Have a clear late-cancellation policy and mention it at the first visit.',
           'Fill gaps with walk-ins and a short wait-list.',
@@ -139,7 +139,7 @@ export const MODULES: CourseModule[] = [
         id: 'l8',
         title: 'Plan completion is retention',
         minutes: 5,
-        summary: 'Patients who stop early don’t get results — and don’t refer.',
+        summary: 'Patients who stop early don’t get results, and don’t refer.',
         points: [
           'Explain the full plan and expected timeline at the first visit.',
           'Send a home exercise plan the same day, and check adherence between visits.',
@@ -175,7 +175,7 @@ export const MODULES: CourseModule[] = [
         points: [
           'Take written informed consent at the first visit, and separately for dry needling, manipulation and electrotherapy.',
           'Keep a treatment plan and notes for every patient; give patients a copy.',
-          'Healthcare services by registered practitioners are generally exempt from GST, but products, wellness and some corporate packages may not be — check with a CA.',
+          'Healthcare services by registered practitioners are generally exempt from GST, but products, wellness and some corporate packages may not be, check with a CA.',
           'Register your clinic under your state’s Clinical Establishments rules where they apply, and display your council registration.',
         ],
         action: { text: 'Take a consent form for your next patient.', to: '/app/patients', cta: 'Choose a patient' },
@@ -192,7 +192,7 @@ export const MODULES: CourseModule[] = [
         minutes: 6,
         summary: 'Hire when you’re turning patients away, not before.',
         points: [
-          'First hire is usually a front-desk / coordinator — it frees 1–2 hours of your day for patients.',
+          'First hire is usually a front-desk / coordinator, it frees 1–2 hours of your day for patients.',
           'Next, an associate physio on a fixed salary plus a share of what they bill.',
           'Write down how you assess, treat and follow up so the associate delivers the same care.',
         ],
@@ -204,7 +204,7 @@ export const MODULES: CourseModule[] = [
         minutes: 6,
         summary: 'Expand where your patients already are.',
         points: [
-          'Look at where your home-visit and walk-in patients live — that’s where the next clinic goes.',
+          'Look at where your home-visit and walk-in patients live, that’s where the next clinic goes.',
           'Start small: a satellite room in a gym or a doctor’s clinic two days a week.',
           'Partnerships (gyms, corporates, housing societies) can bring a steady stream of group and individual patients.',
         ],

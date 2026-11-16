@@ -133,7 +133,7 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
           </Button>
           {!apiMode && (
             <p className="rounded-xl bg-brand-soft/60 p-3 text-[13px] text-brand">
-              <b>Demo</b> — admin {DEMO.adminPhone}, code {DEMO.otp}
+              <b>Demo</b>: admin {DEMO.adminPhone}, code {DEMO.otp}
             </p>
           )}
         </form>
@@ -408,8 +408,8 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                               {p.selfSignup && ' · self sign-up'}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-muted">{p.city ?? '—'}</td>
-                          <td className="px-4 py-3">{a ? `${a.title}: ${a.condition ?? '—'}` : <span className="text-faint">—</span>}</td>
+                          <td className="px-4 py-3 text-muted">{p.city ?? '-'}</td>
+                          <td className="px-4 py-3">{a ? `${a.title}: ${a.condition ?? '-'}` : <span className="text-faint">-</span>}</td>
                           <td className="px-4 py-3">{ph ? ph.name : <Badge tone="accent">Unassigned</Badge>}</td>
                           <td className="px-4 py-3 text-muted">{fmtShort(p.createdAt.slice(0, 10))}</td>
                         </tr>
@@ -506,7 +506,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                       <div className="text-[12px] text-muted">{fmtShort(a.createdAt.slice(0, 10))}</div>
                     </div>
                     <div className="min-w-[200px] flex-1">
-                      {a.title}: <b>{a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '—')}</b>
+                      {a.title}: <b>{a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '-')}</b>
                     </div>
                     {a.advisory && <Badge tone="accent">See a doctor</Badge>}
                     {a.result && (
@@ -570,7 +570,7 @@ function QueueCard({ p, a, physios, byId, onAssign }: { p: Patient; a?: Assessme
         <option value="">Choose a physio…</option>
         {ranked.map((x) => (
           <option key={x.id} value={x.id}>
-            {x.name} — {x.focusAreas.join(', ') || 'no focus set'} · {x.patients} patients{x.id === suggested ? '  ★ suggested' : ''}
+            {x.name}, {x.focusAreas.join(', ') || 'no focus set'} · {x.patients} patients{x.id === suggested ? '  ★ suggested' : ''}
           </option>
         ))}
       </select>

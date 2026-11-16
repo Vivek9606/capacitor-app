@@ -26,7 +26,7 @@ export default function Community() {
               <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-[12px] font-semibold text-accent">CASE</span>
               <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[12px] font-medium text-brand">Knee · Post-op</span>
             </div>
-            <div className="mt-2.5 text-[15px] font-semibold leading-snug">Post-ACL, 6 wks, quad lag persists — what has worked for you?</div>
+            <div className="mt-2.5 text-[15px] font-semibold leading-snug">Post-ACL, 6 wks, quad lag persists, what has worked for you?</div>
             <div className="mt-1 text-[12px] text-muted">Age 28 · Hamstring graft · ROM 0–120°</div>
           </div>
           <div className="mt-3 flex items-center justify-between">
@@ -128,7 +128,7 @@ export default function Community() {
           onClick={() => {
             store.updatePhysio(physio.id, { communityTopics: topics })
             setSheet(false)
-            toast('Thanks — topic submitted')
+            toast('Thanks, topic submitted')
           }}
         >
           Submit topic

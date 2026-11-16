@@ -1,11 +1,12 @@
-import { ChevronRight, ClipboardCheck, ExternalLink, LogOut, MessageCircle, MessageSquare, Repeat, RotateCcw, ShieldCheck } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, ExternalLink, Globe, LogOut, MessageCircle, MessageSquare, Repeat, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
 import { Avatar, Badge, Card, PageHeader, SectionTitle } from '../../components/ui'
 import { patientView } from '../../lib/patientData'
 import { fmtShort } from '../../lib/dates'
 import { firstName, fmtPhone } from '../../lib/logic'
-import { isNative, openWhatsApp, toast } from '../../lib/platform'
+import { openWebsiteSignedIn } from '../../lib/handoff'
+import { isNative, openInApp, openWhatsApp, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
 import { useSwitchProfile } from '../../lib/switchProfile'
 
@@ -108,7 +109,7 @@ export default function PatientProfile() {
             <div className="font-semibold">{physio ? `Sharing progress with ${doc}` : 'Your health details'}</div>
             <div className="text-muted">
               {physio
-                ? `Consent given ${patient.consentAt ? fmtShort(patient.consentAt.slice(0, 10)) : '—'}. Only you and your physio see your health details.`
+                ? `Consent given ${patient.consentAt ? fmtShort(patient.consentAt.slice(0, 10)) : '-'}. Only you and your physio see your health details.`
                 : 'Your assessment answers are used only to match you with a physio. Only Betterhood’s care team and your physio see them.'}
             </div>
           </div>
@@ -132,6 +133,17 @@ export default function PatientProfile() {
         >
           <RotateCcw size={18} className="text-muted" /> Reset demo data
         </button>)}
+        <button
+          onClick={() => openWebsiteSignedIn(() => store.websiteLink('/account/'), isNative, openInApp)}
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer"
+        >
+          <Globe size={18} className="text-brand" />
+          <span className="min-w-0 flex-1">
+            Open betterhood.in
+            <span className="block truncate text-[12px] text-muted">Already signed in: assessments, Slouch Catcher, betterYou corner</span>
+          </span>
+          <ExternalLink size={16} className="text-muted" />
+        </button>
         <button onClick={() => switchProfile('physio')} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
           <Repeat size={18} className="text-brand" />
           <span className="min-w-0 flex-1">

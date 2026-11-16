@@ -29,7 +29,7 @@ export default function GroupDetail() {
   const started = g.date <= today()
   const series = g.seriesId ? db.groups.filter((x) => x.seriesId === g.seriesId).sort((a, b) => a.date.localeCompare(b.date)) : []
   const bookUrl = publicUrl(`/dr/${physio.slug}/book?group=${g.id}`)
-  const invite = `Join my “${g.title}” on ${fmtDay(g.date)} at ${fmtTime(g.time)} (${g.minutes} min${g.fee ? `, ${inr(g.fee)}` : ''}) — ${g.location}. Book your seat: ${bookUrl}`
+  const invite = `Join my “${g.title}” on ${fmtDay(g.date)} at ${fmtTime(g.time)} (${g.minutes} min${g.fee ? `, ${inr(g.fee)}` : ''}), ${g.location}. Book your seat: ${bookUrl}`
   const invoiced = (p: GroupParticipant) => db.invoices.some((i) => i.groupSessionId === g.id && i.patientPhone === p.phone && i.status !== 'void')
 
   return (
@@ -101,7 +101,7 @@ export default function GroupDetail() {
                   className="text-danger"
                   onClick={() => {
                     store.updateGroup(g.id, { status: 'cancelled' })
-                    toast(n ? `Session cancelled — let the ${n} participant${n === 1 ? '' : 's'} know on WhatsApp` : 'Session cancelled')
+                    toast(n ? `Session cancelled: let the ${n} participant${n === 1 ? '' : 's'} know on WhatsApp` : 'Session cancelled')
                   }}
                 >
                   Cancel session
@@ -146,7 +146,7 @@ export default function GroupDetail() {
           </SectionTitle>
           {g.participants.length === 0 ? (
             <Card>
-              <Empty icon={<UserPlus size={20} />} title="No one yet" body="Add patients, or share the invite — they book a seat from your booking page." />
+              <Empty icon={<UserPlus size={20} />} title="No one yet" body="Add patients, or share the invite, they book a seat from your booking page." />
             </Card>
           ) : (
             <Card className="divide-y divide-line">
@@ -183,7 +183,7 @@ export default function GroupDetail() {
                             <ReceiptIndianRupee size={14} /> Invoice
                           </Button>
                         ))}
-                      <Button size="sm" variant="ghost" onClick={() => openWhatsApp(p.phone, `Hi ${firstName(p.name)}, a reminder about “${g.title}” on ${fmtDay(g.date)} at ${fmtTime(g.time)} — ${g.location}.`)}>
+                      <Button size="sm" variant="ghost" onClick={() => openWhatsApp(p.phone, `Hi ${firstName(p.name)}, a reminder about “${g.title}” on ${fmtDay(g.date)} at ${fmtTime(g.time)}, ${g.location}.`)}>
                         WhatsApp
                       </Button>
                       {!started && (

@@ -6,7 +6,7 @@ import { Avatar, Button, Card } from '../../components/ui'
 import { api, apiMode } from '../../lib/api'
 import { useStore } from '../../lib/store'
 
-// /join?ref=CODE — invite landing. Works in the browser; store badges are optional.
+// /join?ref=CODE: invite landing. Works in the browser; store badges are optional.
 export default function Join() {
   const [params] = useSearchParams()
   const nav = useNavigate()
@@ -44,7 +44,7 @@ export default function Join() {
           </div>
         )}
         <h1 className="mt-5 font-display text-[32px] font-bold leading-[1.1] tracking-[-0.02em]">Care that continues after the session.</h1>
-        <p className="mt-3 text-[16px] leading-relaxed text-muted">Free for physiotherapists. Works in your browser — or get the app.</p>
+        <p className="mt-3 text-[16px] leading-relaxed text-muted">Free for physiotherapists. Works in your browser: or get the app.</p>
 
         <div className="mt-6 flex flex-col gap-3">
           {[
@@ -66,7 +66,7 @@ export default function Join() {
           <Card className="mt-6 flex items-center gap-3 border-accent/30 bg-accent-soft/60 p-4">
             <Gift className="shrink-0 text-accent" size={22} />
             <p className="text-[14px]">
-              Sign up with code <b>{ref}</b> — you both get a month of Premium when you send your first care plan.
+              Sign up with code <b>{ref}</b>you both get a month of Premium when you send your first care plan.
             </p>
           </Card>
         )}

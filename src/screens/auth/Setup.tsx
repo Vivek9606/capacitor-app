@@ -54,7 +54,7 @@ export default function Setup() {
         ))}
       </div>
       <h3 className="mt-6 text-[16px] font-semibold">How do you practise?</h3>
-      <p className="mb-3 text-[13px] text-muted">Pick all that apply — your booking page and schedule adapt to it.</p>
+      <p className="mb-3 text-[13px] text-muted">Pick all that apply: your booking page and schedule adapt to it.</p>
       <PracticeModePicker value={modes} onChange={setModes} />
       {error && <p className="mt-4 text-[14px] text-danger">{error}</p>}
       <div className="flex-1 lg:hidden" />

@@ -25,7 +25,7 @@ export async function copyText(text: string, label = 'Copied'): Promise<void> {
     }
     toast(label)
   } catch {
-    toast('Couldn’t copy — long-press to copy instead')
+    toast('Couldn’t copy: long-press to copy instead')
   }
 }
 
@@ -43,10 +43,10 @@ export async function shareLink(opts: { title: string; text: string; url: string
   } catch (e) {
     if ((e as Error)?.name === 'AbortError') return
   }
-  await copyText(`${opts.text} ${opts.url}`, 'Link copied — paste it anywhere')
+  await copyText(`${opts.text} ${opts.url}`, 'Link copied: paste it anywhere')
 }
 
-/** Open WhatsApp with a prefilled message (physio's own WhatsApp — free, no template). */
+/** Open WhatsApp with a prefilled message (physio's own WhatsApp, free, no template). */
 export function openWhatsApp(phone: string | undefined, text: string) {
   const num = phone ? `91${phone.replace(/\D/g, '').slice(-10)}` : ''
   const url = `https://wa.me/${num}?text=${encodeURIComponent(text)}`

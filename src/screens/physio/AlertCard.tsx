@@ -19,7 +19,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
     const link = alert.patientId ? store.db.patients.find((p) => p.id === alert.patientId)?.linkToken : undefined
     openWhatsApp(
       alert.phone,
-      `Hi ${firstName(alert.name)}, this is ${physio?.name}. Just checking in on your exercises — here’s your plan: ${publicUrl(`/plan/${link ?? ''}`)}`,
+      `Hi ${firstName(alert.name)}, this is ${physio?.name}. Just checking in on your exercises, here’s your plan: ${publicUrl(`/plan/${link ?? ''}`)}`,
     )
   }
 
@@ -36,7 +36,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
                 className="h-9 rounded-full bg-brand px-4 text-[13px] font-semibold text-white cursor-pointer"
                 onClick={() => {
                   store.updateBooking(alert.bookingId!, { status: 'confirmed' })
-                  toast(`Accepted — ${firstName(alert.name)} gets a WhatsApp confirmation`)
+                  toast(`Accepted: ${firstName(alert.name)} gets a WhatsApp confirmation`)
                 }}
               >
                 Accept

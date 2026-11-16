@@ -63,7 +63,7 @@ export default function Partner() {
               <Star size={15} className="shrink-0 text-accent" /> {p}
             </div>
           ))}
-          {submitted && !changed && <p className="mt-3 text-[13px] font-medium text-brand">✓ Interest submitted — the partnerships team will reach out on WhatsApp.</p>}
+          {submitted && !changed && <p className="mt-3 text-[13px] font-medium text-brand">✓ Interest submitted: the partnerships team will reach out on WhatsApp.</p>}
         </div>
       </div>
       <Footer className="lg:flex lg:justify-end">

@@ -17,7 +17,7 @@ export default function RxView() {
 
   const download = () => {
     // Web: browser print dialog → "Save as PDF". Phase 2: server-rendered PDF (also used in the app).
-    if (isNative) toast('PDF download in the app arrives with the backend — use the web link for now')
+    if (isNative) toast('PDF download in the app arrives with the backend, use the web link for now')
     else window.print()
   }
 

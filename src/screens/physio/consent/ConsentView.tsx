@@ -41,7 +41,7 @@ export default function ConsentView() {
         {c.status === 'pending' && (
           <>
             <Button block onClick={() => setSigning(true)}>
-              {firstName(patient.name)} is here — sign now
+              {firstName(patient.name)} is here, sign now
             </Button>
             <WhatsAppButton
               block

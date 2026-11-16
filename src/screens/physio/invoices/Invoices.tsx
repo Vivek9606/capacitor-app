@@ -49,7 +49,7 @@ export default function Invoices() {
       </div>
       {!b.upiId && (
         <button onClick={() => setSettings(true)} className="mt-3 w-full rounded-2xl bg-accent-soft p-4 text-left text-[14px] cursor-pointer">
-          <b>Set up billing</b> — add your UPI ID (and GSTIN if you have one) so every invoice has a pay link.
+          <b>Set up billing</b>: add your UPI ID (and GSTIN if you have one) so every invoice has a pay link.
         </button>
       )}
       <div className="mb-3 mt-5 flex gap-2">
@@ -124,7 +124,7 @@ export function BillingSheet({ open, onClose }: { open: boolean; onClose: () => 
           <Input label="Invoice prefix" value={f.invoicePrefix} maxLength={8} onChange={(e) => setF({ ...f, invoicePrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })} />
           <Input label="Default GST %" inputMode="numeric" placeholder="0" value={f.taxPct} onChange={(e) => setF({ ...f, taxPct: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
         </div>
-        <p className="text-[12px] text-muted">Physiotherapy by registered practitioners is usually GST-exempt — leave GST at 0 unless your CA advises otherwise.</p>
+        <p className="text-[12px] text-muted">Physiotherapy by registered practitioners is usually GST-exempt, leave GST at 0 unless your CA advises otherwise.</p>
         <Input label="Invoice footer (optional)" placeholder="Thank you! Cancellation within 4 hrs is charged." value={f.footer} onChange={(e) => setF({ ...f, footer: e.target.value })} />
         <Button
           block

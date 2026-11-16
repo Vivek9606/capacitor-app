@@ -69,7 +69,7 @@ export default function Appointments() {
                         onClick={() => {
                           haptic('success')
                           store.updateBooking(b.id, { status: 'confirmed' })
-                          toast('Confirmed — see you then')
+                          toast('Confirmed: see you then')
                         }}
                       >
                         Confirm

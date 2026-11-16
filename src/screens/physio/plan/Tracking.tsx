@@ -42,7 +42,7 @@ export default function Tracking() {
   const nudge = () =>
     openWhatsApp(
       patient.phone,
-      `Hi ${name}, this is ${physio.name}. Don’t forget today’s session — it takes about 15 minutes: ${publicUrl(`/plan/${patient.linkToken}`)}`,
+      `Hi ${name}, this is ${physio.name}. Don’t forget today’s session: it takes about 15 minutes: ${publicUrl(`/plan/${patient.linkToken}`)}`,
     )
 
   const adjust = () => {

@@ -87,7 +87,7 @@ export default function Session() {
           <ExerciseMedia region={ex.region} size="lg" className="mt-5 aspect-video w-full" label="Video · demo placeholder" />
           <h1 className="mt-5 font-display text-[26px] font-bold tracking-[-0.01em]">{ex.name}</h1>
           <div className="mt-1 text-[16px] font-medium text-brand">{doseLabel(item)}</div>
-          {item.note && <div className="mt-3 rounded-xl bg-accent-soft px-3.5 py-2.5 text-[14px]">“{item.note}” — {doc}</div>}
+          {item.note && <div className="mt-3 rounded-xl bg-accent-soft px-3.5 py-2.5 text-[14px]">“{item.note}”, {doc}</div>}
           {ex.cues.length > 0 && (
             <ul className="mt-4 flex flex-col gap-1.5 text-[15px] text-muted">
               {ex.cues.map((c) => (
@@ -123,7 +123,7 @@ export default function Session() {
               Skip
             </Button>
             <Button block onClick={() => setStep(step + 1)}>
-              {doneSets >= item.sets ? 'Next' : 'Done — next'}
+              {doneSets >= item.sets ? 'Next' : 'Done, next'}
             </Button>
           </div>
         </>

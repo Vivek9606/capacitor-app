@@ -41,7 +41,7 @@ export default function Learn() {
                 <PlayCircle size={17} /> {p.done ? 'Continue' : 'Start'}: {p.next.title}
               </button>
             )}
-            {!p.next && <p className="mt-4 text-[14px] font-semibold">✓ Course complete — well done!</p>}
+            {!p.next && <p className="mt-4 text-[14px] font-semibold">✓ Course complete. Well done!</p>}
           </div>
 
           <div className="mt-5 flex flex-col gap-4">
@@ -85,7 +85,7 @@ export default function Learn() {
           <Card className="p-4 lg:sticky lg:top-6">
             <div className="text-[16px] font-semibold">Who it’s for</div>
             <p className="mt-1 text-[14px] leading-relaxed text-muted">
-              Physios starting out on their own, running a clinic, doing home visits, or consulting at several places — and anyone planning to grow a team.
+              Physios starting out on their own, running a clinic, doing home visits, or consulting at several places, and anyone planning to grow a team.
             </p>
             <div className="mt-4 text-[16px] font-semibold">You’ll learn to</div>
             <ul className="mt-1 flex flex-col gap-1.5 text-[14px] text-muted">

@@ -34,7 +34,7 @@ export default function Availability() {
   const save = () => {
     haptic('success')
     store.updatePhysio(physio.id, { availability: a, ...summariseAvailability(a) })
-    toast('Availability saved — your booking page is updated')
+    toast('Availability saved: your booking page is updated')
     nav(-1)
   }
 

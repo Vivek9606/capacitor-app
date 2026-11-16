@@ -241,7 +241,7 @@ export default function Build() {
               onClick={() => {
                 store.updateDraft({ items: t.items, daysPerWeek: t.daysPerWeek, weeks: t.weeks, title: t.title })
                 setTplOpen(false)
-                toast(`“${t.title}” loaded — tweak as needed`)
+                toast(`“${t.title}” loaded, tweak as needed`)
               }}
             >
               <div className="flex items-center justify-between">

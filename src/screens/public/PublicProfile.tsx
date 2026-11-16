@@ -10,7 +10,7 @@ import { openMaps, publicUrl, shareLink } from '../../lib/platform'
 import { modesOf } from '../../lib/practice'
 import { usePublicPhysio } from '../../lib/publicData'
 
-// PW2 · Physio public profile — /dr/:slug. No login. Indexable (SSR/prerender in Phase 2).
+// PW2 · Physio public profile, /dr/:slug. No login. Indexable (SSR/prerender in Phase 2).
 export default function PublicProfile() {
   const { slug } = useParams()
   const nav = useNavigate()
@@ -153,7 +153,7 @@ export default function PublicProfile() {
             </>
           )}
           <p className="mt-6 text-[13px] text-muted">
-            {doc} uses Betterhood to send exercise plans and treatment plans on WhatsApp — no app needed.
+            {doc} uses Betterhood to send exercise plans and treatment plans on WhatsApp, no app needed.
           </p>
         </div>
 

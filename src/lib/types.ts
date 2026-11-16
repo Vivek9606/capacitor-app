@@ -83,6 +83,8 @@ export interface Patient {
   id: string
   /** Empty for someone who signed up on their own and hasn't been assigned a physio yet. */
   physioId?: string
+  /** The physio whose invite link (betterhood.in/…?physio=…) brought them in. */
+  invitedBy?: string
   phone: string
   name: string
   age?: number

@@ -99,7 +99,7 @@ export default function Preview() {
         <Lock size={18} className="mt-0.5 shrink-0" />
         {patient.consentAt
           ? `${name} has already given consent, so the plan opens straight away. Progress syncs back to you.`
-          : `${name} gives consent once before the plan opens — in the browser or the app. Progress then syncs back to you.`}
+          : `${name} gives consent once before the plan opens, in the browser or the app. Progress then syncs back to you.`}
       </div>
 
       <Footer className="flex flex-col gap-2">

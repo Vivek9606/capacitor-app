@@ -13,7 +13,7 @@ import type { PracticeLocation, PracticeMode } from '../../../lib/types'
 
 const TRAVEL = [0, 15, 20, 30, 45]
 
-// P2 · Practice setup — adapts to clinic, home visits and/or individual (visiting) practice.
+// P2 · Practice setup, adapts to clinic, home visits and/or individual (visiting) practice.
 export default function Clinic() {
   const { physio } = useMe()
   const store = useStore()
@@ -42,7 +42,7 @@ export default function Clinic() {
     navigator.geolocation.getCurrentPosition(
       () => {
         setLocating(false)
-        toast('Location found — pin placed. Confirm the address below.')
+        toast('Location found: pin placed. Confirm the address below.')
       },
       () => {
         setLocating(false)
@@ -78,7 +78,7 @@ export default function Clinic() {
         homeVisit: { ...f.consult.homeVisit, enabled: has('home') },
       },
     })
-    toast('Practice saved — your booking page is updated')
+    toast('Practice saved: your booking page is updated')
     nav('/app/profile', { replace: true })
   }
 
@@ -126,14 +126,14 @@ export default function Clinic() {
           {has('individual') && (
             <section className="mt-6">
               <h3 className="text-[16px] font-semibold">Where you consult</h3>
-              <p className="mb-3 text-[13px] text-muted">Hospitals, gyms, sports clubs or partner clinics — and the days you’re there.</p>
+              <p className="mb-3 text-[13px] text-muted">Hospitals, gyms, sports clubs or partner clinics, and the days you’re there.</p>
               <div className="flex flex-col gap-3">
                 {f.locations.map((l) => (
                   <Card key={l.id} className="p-4">
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start gap-2">
                         <div className="flex-1">
-                          <Input label="Place" placeholder="Fortis Hospital — OPD 3" value={l.name} onChange={(e) => setLoc(l.id, { name: e.target.value })} />
+                          <Input label="Place" placeholder="Fortis Hospital, OPD 3" value={l.name} onChange={(e) => setLoc(l.id, { name: e.target.value })} />
                         </div>
                         <button aria-label="Remove location" onClick={() => setF({ ...f, locations: f.locations.filter((x) => x.id !== l.id) })} className="mt-8 grid h-10 w-10 place-items-center text-muted hover:text-danger cursor-pointer">
                           <Trash2 size={17} />

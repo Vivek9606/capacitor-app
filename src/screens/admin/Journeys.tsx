@@ -125,7 +125,7 @@ const SETUP: Record<string, string> = { photo: 'Photo', qualification: 'Qualific
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export const day = (ts?: string) => {
-  if (!ts) return '—'
+  if (!ts) return '-'
   const d = new Date(ts)
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`
 }
@@ -293,7 +293,7 @@ export function ConsumersTab({ j, q, open }: { j: Journeys; q: string; open: (s:
               <td className="px-4 py-3">
                 <Dots steps={[['Website', c.webSubmissions > 0], ['Assessment', c.assessments > 0], ['Physio', !!c.physioId], ['Booking', c.bookings > 0], ['Care plan', c.plans > 0], ['Opened plan', !!c.planOpenedAt], ['Exercise session', c.sessionsDone > 0]]} />
               </td>
-              <td className="px-4 py-3">{c.physioName ?? <span className="text-faint">—</span>}</td>
+              <td className="px-4 py-3">{c.physioName ?? <span className="text-faint">-</span>}</td>
               <td className="px-4 py-3 tabular-nums">
                 {c.sessionsDone}
                 {c.sessionsSkipped > 0 && <span className="text-faint"> · {c.sessionsSkipped} skipped</span>}
@@ -393,7 +393,7 @@ export function PhysioJourneyTab({ j, q, open }: { j: Journeys; q: string; open:
               </td>
               <td className="px-4 py-3 tabular-nums">{p.plans}</td>
               <td className="px-4 py-3 tabular-nums">{p.bookings}</td>
-              <td className="px-4 py-3 tabular-nums">{p.paidTotal ? rupees(p.paidTotal) : <span className="text-faint">—</span>}</td>
+              <td className="px-4 py-3 tabular-nums">{p.paidTotal ? rupees(p.paidTotal) : <span className="text-faint">-</span>}</td>
               <td className="px-4 py-3 text-muted">
                 <div>{ago(p.lastActiveAt)}</div>
                 <div className="text-[12px] text-faint">joined {day(p.createdAt)}</div>
@@ -472,15 +472,15 @@ export function WebsiteTab({ j, q, open }: { j: Journeys; q: string; open: (s: S
                 <td className="px-4 py-3">
                   {w.name || w.phone || w.email ? (
                     <>
-                      <div>{w.name ?? '—'}</div>
+                      <div>{w.name ?? '-'}</div>
                       <div className="text-[12px] text-muted">{[w.phone && fmtPhone(w.phone), w.email].filter(Boolean).join(' · ')}</div>
                     </>
                   ) : (
                     <span className="text-faint">Anonymous</span>
                   )}
                 </td>
-                <td className="px-4 py-3">{String(w.data.condition ?? (w.data.overall != null ? `${w.data.overall}/10 overall` : (w.data.message ?? '—'))).slice(0, 80)}</td>
-                <td className="px-4 py-3">{w.patientId ? <Badge tone="ok">Consumer</Badge> : w.physioId ? <Badge tone="ok">Physio</Badge> : w.phone ? <Badge tone="warn">Not yet</Badge> : <span className="text-faint">—</span>}</td>
+                <td className="px-4 py-3">{String(w.data.condition ?? (w.data.overall != null ? `${w.data.overall}/10 overall` : (w.data.message ?? '-'))).slice(0, 80)}</td>
+                <td className="px-4 py-3">{w.patientId ? <Badge tone="ok">Consumer</Badge> : w.physioId ? <Badge tone="ok">Physio</Badge> : w.phone ? <Badge tone="warn">Not yet</Badge> : <span className="text-faint">-</span>}</td>
                 <td className="px-4 py-3">
                   <TagList tags={w.tags} notes={w.notes} />
                 </td>
@@ -557,11 +557,11 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
           ['Stage', C_STAGE[row.stage]],
           ['Came from', row.origin === 'self' ? 'Self sign-up' : 'Added by physio'],
           ['Physio', row.physioName ?? 'None yet'],
-          ['Condition', row.condition ?? '—'],
+          ['Condition', row.condition ?? '-'],
           ['Joined', day(row.createdAt)],
           ['Last opened the app', ago(row.lastSeenAt)],
           ['Sessions done', `${row.sessionsDone}${row.sessionsSkipped ? ` (${row.sessionsSkipped} skipped)` : ''}`],
-          ['Paid', row.paidTotal ? rupees(row.paidTotal) : '—'],
+          ['Paid', row.paidTotal ? rupees(row.paidTotal) : '-'],
         ]
       : type === 'physio'
         ? [
@@ -581,8 +581,8 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
         : [
             ['Type', row.kind === 'form' ? 'Lead form' : 'Assessment'],
             ['Form', formName(row)],
-            ['Page', row.page ?? '—'],
-            ['Email', row.email ?? '—'],
+            ['Page', row.page ?? '-'],
+            ['Email', row.email ?? '-'],
             ['Account', row.patientId ? 'Has a consumer account' : row.physioId ? 'Has a physio account' : row.phone ? 'No account yet' : 'Anonymous'],
             ...Object.entries(row.data)
               .filter(([k, v]) => v != null && v !== '' && typeof v !== 'object' && !['name', 'title', 'date', 'kind'].includes(k))

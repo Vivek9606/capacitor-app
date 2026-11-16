@@ -3,7 +3,7 @@ import type { Physio, PracticeMode } from './types'
 export const PRACTICE_MODES: { id: PracticeMode; title: string; sub: string; label: string }[] = [
   { id: 'clinic', title: 'Clinic', sub: 'Patients come to my clinic', label: 'Own clinic' },
   { id: 'home', title: 'Home visits', sub: 'I treat patients at their homes', label: 'Home visits' },
-  { id: 'individual', title: 'Individual practice', sub: 'I consult independently — at hospitals, gyms, sports clubs or other clinics', label: 'Individual practice' },
+  { id: 'individual', title: 'Individual practice', sub: 'I consult independently: at hospitals, gyms, sports clubs or other clinics', label: 'Individual practice' },
 ]
 
 /** Practice modes, falling back to the older free-text settings. */

@@ -32,7 +32,7 @@ export default function Ask() {
     if (!text.trim()) return
     store.sendMessage(physio.id, patient.id, 'patient', text.trim())
     setText('')
-    toast(`Sent — ${doc} usually replies within a day`)
+    toast(`Sent: ${doc} usually replies within a day`)
   }
 
   return (

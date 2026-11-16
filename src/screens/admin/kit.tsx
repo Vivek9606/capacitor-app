@@ -15,7 +15,7 @@ export const fmtRupees = (n: number) => `₹${Math.round(n).toLocaleString('en-I
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 /** 'YYYY-MM-DD' or an ISO timestamp → "6 Nov". */
 export const fmtDay = (s?: string) => {
-  if (!s) return '—'
+  if (!s) return '-'
   const d = new Date(s.length === 10 ? `${s}T00:00:00` : s)
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`
 }

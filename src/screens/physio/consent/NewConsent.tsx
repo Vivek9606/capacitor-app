@@ -78,7 +78,7 @@ export default function NewConsent() {
     haptic('success')
     const url = publicUrl(`/plan/${patient.linkToken}`)
     if (ownWhatsApp) openWhatsApp(patient.phone, `Hi ${name}, please read and sign the “${form.title}” consent form before your treatment: ${url}`)
-    toast(ownWhatsApp ? 'Consent form saved — send the message in WhatsApp' : `Sent to ${name} on WhatsApp`)
+    toast(ownWhatsApp ? 'Consent form saved: send the message in WhatsApp' : `Sent to ${name} on WhatsApp`)
     done()
   }
 
@@ -97,7 +97,7 @@ export default function NewConsent() {
                   <Tablet size={18} />
                 </IconTile>
                 <div className="flex-1">
-                  <div className="text-[15px] font-semibold">{name} is here — sign now</div>
+                  <div className="text-[15px] font-semibold">{name} is here, sign now</div>
                   <div className="text-[13px] text-muted">Hand over your phone or tablet. They read the form and sign with a finger.</div>
                 </div>
               </button>
@@ -108,7 +108,7 @@ export default function NewConsent() {
                   </IconTile>
                   <div className="flex-1">
                     <div className="text-[15px] font-semibold">Send to {name}’s phone</div>
-                    <div className="text-[13px] text-muted">They sign in the browser from the WhatsApp link — no app needed.</div>
+                    <div className="text-[13px] text-muted">They sign in the browser from the WhatsApp link, no app needed.</div>
                   </div>
                 </div>
                 <WhatsAppButton block size="md" className="mt-3" onClick={() => sendRemote(false)}>

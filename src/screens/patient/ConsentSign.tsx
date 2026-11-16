@@ -41,11 +41,11 @@ export default function ConsentSign() {
           <ConsentSigner
             patientName={patient.name}
             patientAge={patient.age}
-            submitLabel="I agree — sign"
+            submitLabel="I agree and sign"
             onSubmit={(v) => {
               store.signConsent(c.id, v)
               haptic('success')
-              toast(`Signed — ${doc} has a copy`)
+              toast(`Signed: ${doc} has a copy`)
               nav('/me', { replace: true })
             }}
             onDecline={() => {

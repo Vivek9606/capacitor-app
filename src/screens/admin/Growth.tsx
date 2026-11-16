@@ -28,7 +28,7 @@ const medianDays = <T,>(rows: T[], from: (r: T) => string | undefined, to: (r: T
     .map((x) => Math.max(x, 0))
   return { value: median(xs), n: xs.length }
 }
-const fmtDays = (d?: number) => (d === undefined ? '—' : d < 1 ? 'same day' : `${d < 10 ? d.toFixed(1) : Math.round(d)} days`)
+const fmtDays = (d?: number) => (d === undefined ? '-' : d < 1 ? 'same day' : `${d < 10 ? d.toFixed(1) : Math.round(d)} days`)
 const share = (n: number, of: number) => (of > 0 ? n / of : 0)
 
 /** Period-over-period numbers shared by every page. */
@@ -517,7 +517,7 @@ export function PhysiosPage({ j, period, q, open }: Ctx) {
                       <td className="py-2.5 text-right font-semibold tabular-nums text-ink">{fmtInt(sessions)}</td>
                       <td className="py-2.5 text-right tabular-nums text-ink">{people}</td>
                       <td className="py-2.5 text-right tabular-nums text-muted">{p.patients}</td>
-                      <td className="py-2.5 text-right tabular-nums text-muted">{p.paidTotal ? fmtRupees(p.paidTotal) : '—'}</td>
+                      <td className="py-2.5 text-right tabular-nums text-muted">{p.paidTotal ? fmtRupees(p.paidTotal) : '-'}</td>
                     </tr>
                   ))}
                 </tbody>

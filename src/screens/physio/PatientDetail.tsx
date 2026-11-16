@@ -1,4 +1,4 @@
-import { CalendarDays, Check, ChevronRight, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, ClipboardCheck, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { attendanceMarked, bookingLine, BookingBadge, canMarkAttendance } from '../../components/bits'
@@ -10,7 +10,8 @@ import { inr } from '../../lib/invoices'
 import { adherence, fmtPhone, painTrend, planWeek, weekDots } from '../../lib/logic'
 import { openWhatsApp, toast } from '../../lib/platform'
 import { useStore } from '../../lib/store'
-import type { Plan } from '../../lib/types'
+import { webRoute } from '../../lib/web'
+import type { Assessment, Plan } from '../../lib/types'
 import { DischargeSheet, outcomeLabel } from './Discharge'
 import { useStartPlan } from './Patients'
 
@@ -41,6 +42,7 @@ export default function PatientDetail() {
   const invoices = db.invoices.filter((i) => i.patientId === p.id && i.status !== 'void').sort((a, b) => b.date.localeCompare(a.date))
   const due = invoices.filter((i) => i.status === 'unpaid').reduce((s, i) => s + i.total, 0)
   const needsGeneral = !hasConsent(db.consents, p.id, 'general')
+  const results = db.assessments.filter((a) => a.patientId === p.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
     <Page wide>
@@ -89,6 +91,7 @@ export default function PatientDetail() {
               ))}
             </div>
           </Card>
+          {results.length > 0 && <AssessmentsCard results={results} invited={!!p.invitedBy && p.invitedBy === p.physioId} />}
           <div className="hidden lg:mt-4 lg:flex lg:flex-col lg:gap-3">
             <Button block onClick={() => startPlan(p.id, 'plan')}>
               {active ? 'Start new care plan' : 'Build care plan'}
@@ -227,7 +230,7 @@ export default function PatientDetail() {
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <Stat label="Attended" value={attended} />
                   <Stat label="No-shows" value={noShows} warn={noShows > 0} />
-                  <Stat label="Show rate" value={attended + noShows ? `${Math.round((attended / (attended + noShows)) * 100)}%` : '—'} />
+                  <Stat label="Show rate" value={attended + noShows ? `${Math.round((attended / (attended + noShows)) * 100)}%` : '-'} />
                 </div>
               )}
               {visits.length === 0 && (
@@ -405,6 +408,40 @@ function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
           </span>
         </div>
       )}
+    </Card>
+  )
+}
+
+/** The patient's betterhood.in assessment results (pain: likely cause; health/longevity: scores out of 10). */
+function AssessmentsCard({ results, invited }: { results: Assessment[]; invited: boolean }) {
+  const nav = useNavigate()
+  return (
+    <Card className="mt-3 p-4">
+      <div className="flex items-center gap-2">
+        <ClipboardCheck size={17} className="text-brand" />
+        <div className="text-[15px] font-semibold">Assessments</div>
+        {invited && <Badge tone="brand">From your link</Badge>}
+      </div>
+      <div className="mt-2 flex flex-col divide-y divide-line">
+        {results.slice(0, 5).map((a) => {
+          const val = a.kind === 'pain' ? (a.condition ?? 'Result ready') : a.scores?.overall != null ? `${a.scores.overall}/10` : ''
+          return (
+            <button
+              key={a.id}
+              className="flex items-center gap-3 py-2.5 text-left cursor-pointer disabled:cursor-default"
+              disabled={!a.result}
+              onClick={() => a.result && nav(webRoute(`/${a.result}/`, a.condition ?? a.title))}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[14px] font-medium">{a.title}</div>
+                <div className="text-[12.5px] text-muted">{fmtShort(a.createdAt.slice(0, 10))}{a.advisory ? ' · ⚠ red-flag answers' : ''}</div>
+              </div>
+              <span className="shrink-0 text-[13.5px] font-semibold text-brand">{val}</span>
+              {a.result && <ChevronRight size={16} className="text-muted" />}
+            </button>
+          )
+        })}
+      </div>
     </Card>
   )
 }

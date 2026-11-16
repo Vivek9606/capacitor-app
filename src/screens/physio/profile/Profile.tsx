@@ -5,7 +5,8 @@ import { Avatar, Badge, Card, cx, IconButton, Progress, RefreshButton, WhatsAppB
 import { courseProgress } from '../../../lib/course'
 import { profileCompletion } from '../../../lib/logic'
 import { modeLabels, modesOf } from '../../../lib/practice'
-import { copyText, isNative, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
+import { openWebsiteSignedIn } from '../../../lib/handoff'
+import { copyText, isNative, openInApp, pickPhoto, publicUrl, shareLink, toast, WEB_HOST } from '../../../lib/platform'
 import { useDirectoryListing } from '../../../lib/directory'
 import { useMe, useStore } from '../../../lib/store'
 import { useSwitchProfile } from '../../../lib/switchProfile'
@@ -131,7 +132,7 @@ export default function Profile() {
 
           <div className="rounded-2xl bg-brand-soft p-4">
             <div className="text-[16px] font-semibold">Your booking page</div>
-            <p className="mt-1 text-[13px] text-muted">Patients pick a visit type, day and open time — like Calendly. Put it in your WhatsApp and Instagram bio.</p>
+            <p className="mt-1 text-[13px] text-muted">Patients pick a visit type, day and open time, like Calendly. Put it in your WhatsApp and Instagram bio.</p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-surface px-3.5 py-3">
               <span className="truncate text-[14px] font-semibold text-brand">{WEB_HOST}{path}</span>
               <button aria-label="Copy link" className="text-muted hover:text-ink cursor-pointer" onClick={() => copyText(url, 'Profile link copied')}>
@@ -141,7 +142,7 @@ export default function Profile() {
             <WhatsAppButton
               block
               className="mt-3"
-              onClick={() => shareLink({ title: physio.name, text: `Book a physiotherapy session with ${physio.name} — pick a time that suits you:`, url })}
+              onClick={() => shareLink({ title: physio.name, text: `Book a physiotherapy session with ${physio.name}, pick a time that suits you:`, url })}
             >
               Share on WhatsApp
             </WhatsAppButton>
@@ -180,6 +181,17 @@ export default function Profile() {
               <RotateCcw size={18} className="text-muted" />
               <span className="flex-1">Reset demo data</span>
             </button>)}
+            <button
+              onClick={() => openWebsiteSignedIn(() => store.websiteLink('/account/'), isNative, openInApp)}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer"
+            >
+              <Globe size={18} className="text-brand" />
+              <span className="min-w-0 flex-1">
+                Open betterhood.in
+                <span className="block truncate text-[12px] text-muted">Already signed in: your account and directory listing</span>
+              </span>
+              <ExternalLink size={16} className="text-muted" />
+            </button>
             <button onClick={() => switchProfile('patient')} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
               <Repeat size={18} className="text-brand" />
               <span className="min-w-0 flex-1">

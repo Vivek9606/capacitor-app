@@ -11,9 +11,9 @@ import { useMe, useStore } from '../../lib/store'
 /**
  * Patient entry from the WhatsApp "Open my plan" button: /plan/:token
  * Step 1: confirm last 4 digits of the mobile the plan was sent to.
- * Step 2: one-time consent. Then straight into Today — no install, no OTP.
+ * Step 2: one-time consent. Then straight into Today: no install, no OTP.
  */
-/** What the link page may show before the patient proves who they are — no health details. */
+/** What the link page may show before the patient proves who they are, no health details. */
 interface LinkPreview {
   patientFirstName: string
   consentGiven: boolean
