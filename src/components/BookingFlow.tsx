@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, CalendarCheck, Check, Clock, House, MapPin, UsersRound } from 'lucide-react'
+import { ArrowLeft, Building2, CalendarCheck, Check, Clock, House, MapPin, UsersRound, Video } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { dayShort, fmtDay, fmtTime, relDay, today } from '../lib/dates'
 import { inr } from '../lib/invoices'
@@ -50,6 +50,7 @@ export function BookingFlow({
   cal,
   known,
   initialGroupId,
+  initialVisit,
   onBook,
   onJoinGroup,
   doneNote,
@@ -58,12 +59,17 @@ export function BookingFlow({
   cal: Calendar
   known?: { name: string; phone: string }
   initialGroupId?: string
+  /** Opens with this visit type chosen. 'teleconsult' also adds the video option, which physios don't list
+   *  themselves yet (the pain chat sends people here for a video consult). */
+  initialVisit?: VisitType
   onBook: (v: BookingSubmit) => Promise<void> | void
   onJoinGroup: (groupId: string, who: { name: string; phone: string }) => Promise<void> | void
   doneNote?: string
 }) {
   const groups = openGroups(physio, cal.groups)
   const types: { visitType: VisitType; title: string; icon: React.ReactNode; sub: string; place?: PracticePlace }[] = []
+  if (initialVisit === 'teleconsult')
+    types.push({ visitType: 'teleconsult', title: 'Video consultation', icon: <Video size={19} />, sub: 'Video call in the Betterhood app' })
   const modes = modesOf(physio)
   const places = practicesOf(physio)
   if (physio.consult.inClinic.enabled) {
@@ -93,7 +99,7 @@ export function BookingFlow({
       sub: physio.practice?.serviceArea ? `Covers ${physio.practice.serviceArea}` : `Within ${physio.consult.homeVisit.radiusKm} km`,
     })
 
-  const initial: Choice | undefined = initialGroupId && groups.some((g) => g.id === initialGroupId) ? { kind: 'group', groupId: initialGroupId } : types.length === 1 && !groups.length ? { kind: 'visit', visitType: types[0].visitType } : undefined
+  const initial: Choice | undefined = initialGroupId && groups.some((g) => g.id === initialGroupId) ? { kind: 'group', groupId: initialGroupId } : initialVisit && types.some((t) => t.visitType === initialVisit && !t.place) ? { kind: 'visit', visitType: initialVisit } : types.length === 1 && !groups.length ? { kind: 'visit', visitType: types[0].visitType } : undefined
   const [choice, setChoice] = useState<Choice | undefined>(initial)
   const [date, setDate] = useState<string>()
   const [time, setTime] = useState<string>()
@@ -121,7 +127,7 @@ export function BookingFlow({
           title: chosenType?.title ?? 'Consultation',
           minutes: visitMinutes(physio, visitType),
           fee: visitFee(physio, visitType),
-          where: visitType === 'home_visit' ? 'At your home' : place ? placeLabel(place) : placeFor(physio, date),
+          where: visitType === 'home_visit' ? 'At your home' : visitType === 'teleconsult' ? 'Video call in the Betterhood app' : place ? placeLabel(place) : placeFor(physio, date),
           when: date && time ? `${fmtDay(date)}, ${fmtTime(time)}–${fmtTime(fromMin(toMin(time) + visitMinutes(physio, visitType)))}` : undefined,
         }
       : undefined
@@ -141,7 +147,7 @@ export function BookingFlow({
           phone: digits,
           reason: reason.trim() || undefined,
           address: visitType === 'home_visit' ? address.trim() : undefined,
-          location: visitType === 'home_visit' ? undefined : place ? placeLabel(place) : placeFor(physio, date),
+          location: visitType === 'home_visit' || visitType === 'teleconsult' ? undefined : place ? placeLabel(place) : placeFor(physio, date),
         })
       setStep('done')
     } catch (e) {

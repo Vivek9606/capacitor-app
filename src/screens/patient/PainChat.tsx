@@ -214,6 +214,7 @@ function ConsultCard({ chat, onBooked }: { chat: Chat; onBooked: (c: Chat) => vo
   const [time, setTime] = useState<string>()
   const [saving, setSaving] = useState(false)
   const opts = useMemo(() => ({ visitType: 'teleconsult' as const, forPatient: true }), [])
+  const bookPath = patient?.physioId === ph.id ? '/me/book' : `/dr/${ph.slug}/book`
 
   const book = async () => {
     if (!date || !time || !session?.token) return
@@ -234,7 +235,7 @@ function ConsultCard({ chat, onBooked }: { chat: Chat; onBooked: (c: Chat) => vo
   return (
     <Card className="mt-2 overflow-hidden p-0">
       <div className="bg-hero p-4 text-white">
-        <div className="text-[12px] font-semibold uppercase tracking-wider text-white/75">Your free video consult</div>
+        <div className="text-[12px] font-semibold uppercase tracking-wider text-white/75">{chat.freeConsultUsed ? 'Your physio' : 'Your free video consult'}</div>
         <div className="mt-3 flex items-center gap-3">
           <Avatar name={ph.name} photo={ph.photo} size={52} />
           <div className="min-w-0">
@@ -245,17 +246,22 @@ function ConsultCard({ chat, onBooked }: { chat: Chat; onBooked: (c: Chat) => vo
           </div>
         </div>
         <div className="mt-3 flex items-center gap-2 text-[13px] text-white/85">
-          <Video size={15} /> Video call in the app · <span className="font-semibold text-white">₹0, Betterhood pays</span>
+          <Video size={15} /> Video call in the app{chat.freeConsultUsed ? '' : ' · '}{!chat.freeConsultUsed && <span className="font-semibold text-white">₹0, Betterhood pays</span>}
         </div>
       </div>
 
       <div className="p-4">
         {chat.freeConsultUsed ? (
           <>
-            <p className="text-[14px] text-muted">You’ve already used your free consult. You can still book a regular visit with {ph.name}.</p>
-            <Button size="md" block className="mt-3" onClick={() => nav(patient?.physioId === ph.id ? '/me/book' : `/dr/${ph.slug}/book`)}>
-              Book a visit
+            <p className="text-[14px] text-muted">You’ve already used your free consult. You can still book a video consult or a visit with {ph.name}.</p>
+            <Button size="md" block className="mt-3" onClick={() => nav(`${bookPath}?visit=teleconsult`)}>
+              <Video size={17} /> Book a video consult
             </Button>
+            {(physio?.consult.inClinic.enabled || physio?.consult.homeVisit.enabled) && (
+              <Button size="md" variant="secondary" block className="mt-2" onClick={() => nav(bookPath)}>
+                Book a {[physio.consult.homeVisit.enabled && 'home', physio.consult.inClinic.enabled && 'clinic'].filter(Boolean).join(' or ')} visit
+              </Button>
+            )}
           </>
         ) : !picking ? (
           <Button size="md" block onClick={() => setPicking(true)}>

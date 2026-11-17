@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { BookingFlow } from '../../components/BookingFlow'
 import { Page } from '../../components/Shell'
 import { PageHeader } from '../../components/ui'
@@ -12,6 +12,7 @@ export default function Book() {
   const store = useStore()
   const nav = useNavigate()
   const groupId = (useLocation().state as { groupId?: string } | null)?.groupId
+  const video = useSearchParams()[0].get('visit') === 'teleconsult'
   if (!patient) return null
   const physio = store.db.physios.find((p) => p.id === patient.physioId)!
   const doc = `Dr. ${firstName(physio.name)}`
@@ -23,6 +24,7 @@ export default function Book() {
         cal={store.db}
         known={{ name: patient.name, phone: patient.phone }}
         initialGroupId={groupId}
+        initialVisit={video ? 'teleconsult' : undefined}
         onBook={(v) => {
           store.addBooking({
             physioId: physio.id,
@@ -32,7 +34,7 @@ export default function Book() {
             date: v.date,
             time: v.time,
             visitType: v.visitType,
-            reason: v.reason || 'Follow-up',
+            reason: v.reason || (v.visitType === 'teleconsult' ? 'Video consult' : 'Follow-up'),
             address: v.address,
             location: v.location,
             isNewPatient: false,

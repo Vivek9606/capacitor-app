@@ -45,6 +45,7 @@ export default function PublicBook() {
           physio={physio}
           cal={cal}
           initialGroupId={params.get('group') ?? undefined}
+          initialVisit={params.get('visit') === 'teleconsult' ? 'teleconsult' : undefined}
           onBook={async (v) => {
             if (apiMode) {
               await api(`/public/physios/${encodeURIComponent(physio.slug)}/booking-requests`, {
