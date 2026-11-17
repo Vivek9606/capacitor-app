@@ -1,4 +1,5 @@
-import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, MessageCircleHeart, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import '@fontsource-variable/geist'
+import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, MessageCircleHeart, Network, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
@@ -13,6 +14,7 @@ import { useStore } from '../../lib/store'
 import type { Assessment, Patient, Physio } from '../../lib/types'
 import { ConsumersPage, OverviewPage, PhysiosPage, WebsitePage } from './Growth'
 import { type Journeys, type Subject, SubjectDrawer } from './Journeys'
+import { ConsumerEcosystem, type MapSubject, PersonMap, PhysioEcosystem } from './JourneyMap'
 import { PageHeading, type Period, PERIODS, Segmented } from './kit'
 import { type ChatRow, PainChatsPage } from './PainChats'
 
@@ -143,19 +145,34 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
   )
 }
 
-type Tab = 'overview' | 'consumers' | 'chats' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
+type Tab = 'map' | 'pmap' | 'overview' | 'consumers' | 'chats' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
 
 /**
  * The admin pages use a cooler, denser look than the consumer app (white panels on a neutral grey, thin
  * borders). These override the app's colour tokens for everything inside the dashboard; the brand plum stays.
  */
 const ADMIN_THEME = {
-  '--color-bg': '#f7f8fa',
-  '--color-line': '#e4e7ec',
-  '--color-track': '#f0f2f5',
-  '--color-ink': '#101828',
-  '--color-muted': '#5d6b82',
-  '--color-faint': '#98a2b3',
+  // Same palette and type as seo-dashboard-v2: slate neutrals, blue as the main colour, Geist.
+  '--color-bg': 'hsl(220 20% 98%)',
+  '--color-surface': '#ffffff',
+  '--color-line': 'hsl(220 13% 91%)',
+  '--color-track': 'hsl(220 14% 96%)',
+  '--color-ink': 'hsl(222 47% 11%)',
+  '--color-muted': 'hsl(220 9% 46%)',
+  '--color-faint': 'hsl(220 9% 62%)',
+  '--color-brand': 'hsl(221 83% 53%)',
+  '--color-brand-ink': 'hsl(224 76% 40%)',
+  '--color-brand-soft': 'hsl(221 83% 96%)',
+  '--color-brand-line': 'hsl(221 83% 85%)',
+  '--color-ok': 'hsl(152 69% 36%)',
+  '--color-ok-soft': 'hsl(152 60% 94%)',
+  '--color-warn': 'hsl(35 92% 42%)',
+  '--color-warn-soft': 'hsl(40 95% 93%)',
+  '--color-danger': 'hsl(350 72% 50%)',
+  '--color-accent': 'hsl(350 72% 50%)',
+  '--color-accent-soft': 'hsl(350 80% 96%)',
+  '--font-sans': "'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif",
+  '--font-display': "'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif",
 } as React.CSSProperties
 /** Brings the app's rounder cards in line with the dashboard's panels. */
 const OPS_CARD = 'rounded-xl! shadow-none! border border-line'
@@ -169,7 +186,12 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   const [subject, setSubject] = useState<Subject>()
   // Pain assistant chats; undefined when the API doesn't have them (older backend).
   const [chats, setChats] = useState<ChatRow[]>()
-  const [tab, setTab] = useState<Tab>(apiMode ? 'overview' : 'queue')
+  const [tab, setTab] = useState<Tab>(apiMode ? 'map' : 'queue')
+  // A person opened from a map: their own mind map replaces the page.
+  const [person, setPerson] = useState<MapSubject>()
+  useEffect(() => {
+    if (person) window.scrollTo(0, 0)
+  }, [person])
   const [q, setQ] = useState('')
   const [period, setPeriod] = useState<Period>('28')
 
@@ -269,6 +291,8 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
           {
             label: 'Growth',
             items: [
+              { key: 'map', label: 'Consumer map', icon: <Network size={16} />, n: journeys.consumers.length },
+              { key: 'pmap', label: 'Physio map', icon: <Network size={16} />, n: journeys.physios.length },
               { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
               { key: 'consumers', label: 'Consumer journey', icon: <Users size={16} />, n: journeys.consumers.length },
               ...(chats ? [{ key: 'chats', label: 'Pain chats', icon: <MessageCircleHeart size={16} />, n: chats.length }] : []),
@@ -291,6 +315,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   ]
   const show = (t: Tab) => {
     setTab(t)
+    setPerson(undefined)
     window.scrollTo(0, 0)
   }
   const growth = tab === 'overview' || tab === 'consumers' || tab === 'chats' || tab === 'journey' || tab === 'website'
@@ -371,12 +396,25 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
         </header>
 
         <main key={tab} className="anim-page mx-auto flex max-w-[1400px] flex-col gap-5 px-4 py-6 sm:px-6">
+          {person && <PersonMap subject={person} token={token} onBack={() => setPerson(undefined)} onNotes={() => setSubject(person)} />}
+          {!person && journeys && tab === 'map' && (
+            <>
+              <PageHeading title="Consumer map">Where every consumer came into Betterhood, and how far they’ve got. Open anyone to see their whole journey, the data at each stage, and what to send them next.</PageHeading>
+              <ConsumerEcosystem j={journeys} chats={chats} q={q} onOpen={(row) => setPerson({ type: 'patient', row })} onLead={(row) => setSubject({ type: 'lead', row })} />
+            </>
+          )}
+          {!person && journeys && tab === 'pmap' && (
+            <>
+              <PageHeading title="Physio map">How each physio joined and how far they’ve set up their practice. Open anyone to see their journey and what to nudge them on next.</PageHeading>
+              <PhysioEcosystem j={journeys} q={q} onOpen={(row) => setPerson({ type: 'physio', row })} />
+            </>
+          )}
           {ctx && tab === 'overview' && <OverviewPage {...ctx} />}
           {ctx && tab === 'consumers' && <ConsumersPage {...ctx} />}
           {chats && tab === 'chats' && <PainChatsPage chats={chats} period={period} q={q} token={token} />}
           {ctx && tab === 'journey' && <PhysiosPage {...ctx} />}
           {ctx && tab === 'website' && <WebsitePage {...ctx} />}
-          {OPS_HEAD[tab] && <PageHeading title={OPS_HEAD[tab]![0]}>{OPS_HEAD[tab]![1]}</PageHeading>}
+          {OPS_HEAD[tab] && !person && <PageHeading title={OPS_HEAD[tab]![0]}>{OPS_HEAD[tab]![1]}</PageHeading>}
           {!apiMode && <p className="rounded-md border border-line bg-surface px-3 py-2 text-[13px] text-muted">Demo mode: the growth pages need the live API, so only the operations pages are shown.</p>}
           {tab === 'queue' &&
             (queue.length === 0 ? (

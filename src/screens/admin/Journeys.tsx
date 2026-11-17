@@ -58,6 +58,8 @@ export interface PhysioRow {
   setup: Record<string, boolean>
   setupDone: number
   setupTotal: number
+  wasReferred: boolean
+  firstWebAt?: string
   createdAt: string
   lastSeenAt?: string
   lastActiveAt?: string
