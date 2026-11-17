@@ -32,6 +32,7 @@ export type WebMsg =
   | { type: 'bh:ready'; flow: 'assessment' | 'directory' | 'result'; slug?: string }
   | { type: 'bh:assessment-result'; result: SiteAssessmentResult }
   | { type: 'bh:open-product'; handle: string }
+  | { type: 'bh:open-link'; url: string }
   | { type: 'bh:directory-published'; slug: string; url: string; status: string; created: boolean }
 
 /** What the website's AssessmentRunner records when someone finishes (same shape as its localStorage "bh_results"). */

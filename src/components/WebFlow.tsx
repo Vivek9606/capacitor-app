@@ -1,5 +1,8 @@
 import { ArrowLeft, RotateCw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { openInApp } from '../lib/platform'
+import { useStore } from '../lib/store'
 import { embedUrl, WEBSITE_ORIGIN, type WebMsg } from '../lib/web'
 import { Button, IconButton } from './ui'
 
@@ -22,14 +25,26 @@ export function WebFlow({
   onBack: () => void
 }) {
   const frame = useRef<HTMLIFrameElement>(null)
+  const nav = useNavigate()
+  const isPatient = useStore().session?.role === 'patient'
   const [loaded, setLoaded] = useState(false)
   const [slow, setSlow] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const src = useMemo(() => embedUrl(path), [path])
 
   // Latest handlers without re-subscribing.
-  const latest = useRef({ context, onMessage })
-  latest.current = { context, onMessage }
+  // A link that leaves the website (it can't load in the frame): shop products open in the app's shop,
+  // anything else in the in-app browser.
+  const openLink = (url: string) => {
+    let u: URL
+    try { u = new URL(url) } catch { return }
+    if (!/^https?:$/.test(u.protocol)) return
+    const product = u.hostname === 'shop.betterhood.in' ? u.pathname.match(/\/products\/([\w-]+)\/?$/) : null
+    if (product && isPatient) nav(`/me/shop/${product[1]}`)
+    else void openInApp(u.href)
+  }
+  const latest = useRef({ context, onMessage, openLink })
+  latest.current = { context, onMessage, openLink }
 
   useEffect(() => {
     const reply = (msg: Record<string, unknown>) => frame.current?.contentWindow?.postMessage(msg, WEBSITE_ORIGIN)
@@ -38,6 +53,7 @@ export function WebFlow({
       const msg = e.data as WebMsg | null
       if (!msg || typeof msg.type !== 'string' || !msg.type.startsWith('bh:')) return
       if (msg.type === 'bh:ready') reply({ type: 'bh:context', ...(latest.current.context ?? {}) })
+      if (msg.type === 'bh:open-link' && typeof msg.url === 'string') latest.current.openLink(msg.url)
       latest.current.onMessage?.(msg, reply)
     }
     window.addEventListener('message', onMsg)
