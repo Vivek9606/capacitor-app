@@ -1,4 +1,4 @@
-import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, MessageCircleHeart, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
@@ -14,6 +14,7 @@ import type { Assessment, Patient, Physio } from '../../lib/types'
 import { ConsumersPage, OverviewPage, PhysiosPage, WebsitePage } from './Growth'
 import { type Journeys, type Subject, SubjectDrawer } from './Journeys'
 import { PageHeading, type Period, PERIODS, Segmented } from './kit'
+import { type ChatRow, PainChatsPage } from './PainChats'
 
 /**
  * Web-only admin dashboard (/admin on the web app): self-signed-up patients, their assessments,
@@ -142,7 +143,7 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
   )
 }
 
-type Tab = 'overview' | 'consumers' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
+type Tab = 'overview' | 'consumers' | 'chats' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
 
 /**
  * The admin pages use a cooler, denser look than the consumer app (white panels on a neutral grey, thin
@@ -166,6 +167,8 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
   // Journeys come from the API; the local demo only has the older tabs.
   const [journeys, setJourneys] = useState<Journeys>()
   const [subject, setSubject] = useState<Subject>()
+  // Pain assistant chats; undefined when the API doesn't have them (older backend).
+  const [chats, setChats] = useState<ChatRow[]>()
   const [tab, setTab] = useState<Tab>(apiMode ? 'overview' : 'queue')
   const [q, setQ] = useState('')
   const [period, setPeriod] = useState<Period>('28')
@@ -174,9 +177,14 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
     if (!apiMode) return
     setLoading(true)
     try {
-      const [o, j] = await Promise.all([api<Overview>('/admin/overview', { token }), api<Journeys>('/admin/journeys', { token })])
+      const [o, j, c] = await Promise.all([
+        api<Overview>('/admin/overview', { token }),
+        api<Journeys>('/admin/journeys', { token }),
+        api<{ chats: ChatRow[] }>('/admin/pain-chats', { token }).catch(() => undefined),
+      ])
       setRemote(o)
       setJourneys(j)
+      setChats(c?.chats)
     } catch (e) {
       if (e instanceof ApiError && (e.status === 401 || e.status === 403)) onOut()
       toast(e instanceof Error ? e.message : 'Couldn’t load')
@@ -263,6 +271,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
             items: [
               { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
               { key: 'consumers', label: 'Consumer journey', icon: <Users size={16} />, n: journeys.consumers.length },
+              ...(chats ? [{ key: 'chats', label: 'Pain chats', icon: <MessageCircleHeart size={16} />, n: chats.length }] : []),
               { key: 'journey', label: 'Physio journey', icon: <Stethoscope size={16} />, n: journeys.physios.length },
               { key: 'website', label: 'Website', icon: <Globe size={16} />, n: journeys.web.total },
             ] as Nav[],
@@ -284,7 +293,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
     setTab(t)
     window.scrollTo(0, 0)
   }
-  const growth = tab === 'overview' || tab === 'consumers' || tab === 'journey' || tab === 'website'
+  const growth = tab === 'overview' || tab === 'consumers' || tab === 'chats' || tab === 'journey' || tab === 'website'
   const ctx = journeys && { j: journeys, period, q, open: setSubject, go: (p: 'overview' | 'consumers' | 'physios' | 'website') => show(p === 'physios' ? 'journey' : p) }
   const OPS_HEAD: Partial<Record<Tab, [string, string]>> = {
     queue: ['Assign a physio', `${queue.length} consumer${queue.length === 1 ? '' : 's'} signed up on their own and ${queue.length === 1 ? 'is' : 'are'} waiting for a physio. The best fits are listed first.`],
@@ -364,6 +373,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
         <main key={tab} className="anim-page mx-auto flex max-w-[1400px] flex-col gap-5 px-4 py-6 sm:px-6">
           {ctx && tab === 'overview' && <OverviewPage {...ctx} />}
           {ctx && tab === 'consumers' && <ConsumersPage {...ctx} />}
+          {chats && tab === 'chats' && <PainChatsPage chats={chats} period={period} q={q} token={token} />}
           {ctx && tab === 'journey' && <PhysiosPage {...ctx} />}
           {ctx && tab === 'website' && <WebsitePage {...ctx} />}
           {OPS_HEAD[tab] && <PageHeading title={OPS_HEAD[tab]![0]}>{OPS_HEAD[tab]![1]}</PageHeading>}
