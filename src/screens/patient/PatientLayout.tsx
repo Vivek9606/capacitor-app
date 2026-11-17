@@ -19,7 +19,7 @@ const ITEMS: NavItem[] = [
 ]
 
 /** Signed up on their own, no physio yet: everything except the physio's plan, visits and messages. */
-const SOLO_OK = [/^\/me\/?$/, /^\/me\/(care|shop|learn|tools|diagnostics|explore|profile|assess)/]
+const SOLO_OK = [/^\/me\/?$/, /^\/me\/(care|shop|learn|tools|diagnostics|explore|profile|assess|chat)/]
 
 const FLOW = [/^\/me\/assess\//, /^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//, /^\/me\/shop\/.+/]
 

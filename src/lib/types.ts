@@ -234,6 +234,10 @@ export interface Booking {
   reminder: boolean
   source: BookingSource
   checkedInAt?: string
+  /** The free video consult from the pain chat, paid for by Betterhood (one per phone number). */
+  sponsored?: boolean
+  /** The pain chat's summary for the physio, read before the consult. */
+  brief?: string
   createdAt: string
   /** Someone else's slot, shown to patients only as "busy". */
   hidden?: boolean

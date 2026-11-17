@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowUpRight, BookOpen, Camera, ChevronRight, ClipboardCheck, Hourglass, MapPin, ShoppingBag, Star, Stethoscope, UserRoundCheck } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, BookOpen, Camera, ChevronRight, ClipboardCheck, Hourglass, MapPin, MessageCircleHeart, ShoppingBag, Star, Stethoscope, UserRoundCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Card, cx } from '../../components/ui'
@@ -52,6 +52,7 @@ const TOOL_ICON: Record<string, ReactNode> = {
   corner: <Stethoscope size={20} />,
   shop: <ShoppingBag size={20} />,
   directory: <MapPin size={20} />,
+  chat: <MessageCircleHeart size={20} />,
   learn: <BookOpen size={20} />,
 }
 

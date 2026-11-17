@@ -68,6 +68,7 @@ export const TOOLS: Tool[] = [
   { key: 'slouch', group: 'check', label: 'Slouch Catcher', desc: 'Catch a friend slouching and reveal their posture animal.', site: '/slouch-catcher/' },
   { key: 'corner', group: 'relief', label: 'betterYou corner', desc: 'Routines and reading for back, neck, shoulder and knee health.', site: '/better-you-corner-back-health/' },
   { key: 'shop', group: 'relief', label: 'Shop', desc: 'Supports, cushions and recovery products picked by physios.', to: '/me/shop' },
+  { key: 'chat', group: 'care', label: 'Pain assistant', desc: 'Tell us about your pain, then get a free video consult with a physio. Betterhood pays.', to: '/me/chat' },
   { key: 'directory', group: 'care', label: 'Physio directory', desc: 'Find physiotherapists near you.', site: '/physio-directory/' },
   { key: 'learn', group: 'learn', label: 'Learn', desc: 'Short, physio-written guides on pain, posture and recovery.', to: '/me/learn' },
 ]

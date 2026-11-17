@@ -1,4 +1,4 @@
-import { Ban, Check, ChevronLeft, ChevronRight, Clock, Footprints, Plus, Settings2, UsersRound, X } from 'lucide-react'
+import { Ban, Check, ChevronLeft, ChevronRight, Clock, Footprints, Plus, Settings2, Sparkles, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { attendanceMarked, BookingBadge, bookingLine, canMarkAttendance, isOpenBooking, needsAttendance, VISIT_LABEL } from '../../../components/bits'
@@ -163,7 +163,10 @@ export default function Schedule() {
                       </div>
                       <BookingBadge status={r.booking.status} />
                     </div>
-                    <div className="mt-1 truncate text-[13px] text-muted">{bookingLine(r.booking)}</div>
+                    <div className="mt-1 truncate text-[13px] text-muted">
+                      {r.booking.sponsored && <span className="font-semibold text-ok">Free consult · </span>}
+                      {bookingLine(r.booking)}
+                    </div>
                     <JoinCall booking={r.booking} physio={physio} className="mt-2.5" />
                     {needsAttendance(r.booking, today()) && (
                       <div className="mt-2.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
@@ -255,8 +258,17 @@ export default function Schedule() {
             </div>
             <div className="mt-1 text-[15px] text-muted">{fmtPhone(open.patientPhone)}</div>
             {open.reason && <div className="mt-3 rounded-xl bg-surface p-3 text-[14px]">{open.reason}</div>}
-            <div className="mt-3">
+            {open.brief && (
+              <div className="mt-3 rounded-xl border border-brand-line bg-brand-soft/50 p-3">
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-brand">
+                  <Sparkles size={13} /> Before the call: from the Betterhood assistant
+                </div>
+                <p className="mt-1.5 text-[14px] leading-relaxed">{open.brief}</p>
+              </div>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <BookingBadge status={open.status} />
+              {open.sponsored && <Badge tone="ok">Free consult · Betterhood pays</Badge>}
             </div>
             <JoinCall booking={open} physio={physio} size="md" block className="mt-4" />
 

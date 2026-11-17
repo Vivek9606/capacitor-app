@@ -1,4 +1,4 @@
-import { ChevronRight, LayoutGrid, Stethoscope } from 'lucide-react'
+import { ChevronRight, LayoutGrid, MessageCircleHeart, Stethoscope } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
 import { Avatar, Card, RefreshButton, SectionTitle } from '../../components/ui'
@@ -32,6 +32,18 @@ export default function SoloHome({ patient }: { patient: Patient }) {
 
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">
+          <Card className="overflow-hidden p-0" onClick={() => nav('/me/chat')}>
+            <div className="bg-hero p-4 text-white">
+              <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wider text-white/75">
+                <MessageCircleHeart size={14} /> Pain assistant
+              </div>
+              <div className="mt-1.5 font-display text-[20px] font-bold leading-tight">Tell us where it hurts</div>
+              <p className="mt-1 text-[13px] text-white/85">A few questions, then a free video consult with a physio. Betterhood pays for it.</p>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 text-[14px] font-semibold text-brand">
+              Start chatting <ChevronRight size={16} />
+            </div>
+          </Card>
           <MatchCard patient={patient} hasAssessment={!!latest} />
           {latest && <ResultCard a={latest} onOpen={() => nav(`/me/assess/result/${latest.id}`)} />}
           {latest && (

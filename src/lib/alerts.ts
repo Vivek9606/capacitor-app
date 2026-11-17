@@ -28,7 +28,11 @@ export function physioAlerts(db: DB, physioId: string): Alert[] {
         id: `req-${b.id}`,
         kind: 'request',
         title: `${b.patientName} wants to book ${fmtDay(b.date)}, ${fmtTime(b.time)}`,
-        sub: b.reason ? `“${b.reason}” · from your public profile` : 'From your public profile',
+        sub: b.sponsored
+          ? `Free video consult, paid by Betterhood · from the pain chat${b.brief ? `: ${b.brief}` : ''}`
+          : b.reason
+            ? `“${b.reason}” · from your public profile`
+            : 'From your public profile',
         bookingId: b.id,
         phone: b.patientPhone,
         name: b.patientName,

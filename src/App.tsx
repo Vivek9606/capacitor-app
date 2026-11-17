@@ -15,6 +15,7 @@ import Setup from './screens/auth/Setup'
 import Welcome from './screens/auth/Welcome'
 import Appointments from './screens/patient/Appointments'
 import Ask from './screens/patient/Ask'
+import PainChat from './screens/patient/PainChat'
 import AssessPick from './screens/patient/assess/AssessPick'
 import AssessResult from './screens/patient/assess/AssessResult'
 import AssessRun from './screens/patient/assess/AssessRun'
@@ -237,6 +238,7 @@ export default function App() {
             <Route path="appointments" element={<Appointments />} />
             <Route path="book" element={<Book />} />
             <Route path="ask" element={<Ask />} />
+            <Route path="chat" element={<PainChat />} />
             <Route path="profile" element={<PatientProfile />} />
             <Route path="care" element={<Care />} />
             <Route path="shop" element={<Shop />} />
