@@ -19,6 +19,18 @@ export const fmtDay = (s?: string) => {
   const d = new Date(s.length === 10 ? `${s}T00:00:00` : s)
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`
 }
+/** A timestamp → "6 Nov". */
+export const day = (ts?: string | null) => {
+  if (!ts) return '-'
+  const d = new Date(ts)
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`
+}
+/** A timestamp → "today", "3 days ago", "2 months ago". */
+export const ago = (ts?: string | null) => {
+  if (!ts) return 'never'
+  const d = Math.floor((Date.now() - new Date(ts).getTime()) / 86_400_000)
+  return d <= 0 ? 'today' : d === 1 ? 'yesterday' : d < 60 ? `${d} days ago` : `${Math.round(d / 30)} months ago`
+}
 export const median = (xs: number[]) => {
   if (!xs.length) return undefined
   const s = [...xs].sort((a, b) => a - b)
@@ -62,8 +74,8 @@ export function PanelHead({ title, desc, right }: { title: ReactNode; desc?: Rea
   return (
     <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 pt-5">
       <div className="min-w-0">
-        <h3 className="text-[15px] font-semibold leading-tight tracking-tight text-ink">{title}</h3>
-        {desc && <p className="mt-1 text-[13px] text-muted">{desc}</p>}
+        <h3 className="text-[16px] font-semibold leading-tight tracking-tight text-ink">{title}</h3>
+        {desc && <p className="mt-1 text-[14px] text-muted">{desc}</p>}
       </div>
       {right}
     </div>
@@ -151,7 +163,7 @@ export function Kpi({ label, info, icon, value, cur, prev, prevText, invert, spa
   return (
     <Panel className="flex flex-col">
       <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-        <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted">
+        <div className="flex items-center gap-1.5 text-[14px] font-medium text-muted">
           {label}
           <InfoTip text={info} />
         </div>
@@ -173,8 +185,8 @@ export function Kpi({ label, info, icon, value, cur, prev, prevText, invert, spa
 export function Tile({ label, value, note, tone }: { label: string; value: string; note?: string; tone?: 'good' | 'bad' }) {
   return (
     <Panel className="px-4 py-3.5 sm:px-5">
-      <div className="text-[13px] text-muted">{label}</div>
-      <div className={cx('mt-0.5 text-[22px] font-semibold leading-tight tabular-nums', tone === 'good' ? 'text-ok' : tone === 'bad' ? 'text-danger' : 'text-ink')}>{value}</div>
+      <div className="text-[14px] text-muted">{label}</div>
+      <div className={cx('mt-0.5 text-[24px] font-semibold leading-tight tabular-nums', tone === 'good' ? 'text-ok' : tone === 'bad' ? 'text-danger' : 'text-ink')}>{value}</div>
       {note && <div className="mt-0.5 text-[12px] text-muted">{note}</div>}
     </Panel>
   )
@@ -182,7 +194,7 @@ export function Tile({ label, value, note, tone }: { label: string; value: strin
 
 // ---------- ranked list with proportional bars ----------
 export function BarList({ rows, total, empty = 'Nothing yet.', fmt = fmtInt }: { rows: [string, number][]; total?: number; empty?: string; fmt?: (n: number) => string }) {
-  if (!rows.length) return <p className="py-4 text-[13px] text-muted">{empty}</p>
+  if (!rows.length) return <p className="py-4 text-[14px] text-muted">{empty}</p>
   const max = Math.max(...rows.map((r) => r[1]), 1)
   const sum = total ?? rows.reduce((a, r) => a + r[1], 0)
   return (
@@ -191,9 +203,9 @@ export function BarList({ rows, total, empty = 'Nothing yet.', fmt = fmtInt }: {
         <li key={name} className="relative flex items-center justify-between gap-3 rounded-md px-2.5 py-1.5 text-[14px]">
           <span className="absolute inset-y-0 left-0 rounded-md bg-brand opacity-[0.12]" style={{ width: `${(value / max) * 100}%` }} />
           <span className="relative truncate text-ink">{name.charAt(0).toUpperCase() + name.slice(1)}</span>
-          <span className="relative flex shrink-0 items-baseline gap-2 text-[13px] tabular-nums text-ink">
+          <span className="relative flex shrink-0 items-baseline gap-2 text-[14px] tabular-nums text-ink">
             {fmt(value)}
-            {sum > 0 && <span className="w-9 text-right text-[11px] text-muted">{fmtPct(value / sum)}</span>}
+            {sum > 0 && <span className="w-9 text-right text-[12px] text-muted">{fmtPct(value / sum)}</span>}
           </span>
         </li>
       ))}
@@ -225,7 +237,7 @@ export function Funnel({ steps }: { steps: FunnelStep[] }) {
         const prev = steps[i - 1]
         const conv = s.follows && prev && prev.n > 0 ? s.n / prev.n : undefined
         return (
-          <div key={s.label} title={s.hint} className="grid grid-cols-[minmax(110px,170px)_1fr_auto] items-center gap-3 text-[13px]">
+          <div key={s.label} title={s.hint} className="grid grid-cols-[minmax(110px,170px)_1fr_auto] items-center gap-3 text-[14px]">
             <span className="truncate text-ink">{s.label}</span>
             <div className="h-6 rounded-[4px] bg-track">
               <div className="flex h-full items-center rounded-[4px] bg-brand" style={{ width: `${(s.n / total) * 100}%`, minWidth: s.n ? 4 : 0 }} />
@@ -233,7 +245,7 @@ export function Funnel({ steps }: { steps: FunnelStep[] }) {
             <span className="flex w-[176px] items-baseline justify-end gap-2 whitespace-nowrap tabular-nums">
               <b className="text-ink">{fmtInt(s.n)}</b>
               <span className="w-10 text-right text-muted">{i === 0 ? '' : fmtPct(s.n / total)}</span>
-              <span className={cx('w-[84px] text-right text-[11px]', conv === undefined ? 'text-transparent' : conv < 0.5 ? 'font-semibold text-danger' : 'text-muted')}>{conv === undefined ? '·' : `${fmtPct(conv)} of previous`}</span>
+              <span className={cx('w-[84px] text-right text-[12px]', conv === undefined ? 'text-transparent' : conv < 0.5 ? 'font-semibold text-danger' : 'text-muted')}>{conv === undefined ? '·' : `${fmtPct(conv)} of previous`}</span>
             </span>
           </div>
         )
@@ -250,7 +262,7 @@ export interface Cohort {
 }
 /** One row per weekly cohort; cells shade from light to dark by the share still exercising. */
 export function CohortGrid({ cohorts }: { cohorts: Cohort[] }) {
-  if (!cohorts.length) return <p className="py-4 text-[13px] text-muted">No care plans sent in the last 12 weeks.</p>
+  if (!cohorts.length) return <p className="py-4 text-[14px] text-muted">No care plans sent in the last 12 weeks.</p>
   const today = Date.now()
   return (
     <div className="overflow-x-auto">
@@ -307,7 +319,7 @@ export function Insights({ title, desc, items }: { title: string; desc: string; 
     <Panel>
       <PanelHead title={title} desc={desc} />
       <ul className="grid gap-x-8 px-5 pb-4 pt-2 lg:grid-cols-2">
-        {items.length === 0 && <li className="py-4 text-[13px] text-muted">Not enough activity yet to point at anything.</li>}
+        {items.length === 0 && <li className="py-4 text-[14px] text-muted">Not enough activity yet to point at anything.</li>}
         {items.map((it) => {
           const t = TONE[it.tone]
           return (
@@ -316,11 +328,11 @@ export function Insights({ title, desc, items }: { title: string; desc: string; 
                 <t.icon size={16} />
               </div>
               <div className="min-w-0">
-                <div className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-muted">{t.label}</div>
+                <div className="mb-0.5 text-[12px] font-medium uppercase tracking-wide text-muted">{t.label}</div>
                 <p className="text-[14px] font-medium leading-snug text-ink">{it.title}</p>
-                <p className="mt-0.5 text-[13px] leading-relaxed text-muted">{it.detail}</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-muted">{it.detail}</p>
                 {it.go && (
-                  <button onClick={it.go} className="mt-1 text-[13px] font-semibold text-brand cursor-pointer hover:underline">
+                  <button onClick={it.go} className="mt-1 text-[14px] font-semibold text-brand cursor-pointer hover:underline">
                     {it.goLabel ?? 'See who'} →
                   </button>
                 )}
@@ -477,13 +489,13 @@ export function StateBar({ parts }: { parts: { label: string; n: number; tone: '
           <div key={p.label} className={cx('h-full', bg[p.tone])} style={{ width: `${(p.n / total) * 100}%` }} title={`${p.label}: ${p.n}`} />
         ))}
       </div>
-      <ul className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px]">
+      <ul className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 text-[14px]">
         {parts.map((p) => (
           <li key={p.label} className="flex items-center gap-1.5">
             <span className={cx('h-2.5 w-2.5 rounded-sm', bg[p.tone])} />
             <span className="text-muted">{p.label}</span>
             <b className="tabular-nums text-ink">{fmtInt(p.n)}</b>
-            {total > 0 && <span className="text-[11px] text-muted">{fmtPct(p.n / total)}</span>}
+            {total > 0 && <span className="text-[12px] text-muted">{fmtPct(p.n / total)}</span>}
           </li>
         ))}
       </ul>

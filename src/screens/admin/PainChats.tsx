@@ -4,8 +4,7 @@ import { Badge, type BadgeTone, cx } from '../../components/ui'
 import { api } from '../../lib/api'
 import { fmtPhone } from '../../lib/logic'
 import { toast } from '../../lib/platform'
-import { ago, day } from './Journeys'
-import { BarList, countBy, fmtInt, fmtPct, Funnel, PageHeading, Panel, PanelHead, type Period, periodWords, Segmented, Tile } from './kit'
+import { ago, BarList, countBy, day, fmtInt, fmtPct, Funnel, PageHeading, Panel, PanelHead, type Period, periodWords, Segmented, Tile } from './kit'
 
 /** Pain assistant chats in the consumer app (backend: GET /admin/pain-chats). */
 

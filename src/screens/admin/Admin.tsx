@@ -1,39 +1,30 @@
 import '@fontsource-variable/geist'
-import { ArrowUpRight, BadgeCheck, Check, ClipboardList, Globe, LayoutDashboard, LogOut, MessageCircleHeart, Network, RefreshCw, Search, ShieldCheck, Stethoscope, UserRoundSearch, Users } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, LogOut, MessageCircleHeart, RefreshCw, Search, Stethoscope, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
-import { Avatar, Badge, Button, Card, cx, Input } from '../../components/ui'
+import { Button, Card, cx, Input } from '../../components/ui'
 import { api, ApiError, apiMode } from '../../lib/api'
-import { resultUrl } from '../../lib/assessments'
-import { fmtShort } from '../../lib/dates'
-import { fmtPhone } from '../../lib/logic'
-import { physioPlace, wantedFocus } from '../../lib/match'
 import { isNative, toast } from '../../lib/platform'
 import { DEMO } from '../../lib/seed'
 import { useStore } from '../../lib/store'
-import type { Assessment, Patient, Physio } from '../../lib/types'
-import { ConsumersPage, OverviewPage, PhysiosPage, WebsitePage } from './Growth'
-import { type Journeys, type Subject, SubjectDrawer } from './Journeys'
-import { ConsumerEcosystem, type MapSubject, PersonMap, PhysioEcosystem } from './JourneyMap'
-import { PageHeading, type Period, PERIODS, Segmented } from './kit'
+import type { Patient } from '../../lib/types'
+import { Segmented } from './kit'
+import { type Dashboard as Data, type Period, type Person, type PhysioRow, todo } from './model'
+import { OverviewScreen, type Screen } from './OverviewScreen'
 import { type ChatRow, PainChatsPage } from './PainChats'
+import { PeopleScreen } from './PeopleScreen'
+import { PersonScreen } from './PersonScreen'
+import { PhysioScreen, PhysiosScreen } from './PhysiosScreen'
+import { type OpsData, TodoScreen } from './TodoScreen'
 
 /**
- * Web-only admin dashboard (/admin on the web app): self-signed-up patients, their assessments,
- * and confirming which physio each one goes to. Sign-in is a WhatsApp code for numbers in ADMIN_PHONES.
+ * Web-only admin dashboard (/admin on the web app). Four screens, each answering one question:
+ * Overview (is it working?), People (who are they, how far have they got?), Physios (is supply keeping up?) and
+ * To-do (what must someone do today?). Every number comes from GET /admin/dashboard and the definitions in model.ts.
+ * Sign-in is a WhatsApp code for numbers in ADMIN_PHONES.
  */
 
 const KEY = 'bh-admin-v1'
-type AdminPhysio = Physio & { patients: number }
-interface Overview {
-  counts: { physios: number; patients: number; self: number; unassigned: number; assessments: number }
-  physios: AdminPhysio[]
-  patients: Patient[]
-  assessments: Assessment[]
-  /** betterhood.in directory listings (API mode only). They go live without review; admins can hide one. */
-  listings?: { physioId: string; slug: string; status: 'live' | 'hidden'; url: string; updatedAt: string }[]
-}
-
 function loadAuth(): { phone: string; token?: string } | undefined {
   try {
     return JSON.parse(localStorage.getItem(KEY) ?? 'null') ?? undefined
@@ -145,7 +136,6 @@ function AdminLogin({ onIn }: { onIn: (a: { phone: string; token?: string }) => 
   )
 }
 
-type Tab = 'map' | 'pmap' | 'overview' | 'consumers' | 'chats' | 'journey' | 'website' | 'queue' | 'patients' | 'physios' | 'assessments'
 
 /**
  * The admin pages use a cooler, denser look than the consumer app (white panels on a neutral grey, thin
@@ -174,38 +164,43 @@ const ADMIN_THEME = {
   '--font-sans': "'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif",
   '--font-display': "'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif",
 } as React.CSSProperties
-/** Brings the app's rounder cards in line with the dashboard's panels. */
-const OPS_CARD = 'rounded-xl! shadow-none! border border-line'
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: '7', label: '7 days' },
+  { value: '28', label: '28 days' },
+  { value: '90', label: '90 days' },
+]
+const SHOW_TEST_KEY = 'bh-admin-show-test'
 
 function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
-  const store = useStore()
-  const [remote, setRemote] = useState<Overview>()
-  const [loading, setLoading] = useState(false)
-  // Journeys come from the API; the local demo only has the older tabs.
-  const [journeys, setJourneys] = useState<Journeys>()
-  const [subject, setSubject] = useState<Subject>()
-  // Pain assistant chats; undefined when the API doesn't have them (older backend).
+  const [raw, setRaw] = useState<Data>()
+  const [ops, setOps] = useState<OpsData>()
   const [chats, setChats] = useState<ChatRow[]>()
-  const [tab, setTab] = useState<Tab>(apiMode ? 'map' : 'queue')
-  // A person opened from a map: their own mind map replaces the page.
-  const [person, setPerson] = useState<MapSubject>()
-  useEffect(() => {
-    if (person) window.scrollTo(0, 0)
-  }, [person])
+  const [loading, setLoading] = useState(false)
+  const [screen, setScreen] = useState<Screen>('overview')
+  const [personKey, setPersonKey] = useState<string>()
+  const [physioId, setPhysioId] = useState<string>()
   const [q, setQ] = useState('')
   const [period, setPeriod] = useState<Period>('28')
+  const [showTest, setShowTest] = useState(() => {
+    try {
+      return localStorage.getItem(SHOW_TEST_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   const load = useCallback(async () => {
     if (!apiMode) return
     setLoading(true)
     try {
-      const [o, j, c] = await Promise.all([
-        api<Overview>('/admin/overview', { token }),
-        api<Journeys>('/admin/journeys', { token }),
+      const [d, o, c] = await Promise.all([
+        api<Data>('/admin/dashboard', { token }),
+        api<OpsData>('/admin/overview', { token }),
         api<{ chats: ChatRow[] }>('/admin/pain-chats', { token }).catch(() => undefined),
       ])
-      setRemote(o)
-      setJourneys(j)
+      setRaw(d)
+      setOps(o)
       setChats(c?.chats)
     } catch (e) {
       if (e instanceof ApiError && (e.status === 401 || e.status === 403)) onOut()
@@ -218,128 +213,114 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
     load()
   }, [load])
 
-  // Demo mode reads the whole local demo database.
-  const data: Overview | undefined = useMemo(() => {
-    if (apiMode) return remote
-    const db = store.db
-    const physios = db.physios.map((p) => ({ ...p, patients: db.patients.filter((x) => x.physioId === p.id).length }))
+  // Test numbers stay in the data; they're only left out of what's shown unless the switch is on.
+  const d = useMemo<Data | undefined>(() => {
+    if (!raw || showTest) return raw
+    const people = raw.people.filter((p) => !p.test)
+    const physios = raw.physios.filter((x) => !x.test)
+    const keys = new Set(people.map((p) => p.key))
+    const ph = new Set(physios.map((x) => x.id))
+    const mine = (who: string | null) => !!who && keys.has(who)
     return {
-      counts: {
-        physios: physios.length,
-        patients: db.patients.length,
-        self: db.patients.filter((p) => p.selfSignup).length,
-        unassigned: db.patients.filter((p) => !p.physioId).length,
-        assessments: db.assessments.length,
-      },
+      ...raw,
+      people,
       physios,
-      patients: [...db.patients].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-      assessments: [...db.assessments].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      events: {
+        assessments: raw.events.assessments.filter((e) => mine(e.who)),
+        sessions: raw.events.sessions.filter((e) => mine(e.who) && ph.has(e.physioId)),
+        bookings: raw.events.bookings.filter((e) => (e.who ? mine(e.who) : true) && ph.has(e.physioId)),
+        payments: raw.events.payments.filter((e) => (e.who ? mine(e.who) : true) && ph.has(e.physioId)),
+        anonymous: raw.events.anonymous,
+      },
     }
-  }, [remote, store.db])
+  }, [raw, showTest])
+  const testCount = raw ? raw.people.filter((p) => p.test).length + raw.physios.filter((x) => x.test).length : 0
 
-  const setVerification = async (p: AdminPhysio, status: 'verified' | 'none') => {
+  const go = (s: Screen) => {
+    setScreen(s)
+    setPersonKey(undefined)
+    setPhysioId(undefined)
+    window.scrollTo(0, 0)
+  }
+  const openPerson = (p: Person) => {
+    setPhysioId(undefined)
+    setPersonKey(p.key)
+    window.scrollTo(0, 0)
+  }
+  const openPhysio = (x: PhysioRow) => {
+    setPersonKey(undefined)
+    setPhysioId(x.id)
+    window.scrollTo(0, 0)
+  }
+  const toggleTest = () => {
+    const v = !showTest
+    setShowTest(v)
     try {
-      if (apiMode) {
-        await api(`/admin/physios/${p.id}/verification`, { body: { status }, token })
-        await load()
-      } else store.adminSetVerificationDemo(p.id, status)
-      toast(status === 'verified' ? `${p.name} is now verified` : `${p.name}'s verification removed`)
+      localStorage.setItem(SHOW_TEST_KEY, v ? '1' : '0')
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const assign = async (p: Patient, id: string) => {
+    try {
+      await api(`/admin/patients/${p.id}/assign`, { body: { physioId: id }, token })
+      toast(`${p.name} assigned`)
+      load()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Couldn’t assign')
+    }
+  }
+  const verify = async (id: string, status: 'verified' | 'none') => {
+    try {
+      await api(`/admin/physios/${id}/verification`, { body: { status }, token })
+      toast(status === 'verified' ? 'Verified' : 'Verification removed')
+      load()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Couldn’t update verification')
     }
   }
 
-  const setListing = async (p: AdminPhysio, status: 'live' | 'hidden') => {
-    try {
-      await api(`/admin/directory/${p.id}/status`, { body: { status }, token })
-      await load()
-      toast(status === 'hidden' ? `${p.name}'s profile is coming off betterhood.in` : `${p.name}'s profile is going back on betterhood.in`)
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'Couldn’t update the listing')
-    }
-  }
-
-  const assign = async (p: Patient, physioId: string) => {
-    try {
-      if (apiMode) {
-        await api(`/admin/patients/${p.id}/assign`, { body: { physioId }, token })
-        await load()
-      } else store.adminAssignDemo(p.id, physioId)
-      toast(`${p.name} assigned`)
-    } catch (e) {
-      toast(e instanceof Error ? e.message : 'Couldn’t assign')
-    }
-  }
-
-  if (!data)
+  if (!apiMode) return <p className="mx-auto max-w-md p-10 text-center text-muted">The admin dashboard needs the live API. Run the app with VITE_API_URL set.</p>
+  if (!d || !raw)
     return (
-      <div className="grid min-h-full place-items-center">
+      <div className="grid min-h-full place-items-center" style={ADMIN_THEME}>
         <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand-soft border-t-brand" aria-label="Loading" />
       </div>
     )
 
-  const physioById = new Map(data.physios.map((p) => [p.id, p]))
-  const latestFor = (pid: string) => data.assessments.find((a) => a.patientId === pid)
-  const queue = data.patients.filter((p) => !p.physioId)
-  const pendingVerify = data.physios.filter((p) => p.verification === 'pending').length
-  const match = (s: string) => !q || s.toLowerCase().includes(q.toLowerCase())
-
-  type Nav = { key: Tab; label: string; icon: React.ReactNode; n?: number; alert?: boolean }
-  const NAV: { label: string; items: Nav[] }[] = [
-    ...(journeys
-      ? [
-          {
-            label: 'Growth',
-            items: [
-              { key: 'map', label: 'Consumer map', icon: <Network size={16} />, n: journeys.consumers.length },
-              { key: 'pmap', label: 'Physio map', icon: <Network size={16} />, n: journeys.physios.length },
-              { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
-              { key: 'consumers', label: 'Consumer journey', icon: <Users size={16} />, n: journeys.consumers.length },
-              ...(chats ? [{ key: 'chats', label: 'Pain chats', icon: <MessageCircleHeart size={16} />, n: chats.length }] : []),
-              { key: 'journey', label: 'Physio journey', icon: <Stethoscope size={16} />, n: journeys.physios.length },
-              { key: 'website', label: 'Website', icon: <Globe size={16} />, n: journeys.web.total },
-            ] as Nav[],
-          },
-        ]
-      : []),
-    {
-      label: 'Operations',
-      items: [
-        { key: 'queue', label: 'Assign a physio', icon: <UserRoundSearch size={16} />, n: queue.length, alert: queue.length > 0 },
-        // The consumer journey replaces this list when the API is connected.
-        ...(journeys ? [] : ([{ key: 'patients', label: 'Patients', icon: <Users size={16} />, n: data.counts.patients }] as Nav[])),
-        { key: 'physios', label: 'Verification & listings', icon: <ShieldCheck size={16} />, n: pendingVerify, alert: pendingVerify > 0 },
-        { key: 'assessments', label: 'Assessments', icon: <ClipboardList size={16} />, n: data.counts.assessments },
-      ] as Nav[],
-    },
+  // A profile looks the person up in the full data, so a test number can still be opened (and unmarked).
+  const person = personKey ? raw.people.find((p) => p.key === personKey) : undefined
+  const physio = physioId ? raw.physios.find((x) => x.id === physioId) : undefined
+  const t = todo(d.people, d.physios)
+  const todoCount = t.waiting.length + t.redFlag.length + t.leads.length + t.quiet.length + t.verify.length
+  type Nav = { key: Screen; label: string; icon: React.ReactNode; n?: number; alert?: boolean; hint: string }
+  const NAV: Nav[] = [
+    { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} />, hint: 'Is it working?' },
+    { key: 'people', label: 'People', icon: <Users size={16} />, n: d.people.length, hint: 'Every consumer, once each' },
+    { key: 'physios', label: 'Physios', icon: <Stethoscope size={16} />, n: d.physios.length, hint: 'Supply and verification' },
+    { key: 'todo', label: 'To-do', icon: <ClipboardCheck size={16} />, n: todoCount, alert: todoCount > 0, hint: 'What to act on today' },
+    ...(chats ? [{ key: 'chats' as const, label: 'Pain chats', icon: <MessageCircleHeart size={16} />, n: chats.length, hint: 'Conversations with the pain assistant' }] : []),
   ]
-  const show = (t: Tab) => {
-    setTab(t)
-    setPerson(undefined)
-    window.scrollTo(0, 0)
-  }
-  const growth = tab === 'overview' || tab === 'consumers' || tab === 'chats' || tab === 'journey' || tab === 'website'
-  const ctx = journeys && { j: journeys, period, q, open: setSubject, go: (p: 'overview' | 'consumers' | 'physios' | 'website') => show(p === 'physios' ? 'journey' : p) }
-  const OPS_HEAD: Partial<Record<Tab, [string, string]>> = {
-    queue: ['Assign a physio', `${queue.length} consumer${queue.length === 1 ? '' : 's'} signed up on their own and ${queue.length === 1 ? 'is' : 'are'} waiting for a physio. The best fits are listed first.`],
-    patients: ['Patients', 'Everyone with a consumer account.'],
-    physios: ['Verification & listings', `${pendingVerify} physio${pendingVerify === 1 ? '' : 's'} asked to be verified. You can also take a directory listing off betterhood.in here.`],
-    assessments: ['Assessments', 'The latest 500 assessment results saved to an account in the app.'],
-  }
+  const onList = !person && !physio
+  const searchable = onList && (screen === 'people' || screen === 'physios' || screen === 'chats')
+  const periodic = onList && (screen === 'overview' || screen === 'physios' || screen === 'chats')
+  const asOf = new Date(d.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const navButton = (n: Nav, pill = false) => (
     <button
       key={n.key}
-      onClick={() => show(n.key)}
-      aria-current={tab === n.key ? 'page' : undefined}
+      onClick={() => go(n.key)}
+      title={n.hint}
+      aria-current={screen === n.key && onList ? 'page' : undefined}
       className={cx(
         'flex items-center gap-2.5 text-[14px] cursor-pointer',
         pill ? 'h-8 shrink-0 rounded-full border px-3' : 'h-9 w-full rounded-md px-2',
-        tab === n.key ? (pill ? 'border-brand bg-brand text-white' : 'bg-track font-medium text-ink') : pill ? 'border-line bg-surface text-muted' : 'text-muted hover:bg-track/60 hover:text-ink',
+        screen === n.key ? (pill ? 'border-brand bg-brand text-white' : 'bg-track font-medium text-ink') : pill ? 'border-line bg-surface text-muted' : 'text-muted hover:bg-track/60 hover:text-ink',
       )}
     >
       {n.icon}
       <span className="truncate">{n.label}</span>
-      {n.n !== undefined && !pill && <span className={cx('ml-auto rounded-full px-1.5 text-[11px] font-semibold tabular-nums', n.alert ? 'bg-warn-soft text-warn' : 'text-faint')}>{n.n}</span>}
+      {n.n !== undefined && !pill && <span className={cx('ml-auto rounded-full px-1.5 text-[12px] font-medium tabular-nums', n.alert ? 'bg-warn-soft text-warn' : 'text-faint')}>{n.n}</span>}
     </button>
   )
 
@@ -349,13 +330,8 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
         <div className="flex h-14 items-center border-b border-line px-4">
           <Logo tag="Admin" />
         </div>
-        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5" aria-label="Main">
-          {NAV.map((s) => (
-            <div key={s.label}>
-              <div className="mb-1.5 px-2 text-[11px] font-medium uppercase tracking-wider text-faint">{s.label}</div>
-              <div className="space-y-0.5">{s.items.map((n) => navButton(n))}</div>
-            </div>
-          ))}
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-5" aria-label="Main">
+          {NAV.map((n) => navButton(n))}
         </nav>
         <button onClick={onOut} className="m-3 flex h-9 items-center gap-2 rounded-md px-2 text-[14px] text-muted cursor-pointer hover:bg-track/60 hover:text-danger">
           <LogOut size={16} /> Sign out
@@ -364,268 +340,56 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
 
       <div className="min-w-0 flex-1 overflow-x-clip">
         <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur">
-          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+          <div className="flex min-h-14 flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
             <div className="lg:hidden">
               <Logo tag="Admin" />
             </div>
-            {tab !== 'overview' && (
-              <label className="hidden h-9 w-[300px] items-center gap-2 rounded-md border border-line bg-surface px-3 text-[14px] sm:flex">
+            {searchable && (
+              <label className="flex h-9 w-full items-center gap-2 rounded-md border border-line bg-surface px-3 text-[14px] sm:w-[300px]">
                 <Search size={15} className="shrink-0 text-faint" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, phone, city, tag" aria-label="Search" className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint" />
               </label>
             )}
             <div className="flex-1" />
-            {journeys && growth && <Segmented label="Period" value={period} onChange={setPeriod} options={PERIODS} />}
-            {apiMode && (
-              <button
-                onClick={load}
-                aria-label="Refresh"
-                title={journeys ? `Data from ${new Date(journeys.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Refresh'}
-                className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-muted cursor-pointer hover:text-ink"
-              >
-                <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-              </button>
-            )}
+            {periodic && <Segmented label="Period" value={period} onChange={setPeriod} options={PERIOD_OPTIONS} />}
+            <label className="flex h-8 items-center gap-2 text-[14px] text-muted" title="Team test numbers are left out of every number unless this is on. Nothing is deleted.">
+              <input type="checkbox" checked={showTest} onChange={toggleTest} className="h-4 w-4 accent-[var(--color-brand)]" />
+              Show test accounts{testCount ? ` (${testCount})` : ''}
+            </label>
+            <button onClick={load} aria-label="Refresh" title={`Data as of ${asOf}. Click to refresh.`} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 text-[12px] text-muted cursor-pointer hover:text-ink">
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">As of {asOf}</span>
+            </button>
             <button onClick={onOut} aria-label="Sign out" className="grid h-8 w-8 place-items-center rounded-md border border-line bg-surface text-muted cursor-pointer hover:text-danger lg:hidden">
               <LogOut size={15} />
             </button>
           </div>
           <nav className="no-scrollbar flex gap-1.5 overflow-x-auto border-t border-line px-4 py-2 lg:hidden" aria-label="Main">
-            {NAV.flatMap((s) => s.items).map((n) => navButton(n, true))}
+            {NAV.map((n) => navButton(n, true))}
           </nav>
         </header>
 
-        <main key={tab} className="anim-page mx-auto flex max-w-[1400px] flex-col gap-5 px-4 py-6 sm:px-6">
-          {person && <PersonMap subject={person} token={token} onBack={() => setPerson(undefined)} onNotes={() => setSubject(person)} />}
-          {!person && journeys && tab === 'map' && (
+        <main key={`${screen}-${personKey ?? ''}-${physioId ?? ''}`} className="anim-page mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-6 sm:px-6">
+          {person ? (
+            <PersonScreen p={person} token={token} onBack={() => setPersonKey(undefined)} onChanged={load} />
+          ) : physio ? (
+            <PhysioScreen x={physio} people={raw.people} token={token} onBack={() => setPhysioId(undefined)} onChanged={load} openPerson={openPerson} />
+          ) : (
             <>
-              <PageHeading title="Consumer map">Where every consumer came into Betterhood, and how far they’ve got. Open anyone to see their whole journey, the data at each stage, and what to send them next.</PageHeading>
-              <ConsumerEcosystem j={journeys} chats={chats} q={q} onOpen={(row) => setPerson({ type: 'patient', row })} onLead={(row) => setSubject({ type: 'lead', row })} />
+              {!showTest && testCount > 0 && screen !== 'chats' && (
+                <p className="rounded-md border border-line bg-surface px-3 py-2 text-[12px] text-muted">
+                  {testCount} test number{testCount === 1 ? ' is' : 's are'} hidden from these numbers. Tick “Show test accounts” to include {testCount === 1 ? 'it' : 'them'}.
+                </p>
+              )}
+              {screen === 'overview' && <OverviewScreen d={d} period={period} go={go} />}
+              {screen === 'people' && <PeopleScreen people={d.people} q={q} open={openPerson} />}
+              {screen === 'physios' && <PhysiosScreen d={d} q={q} period={period} open={openPhysio} />}
+              {screen === 'todo' && <TodoScreen d={d} ops={ops} openPerson={openPerson} openPhysio={openPhysio} assign={assign} verify={verify} />}
+              {screen === 'chats' && chats && <PainChatsPage chats={chats} period={period} q={q} token={token} />}
             </>
-          )}
-          {!person && journeys && tab === 'pmap' && (
-            <>
-              <PageHeading title="Physio map">How each physio joined and how far they’ve set up their practice. Open anyone to see their journey and what to nudge them on next.</PageHeading>
-              <PhysioEcosystem j={journeys} q={q} onOpen={(row) => setPerson({ type: 'physio', row })} />
-            </>
-          )}
-          {ctx && tab === 'overview' && <OverviewPage {...ctx} />}
-          {ctx && tab === 'consumers' && <ConsumersPage {...ctx} />}
-          {chats && tab === 'chats' && <PainChatsPage chats={chats} period={period} q={q} token={token} />}
-          {ctx && tab === 'journey' && <PhysiosPage {...ctx} />}
-          {ctx && tab === 'website' && <WebsitePage {...ctx} />}
-          {OPS_HEAD[tab] && !person && <PageHeading title={OPS_HEAD[tab]![0]}>{OPS_HEAD[tab]![1]}</PageHeading>}
-          {!apiMode && <p className="rounded-md border border-line bg-surface px-3 py-2 text-[13px] text-muted">Demo mode: the growth pages need the live API, so only the operations pages are shown.</p>}
-          {tab === 'queue' &&
-            (queue.length === 0 ? (
-              <Card className={cx(OPS_CARD, 'p-10 text-center text-muted')}>Everyone has a physio. New self sign-ups show up here.</Card>
-            ) : (
-              <div className="grid gap-3 lg:grid-cols-2">
-                {queue
-                  .filter((p) => match(`${p.name} ${p.phone} ${p.city ?? ''}`))
-                  .map((p) => (
-                    <QueueCard key={p.id} p={p} a={latestFor(p.id)} physios={data.physios} byId={physioById} onAssign={(id) => assign(p, id)} />
-                  ))}
-              </div>
-            ))}
-
-          {tab === 'patients' && (
-            <Card className={cx(OPS_CARD, 'overflow-x-auto p-0')}>
-              <table className="w-full min-w-[720px] text-left text-[14px]">
-                <thead className="border-b border-line text-[12px] uppercase tracking-wider text-faint">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Patient</th>
-                    <th className="px-4 py-3 font-semibold">City</th>
-                    <th className="px-4 py-3 font-semibold">Latest assessment</th>
-                    <th className="px-4 py-3 font-semibold">Physio</th>
-                    <th className="px-4 py-3 font-semibold">Joined</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {data.patients
-                    .filter((p) => match(`${p.name} ${p.phone} ${p.city ?? ''}`))
-                    .map((p) => {
-                      const a = latestFor(p.id)
-                      const ph = p.physioId ? physioById.get(p.physioId) : undefined
-                      return (
-                        <tr key={p.id}>
-                          <td className="px-4 py-3">
-                            <div className="font-semibold">{p.name}</div>
-                            <div className="text-[12px] text-muted">
-                              {fmtPhone(p.phone)}
-                              {p.selfSignup && ' · self sign-up'}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-muted">{p.city ?? '-'}</td>
-                          <td className="px-4 py-3">{a ? `${a.title}: ${a.condition ?? '-'}` : <span className="text-faint">-</span>}</td>
-                          <td className="px-4 py-3">{ph ? ph.name : <Badge tone="accent">Unassigned</Badge>}</td>
-                          <td className="px-4 py-3 text-muted">{fmtShort(p.createdAt.slice(0, 10))}</td>
-                        </tr>
-                      )
-                    })}
-                </tbody>
-              </table>
-            </Card>
-          )}
-
-          {tab === 'physios' && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {[...data.physios]
-                .sort((a, b) => Number(b.verification === 'pending') - Number(a.verification === 'pending'))
-                .filter((p) => match(`${p.name} ${p.phone} ${physioPlace(p)}`))
-                .map((p) => (
-                  <Card key={p.id} className={cx(OPS_CARD, 'p-4')}>
-                    <div className="flex items-center gap-3">
-                      <Avatar name={p.name} photo={p.photo} size={44} />
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-semibold">{p.name}</div>
-                        <div className="text-[12px] text-muted">{fmtPhone(p.phone)}</div>
-                      </div>
-                      {p.verification === 'verified' ? (
-                        <Badge tone="ok" icon={<BadgeCheck size={12} />}>Verified</Badge>
-                      ) : p.verification === 'pending' ? (
-                        <Badge tone="warn">Pending</Badge>
-                      ) : (
-                        <Badge tone="muted">Not verified</Badge>
-                      )}
-                    </div>
-                    {p.verification === 'pending' && (
-                      <div className="mt-3 rounded-xl bg-warn-soft px-3 py-2.5 text-[13px]">
-                        <div className="font-semibold">Verification requested</div>
-                        <div className="mt-1 text-muted">
-                          Council reg. no: <b className="text-ink">{p.councilRegNo || 'not added'}</b>
-                        </div>
-                        <div className="text-muted">{[p.qualification, p.experienceYrs ? `${p.experienceYrs} yrs` : undefined].filter(Boolean).join(' · ') || 'No qualification added'}</div>
-                        <div className="mt-2.5 flex gap-2">
-                          <Button size="sm" onClick={() => setVerification(p, 'verified')}>
-                            <Check size={14} /> Verify
-                          </Button>
-                          <Button size="sm" variant="secondary" onClick={() => setVerification(p, 'none')}>
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {p.focusAreas.map((f) => (
-                        <Badge key={f} tone="brand">
-                          {f}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="mt-2 line-clamp-2 text-[13px] text-muted">{physioPlace(p) || 'No location yet'}</div>
-                    {(() => {
-                      const l = data.listings?.find((x) => x.physioId === p.id)
-                      if (!l) return null
-                      return (
-                        <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-bg px-3 py-2 text-[13px]">
-                          <a href={l.url} target="_blank" rel="noopener" className="flex min-w-0 items-center gap-1 font-semibold text-brand">
-                            <span className="truncate">Directory {l.status === 'live' ? 'profile' : 'profile (hidden)'}</span> <ArrowUpRight size={13} className="shrink-0" />
-                          </a>
-                          <button onClick={() => setListing(p, l.status === 'live' ? 'hidden' : 'live')} className="shrink-0 text-[12px] font-semibold text-muted cursor-pointer hover:text-danger">
-                            {l.status === 'live' ? 'Hide' : 'Show again'}
-                          </button>
-                        </div>
-                      )
-                    })()}
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[13px] font-semibold">{p.patients} patients</span>
-                      {p.verification === 'verified' && (
-                        <button onClick={() => setVerification(p, 'none')} className="text-[12px] font-semibold text-muted cursor-pointer hover:text-danger">
-                          Remove verification
-                        </button>
-                      )}
-                    </div>
-                  </Card>
-                ))}
-            </div>
-          )}
-
-          {tab === 'assessments' && (
-            <Card className={cx(OPS_CARD, 'divide-y divide-line p-0')}>
-              {data.assessments.length === 0 && <div className="p-10 text-center text-muted">No assessments yet.</div>}
-              {data.assessments.map((a) => {
-                const p = data.patients.find((x) => x.id === a.patientId)
-                if (p && !match(`${p.name} ${p.phone} ${p.city ?? ''}`)) return null
-                return (
-                  <div key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3 text-[14px]">
-                    <div className="min-w-[160px] flex-1">
-                      <div className="font-semibold">{p?.name ?? 'Patient'}</div>
-                      <div className="text-[12px] text-muted">{fmtShort(a.createdAt.slice(0, 10))}</div>
-                    </div>
-                    <div className="min-w-[200px] flex-1">
-                      {a.title}: <b>{a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '-')}</b>
-                    </div>
-                    {a.advisory && <Badge tone="accent">See a doctor</Badge>}
-                    {a.result && (
-                      <a href={resultUrl(a.result)} target="_blank" rel="noopener" className="flex items-center gap-1 text-[13px] font-semibold text-brand">
-                        Result page <ArrowUpRight size={14} />
-                      </a>
-                    )}
-                  </div>
-                )
-              })}
-            </Card>
           )}
         </main>
       </div>
-      <SubjectDrawer subject={subject} token={token} onClose={() => setSubject(undefined)} onChanged={load} />
     </div>
-  )
-}
-
-function QueueCard({ p, a, physios, byId, onAssign }: { p: Patient; a?: Assessment; physios: AdminPhysio[]; byId: Map<string, AdminPhysio>; onAssign: (physioId: string) => void }) {
-  // Same ranking as the automatic suggestion (lib/match.ts), so the admin sees the best fits first.
-  const want = wantedFocus(a?.cat)
-  const score = (x: AdminPhysio) => {
-    const c = p.city?.toLowerCase()
-    return (c && physioPlace(x).toLowerCase().includes(c) ? 3 : 0) + (x.focusAreas.includes(want[0]) ? 2 : x.focusAreas.includes(want[1]) ? 1 : 0)
-  }
-  const ranked = [...physios].sort((x, y) => score(y) - score(x) || x.patients - y.patients)
-  const suggested = p.match?.suggestedPhysioId ?? (ranked[0] && score(ranked[0]) > 0 ? ranked[0].id : undefined)
-  const [pick, setPick] = useState(suggested ?? '')
-  const chosen = byId.get(pick)
-
-  return (
-    <Card className={cx(OPS_CARD, 'p-4')}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[16px] font-semibold">{p.name}</div>
-          <div className="text-[13px] text-muted">{[p.age && `${p.age} yrs`, p.sex, p.city, fmtPhone(p.phone)].filter(Boolean).join(' · ')}</div>
-        </div>
-        <Badge tone={p.match?.status === 'suggested' ? 'warn' : 'muted'}>{p.match?.status === 'suggested' ? 'Suggested' : 'No suggestion'}</Badge>
-      </div>
-      {a ? (
-        <div className="mt-3 rounded-xl bg-brand-soft/60 px-3 py-2.5 text-[14px]">
-          <div>
-            {a.title}: <b>{a.condition}</b>
-          </div>
-          {a.advisory && <div className="mt-1 text-[13px] font-semibold text-accent">Critical advisory: needs a medical check first</div>}
-          <div className="mt-0.5 text-[12px] text-muted">Looking for: {want.join(' or ')}{p.city ? ` near ${p.city}` : ''}</div>
-        </div>
-      ) : (
-        <div className="mt-3 rounded-xl bg-track px-3 py-2.5 text-[13px] text-muted">Hasn’t taken an assessment yet.</div>
-      )}
-      <label className="mt-3 block text-[12px] font-semibold uppercase tracking-wider text-faint" htmlFor={`pick-${p.id}`}>
-        Physio
-      </label>
-      <select
-        id={`pick-${p.id}`}
-        value={pick}
-        onChange={(e) => setPick(e.target.value)}
-        className="mt-1 h-11 w-full rounded-xl border border-line bg-surface px-3 text-[14px] outline-none focus:border-brand"
-      >
-        <option value="">Choose a physio…</option>
-        {ranked.map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.name}, {x.focusAreas.join(', ') || 'no focus set'} · {x.patients} patients{x.id === suggested ? '  ★ suggested' : ''}
-          </option>
-        ))}
-      </select>
-      {chosen && <div className="mt-1.5 truncate text-[12px] text-muted">{physioPlace(chosen) || 'No location on profile'}</div>}
-      <Button size="md" block className="mt-3" disabled={!pick} onClick={() => onAssign(pick)}>
-        <Check size={17} /> {pick && pick === suggested ? 'Confirm suggestion' : 'Assign physio'}
-      </Button>
-    </Card>
   )
 }
