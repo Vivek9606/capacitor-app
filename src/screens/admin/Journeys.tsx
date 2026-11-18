@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Badge, type BadgeTone, Button, cx, TextArea } from '../../components/ui'
 import { api } from '../../lib/api'
 import { fmtPhone } from '../../lib/logic'
+import { AssessmentAnswers } from '../../components/AssessmentAnswers'
 import { toast } from '../../lib/platform'
 
 /**
@@ -92,8 +93,13 @@ export interface WebRow {
   email?: string
   data: Record<string, unknown>
   createdAt: string
+  /** The consumer it belongs to: saved signed in, or claimed after they verified the number. */
   patientId?: string
+  /** Not claimed, but a consumer has the phone that was typed (possibly them, not verified). */
+  phoneMatchPatientId?: string
   physioId?: string
+  resultId?: string
+  disowned?: boolean
   tags: string[]
   notes: number
 }
@@ -552,6 +558,7 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
     setTag('')
   }
 
+  const answers = type === 'lead' && Array.isArray(row.data.answers) ? (row.data.answers as { q: string; a: string | string[] }[]) : undefined
   const title = type === 'lead' ? row.name || (row.phone ? fmtPhone(row.phone) : 'Anonymous visitor') : row.name
   const facts: [string, React.ReactNode][] =
     type === 'patient'
@@ -585,11 +592,21 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
             ['Form', formName(row)],
             ['Page', row.page ?? '-'],
             ['Email', row.email ?? '-'],
-            ['Account', row.patientId ? 'Has a consumer account' : row.physioId ? 'Has a physio account' : row.phone ? 'No account yet' : 'Anonymous'],
-            ...Object.entries(row.data)
-              .filter(([k, v]) => v != null && v !== '' && typeof v !== 'object' && !['name', 'title', 'date', 'kind'].includes(k))
-              .slice(0, 10)
-              .map(([k, v]) => [k[0].toUpperCase() + k.slice(1), String(v).slice(0, 300)] as [string, React.ReactNode]),
+            [
+              'Account',
+              row.patientId
+                ? 'Saved to their consumer account'
+                : row.disowned
+                  ? 'The owner of this number said it isn’t theirs'
+                  : row.phoneMatchPatientId
+                    ? 'A consumer has this number, not confirmed as theirs yet'
+                    : row.physioId
+                      ? 'Has a physio account'
+                      : row.phone
+                        ? 'No account yet'
+                        : 'Anonymous',
+            ],
+            ...leadFacts(row.data),
           ]
 
   return (
@@ -634,6 +651,13 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
               </div>
             ))}
           </dl>
+
+          {answers?.length ? (
+            <section>
+              <h3 className="text-[12px] font-semibold uppercase tracking-wider text-faint">Their answers</h3>
+              <AssessmentAnswers a={{ answers }} open />
+            </section>
+          ) : null}
 
           <section>
             <h3 className="text-[12px] font-semibold uppercase tracking-wider text-faint">Follow-up tags</h3>
@@ -724,4 +748,30 @@ export function SubjectDrawer({ subject, token, onClose, onChanged }: { subject?
       </aside>
     </div>
   )
+}
+
+/** A website submission's details as readable rows (not raw keys like "Advisory: true" or "Cat: nerve"). */
+const LEAD_FIELDS: [string, string, (v: unknown) => string][] = [
+  ['condition', 'Likely cause', String],
+  ['cat', 'Category', (v) => ({ muscle: 'Muscle', nerve: 'Nerve', bone: 'Bone', joint: 'Joint' })[String(v)] ?? String(v)],
+  ['painScore', 'Pain', (v) => `${v}/10`],
+  ['advisoryReasons', 'Critical advisory', (v) => (Array.isArray(v) ? v.join('; ') : String(v))],
+  ['overall', 'Overall score', (v) => `${v}/10`],
+  ['strength', 'Strength', (v) => `${v}/10`],
+  ['balance', 'Balance', (v) => `${v}/10`],
+  ['mobility', 'Mobility', (v) => `${v}/10`],
+  ['date', 'Taken', (v) => day(String(v))],
+  ['invitedBy', 'From a physio’s link', String],
+  ['message', 'Message', String],
+  ['city', 'City', String],
+  ['concern', 'Concern', String],
+]
+function leadFacts(data: Record<string, unknown>): [string, React.ReactNode][] {
+  const known = new Set(['name', 'phone', 'email', 'title', 'kind', 'area', 'id', 'answers', 'totals', 'result', 'advisory', 'formVersion', 'website', ...LEAD_FIELDS.map(([k]) => k)])
+  const rows = LEAD_FIELDS.filter(([k]) => data[k] != null && data[k] !== '' && !(Array.isArray(data[k]) && !(data[k] as unknown[]).length)).map(([k, label, f]) => [label, f(data[k]).slice(0, 400)] as [string, React.ReactNode])
+  // An older submission flagged without reasons.
+  if (data.advisory === true && !Array.isArray(data.advisoryReasons)) rows.push(['Critical advisory', 'Yes (answers not recorded)'])
+  // Lead form fields we don't know by name, shown as they came.
+  for (const [k, v] of Object.entries(data)) if (!known.has(k) && v != null && v !== '' && typeof v !== 'object') rows.push([k[0].toUpperCase() + k.slice(1).replace(/[_-]/g, ' '), String(v).slice(0, 300)])
+  return rows.slice(0, 14)
 }

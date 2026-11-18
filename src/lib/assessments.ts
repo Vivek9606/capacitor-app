@@ -38,8 +38,18 @@ const round = (n: number | null | undefined) => (typeof n === 'number' && Number
 
 /** The website's result record → the patient's saved assessment. Slug, kind, area and title come from our own list. */
 export function toInput(info: AssessmentInfo, r: SiteAssessmentResult): NewAssessmentInput {
+  // Everything the person told us travels with the result, under the id it was given when it was taken.
+  const detail = {
+    id: typeof r.id === 'string' && /^as_[a-z0-9]{6,24}$/.test(r.id) ? r.id : undefined,
+    answers: Array.isArray(r.answers) && r.answers.length ? r.answers : undefined,
+    painScore: typeof r.painScore === 'number' ? r.painScore : undefined,
+    advisoryReasons: Array.isArray(r.advisoryReasons) && r.advisoryReasons.length ? r.advisoryReasons : undefined,
+    takenAt: typeof r.date === 'string' ? r.date : undefined,
+    formVersion: typeof r.formVersion === 'string' ? r.formVersion : undefined,
+  }
   if (info.kind === 'pain') {
     return {
+      ...detail,
       slug: info.slug,
       kind: 'pain',
       area: info.area,
@@ -52,6 +62,7 @@ export function toInput(info: AssessmentInfo, r: SiteAssessmentResult): NewAsses
     }
   }
   return {
+    ...detail,
     slug: info.slug,
     kind: info.kind,
     area: info.area,

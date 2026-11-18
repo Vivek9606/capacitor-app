@@ -8,6 +8,7 @@ import { firstName } from '../../lib/logic'
 import type { Patient } from '../../lib/types'
 import { useStore } from '../../lib/store'
 import { MatchCard, ProductCard, ResultCard } from './care'
+import { WebResultsClaim } from '../../components/WebResultsClaim'
 
 /** Home for someone who signed up on their own: assessment → physio match, plus store and tools. */
 export default function SoloHome({ patient }: { patient: Patient }) {
@@ -32,6 +33,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
 
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">
+          <WebResultsClaim />
           <Card className="overflow-hidden p-0" onClick={() => nav('/me/chat')}>
             <div className="bg-hero p-4 text-white">
               <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wider text-white/75">

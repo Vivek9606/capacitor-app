@@ -6,6 +6,7 @@ import { recommendedFor } from '../../../lib/explore'
 import { firstName } from '../../../lib/logic'
 import { useMe, useStore } from '../../../lib/store'
 import { MatchCard, ProductCard, ResultCard } from '../care'
+import { AssessmentAnswers } from '../../../components/AssessmentAnswers'
 
 const CAT_LABEL: Record<string, string> = { muscle: 'Muscle', nerve: 'Nerve', bone: 'Bone', joint: 'Joint' }
 
@@ -68,6 +69,12 @@ export default function AssessResult() {
                     </div>
                   ))}
               </div>
+            </Card>
+          )}
+          {(a.answers?.length || a.painScore != null) && (
+            <Card className="p-4">
+              <div className="text-[13px] font-semibold text-muted">Your answers</div>
+              <AssessmentAnswers a={a} />
             </Card>
           )}
           {physio ? (

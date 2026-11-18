@@ -21,7 +21,7 @@ function readRef(): string | undefined {
 export default function Setup() {
   const nav = useNavigate()
   const loc = useLocation()
-  const st = loc.state as { phone?: string; signupToken?: string } | null
+  const st = loc.state as { phone?: string; signupToken?: string; updates?: boolean } | null
   const phone = st?.phone
   const { signupPhysio } = useStore()
   const [busy, setBusy] = useState(false)
@@ -66,7 +66,7 @@ export default function Setup() {
             setBusy(true)
             setError('')
             try {
-              await signupPhysio({ phone, name: name.trim(), email: email.trim(), focusAreas: focus, practiceSettings: modeLabels(modes), practice: { modes }, referredBy: readRef(), signupToken: st?.signupToken })
+              await signupPhysio({ phone, name: name.trim(), email: email.trim(), focusAreas: focus, practiceSettings: modeLabels(modes), practice: { modes }, referredBy: readRef(), signupToken: st?.signupToken, updates: st?.updates })
               nav('/app', { replace: true })
             } catch (e) {
               setError(e instanceof Error ? e.message : 'Couldn’t create your account')

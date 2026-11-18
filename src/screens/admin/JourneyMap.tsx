@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cx } from '../../components/ui'
+import { AssessmentAnswers } from '../../components/AssessmentAnswers'
 import { api } from '../../lib/api'
 import { type Product, productUrl, recommendedFor } from '../../lib/explore'
 import { fmtPhone } from '../../lib/logic'
@@ -464,6 +465,8 @@ export function PhysioEcosystem({ j, q, onOpen }: { j: Journeys; q: string; onOp
 // ---------------------------------------------------------------------------------------------------------------
 // one person's map
 
+const CONSENT_PURPOSE: Record<string, string> = { terms: 'terms and privacy', share_with_physio: 'sharing answers with the physio', whatsapp_updates: 'WhatsApp updates' }
+
 interface WebItem {
   id: string
   kind: 'form' | 'assessment'
@@ -473,8 +476,11 @@ interface WebItem {
   result?: string
   condition?: string
   area?: string
+  /** Theirs for sure (saved signed in, or claimed after verifying the number). False: only the same phone was typed. */
+  verified?: boolean
   createdAt: string
 }
+type Answer = { q: string; a: string | string[] }
 interface PatientJourney {
   type: 'patient'
   profile: {
@@ -489,13 +495,19 @@ interface PatientJourney {
     selfSignup: boolean
     createdAt: string
     consentAt?: string
+    whatsappOptIn?: boolean
+    /** Every consent given or withdrawn, newest first. */
+    consents?: { purpose: string; granted: boolean; version: string; wording: string; channel: string; at: string }[]
     lastSeenAt?: string
     physio?: { id: string; name: string; slug: string; matchStatus?: string; since?: string }
     dischargedAt?: string
     discharge?: { outcome?: string; note?: string }
   }
   web: WebItem[]
-  assessments: { id: string; title: string; area: string; kind: string; result?: string; condition?: string; advisory?: string; scores?: { overall?: number }; source: string; createdAt: string }[]
+  assessments: {
+    id: string; title: string; area: string; kind: string; result?: string; condition?: string; advisory?: string; scores?: { overall?: number }; source: string; createdAt: string
+    answers?: Answer[]; painScore?: number; advisoryReasons?: string[]; takenAt?: string
+  }[]
   chats: { id: string; status: string; engine: string; area: string; stage: string; severity: number; redFlags: string[]; summary?: string; userMessages: number; physioName?: string; createdAt: string }[]
   bookings: { id: string; date: string; time: string; visitType: string; status: string; source?: string; sponsored?: boolean; physioName: string; createdAt?: string }[]
   plans: { id: string; title: string; status: string; weeks: number; daysPerWeek: number; sentAt?: string; openedAt?: string; done: number; skipped: number; lastDay?: string; avgPain?: number; firstPain?: number; lastPain?: number }[]
@@ -607,7 +619,11 @@ function patientBranches(d: PatientJourney): Branch[] {
       reached: d.web.length > 0,
       summary: d.web.length ? `${webAs.length} assessment${webAs.length === 1 ? '' : 's'}, ${webForms.length} form${webForms.length === 1 ? '' : 's'}` : 'Never used betterhood.in with this number',
       when: d.web[0] ? day(d.web[0].createdAt) : undefined,
-      leaves: d.web.map((w) => ({ label: day(w.createdAt), value: w.kind === 'assessment' ? `${w.title ?? w.form}${w.condition ? `: ${w.condition}` : ''}` : `“${words(w.form)}” form` })),
+      leaves: d.web.map((w) => ({
+        label: day(w.createdAt),
+        value: `${w.kind === 'assessment' ? `${w.title ?? w.form}${w.condition ? `: ${w.condition}` : ''}` : `“${words(w.form)}” form`}${w.verified === false && w.kind === 'assessment' ? ' · same phone typed, not confirmed as theirs' : ''}`,
+        tone: w.verified === false && w.kind === 'assessment' ? ('warn' as const) : undefined,
+      })),
     },
     {
       key: 'account',
@@ -622,7 +638,12 @@ function patientBranches(d: PatientJourney): Branch[] {
         ...(p.email ? [{ label: 'Email', value: p.email }] : []),
         { label: 'About', value: [p.age && `${p.age} yrs`, p.sex === 'F' ? 'female' : p.sex === 'M' ? 'male' : '', p.city].filter(Boolean).join(', ') || '-' },
         { label: 'Last opened app', value: ago(p.lastSeenAt), tone: (daysSince(p.lastSeenAt) ?? 99) > 14 ? 'warn' : undefined },
-        { label: 'Terms', value: p.consentAt ? `Agreed ${day(p.consentAt)}` : 'Not yet' },
+        { label: 'Consent', value: p.consentAt ? `Terms and sharing with physio, ${day(p.consentAt)}` : 'Not given yet', tone: p.consentAt ? undefined : ('warn' as const) },
+        { label: 'WhatsApp updates', value: p.whatsappOptIn == null ? 'Not asked' : p.whatsappOptIn ? 'Opted in' : 'Opted out' },
+        ...(p.consents ?? []).slice(0, 4).map((c) => ({
+          label: day(c.at),
+          value: `${c.granted ? 'Agreed' : 'Declined'}: ${CONSENT_PURPOSE[c.purpose] ?? c.purpose} (${c.channel}, ${c.version})`,
+        })),
         ...d.consents.map((c) => ({ label: 'Consent', value: `${c.title}: ${c.status}` })),
       ],
     },
@@ -632,13 +653,15 @@ function patientBranches(d: PatientJourney): Branch[] {
       icon: <ClipboardList size={16} />,
       color: C.violet,
       reached: d.assessments.length > 0,
-      summary: d.assessments.length ? `${d.assessments.length} in the app` : undefined,
-      when: d.assessments.at(-1) ? day(d.assessments.at(-1)!.createdAt) : undefined,
+      summary: d.assessments.length ? `${d.assessments.length} saved to their account` : undefined,
+      when: d.assessments.at(-1) ? day(d.assessments.at(-1)!.takenAt ?? d.assessments.at(-1)!.createdAt) : undefined,
       leaves: d.assessments.map((a) => ({
-        label: day(a.createdAt),
-        value: `${a.title}: ${a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '-')}${a.advisory ? ' · see a doctor' : ''}`,
-        tone: a.advisory ? ('bad' as const) : undefined,
+        label: day(a.takenAt ?? a.createdAt),
+        value: `${a.title}: ${a.condition ?? (a.scores?.overall != null ? `${a.scores.overall}/10` : '-')}${a.painScore != null ? ` · pain ${a.painScore}/10` : ''}${a.source === 'web' ? ' · website' : ''}${a.advisoryReasons?.length ? ` · advisory: ${a.advisoryReasons.join('; ')}` : a.advisory ? ' · see a doctor' : ''}`,
+        tone: a.advisory || a.advisoryReasons?.length ? ('bad' as const) : undefined,
       })),
+      // The latest result's answers, as the person gave them.
+      footer: d.assessments.some((a) => a.answers?.length) ? <AssessmentAnswers a={[...d.assessments].reverse().find((a) => a.answers?.length)!} /> : undefined,
     },
     {
       key: 'chat',

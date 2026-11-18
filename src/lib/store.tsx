@@ -9,6 +9,7 @@ import { nextInvoiceNumber, totals } from './invoices'
 import { nowHHMM } from './slots'
 import { suggestPhysio } from './match'
 import { site } from './web'
+import { agreeTo, whatsappIf, WORDING, type ConsentItem } from './consent'
 import type { Assessment, Block, Booking, Consent, DB, Discharge, GroupParticipant, GroupParticipantStatus, GroupSession, Invoice, Patient, Physio, Plan, PlanDraft, Role, Session, SessionLog } from './types'
 
 /**
@@ -50,6 +51,8 @@ export interface NewPhysioInput {
   practice?: Physio['practice']
   referredBy?: string
   signupToken?: string
+  /** Ticked "updates on WhatsApp" at sign-in. */
+  updates?: boolean
 }
 
 export interface WalkInInput {
@@ -77,9 +80,20 @@ export interface NewSelfPatientInput {
   sex?: Patient['sex']
   city?: string
   signupToken?: string
+  /** Ticked the terms + sharing box (required to sign up) and, at sign-in, WhatsApp updates. */
+  agreed: boolean
+  updates?: boolean
 }
 
-export type NewAssessmentInput = Omit<Assessment, 'id' | 'patientId' | 'createdAt'>
+/** A website result taken with this number elsewhere, waiting for the person to say whether it's theirs. */
+export interface WebResult {
+  id: string
+  slug: string
+  title: string
+  takenAt: string
+}
+
+export type NewAssessmentInput = Omit<Assessment, 'id' | 'patientId' | 'createdAt'> & { id?: string }
 
 export type OtpResult = { role: Role } | { signup: true; signupToken?: string }
 
@@ -238,7 +252,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     async signupPhysio(input: NewPhysioInput): Promise<string> {
       if (apiMode) {
         const r = await api<{ token: string; userId: string }>('/auth/signup', {
-          body: { signupToken: input.signupToken, name: input.name, email: input.email || undefined, focusAreas: input.focusAreas, practiceSettings: input.practiceSettings, practice: input.practice, referredBy: input.referredBy },
+          body: { signupToken: input.signupToken, name: input.name, email: input.email || undefined, focusAreas: input.focusAreas, practiceSettings: input.practiceSettings, practice: input.practice, referredBy: input.referredBy, consents: whatsappIf(input.updates), channel: 'app' },
         })
         await startSession({ role: 'physio', userId: r.userId, token: r.token })
         return r.userId
@@ -282,7 +296,10 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
     async signupPatient(input: NewSelfPatientInput): Promise<string> {
       if (apiMode) {
         const r = await api<{ token: string; userId: string; role: Role }>('/auth/signup-patient', {
-          body: { signupToken: input.signupToken, name: input.name, age: input.age, sex: input.sex, city: input.city || undefined },
+          body: {
+            signupToken: input.signupToken, name: input.name, age: input.age, sex: input.sex, city: input.city || undefined,
+            consents: [...(input.agreed ? agreeTo(WORDING.signup) : []), ...whatsappIf(input.updates)], channel: 'app',
+          },
         })
         await startSession({ role: r.role, userId: r.userId, token: r.token })
         return r.userId
@@ -300,7 +317,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
           tags: [],
           visits: 0,
           linkToken: `self-${id.slice(-6)}`,
-          consentAt: nowTs(),
+          consentAt: input.agreed ? nowTs() : undefined,
           createdAt: nowTs(),
           selfSignup: true,
           match: { status: 'pending' },
@@ -310,11 +327,38 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       return id
     },
 
+    /** Record consents for whoever is signed in (e.g. ticking WhatsApp updates at sign-in). Never blocks. */
+    recordConsents(items: ConsentItem[]) {
+      if (!items.length) return
+      if (session?.role === 'patient' && items.some((c) => c.purpose === 'whatsapp_updates'))
+        mutate((d) => {
+          const p = d.patients.find((x) => x.id === session.userId)
+          if (p) p.whatsappOptIn = items.find((c) => c.purpose === 'whatsapp_updates')!.granted
+        })
+      remote((token) => api('/me/consents', { body: { consents: items, channel: 'app' }, token }))
+    },
+
+    /** Website results taken with this number on another device (title and date only until claimed). */
+    async webResults(): Promise<WebResult[]> {
+      if (!apiMode || session?.role !== 'patient' || !session.token) return []
+      return (await api<{ results: WebResult[] }>('/patient/web-results', { token: session.token })).results
+    },
+    /** The person says which of those are theirs (saved to their account) and which aren't (never shown again). */
+    async resolveWebResults(claim: string[], disown: string[]) {
+      if (!apiMode || !session?.token) return
+      const r = await api<{ assessments: Assessment[]; patient: Patient }>('/patient/web-results', { body: { claim, disown }, token: session.token })
+      r.assessments.forEach((a) => put('assessments', a))
+      put('patients', r.patient)
+    },
+
     /** Save an assessment result. Someone without a physio gets one suggested for the admin to confirm. */
     saveAssessment(patientId: string, input: NewAssessmentInput): string {
-      const id = uid('as')
+      // A result brought over from the website keeps its id, so it's never saved twice.
+      const { id: given, ...rest } = input
+      const id = given ?? uid('as')
+      if (given && db.assessments.some((a) => a.id === given)) return given
       mutate((d) => {
-        d.assessments.push({ ...input, id, patientId, createdAt: nowTs() })
+        d.assessments.push({ ...rest, id, patientId, createdAt: nowTs() })
         const p = d.patients.find((x) => x.id === patientId)
         if (input.kind === 'pain' && p && !p.physioId && p.match?.status !== 'confirmed') {
           const sug = suggestPhysio(d, input.cat, p.city)
@@ -323,7 +367,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
         }
       })
       remote(async (token) => {
-        const r = await api<{ assessment: Assessment; patient: Patient }>('/patient/assessments', { body: { id, ...input }, token })
+        const r = await api<{ assessment: Assessment; patient: Patient }>('/patient/assessments', { body: { ...rest, id }, token })
         put('assessments', r.assessment)
         put('patients', r.patient)
       })
@@ -399,14 +443,15 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       remote((token) => api<Patient>('/physio/patients', { body: { id, ...input }, token }).then((row) => (row.id === id ? put('patients', row) : refresh())))
       return id
     },
-    giveConsent(patientId: string) {
+    /** The consent screen. `items` are the exact words the person agreed to. */
+    giveConsent(patientId: string, items: ConsentItem[]) {
       mutate((d) => {
         const p = d.patients.find((x) => x.id === patientId)
         if (p && !p.consentAt) p.consentAt = nowTs()
         d.plans.filter((pl) => pl.patientId === patientId && pl.status === 'active' && !pl.openedAt).forEach((pl) => (pl.openedAt = nowTs()))
       })
       remote(async (token) => {
-        put('patients', await api<Patient>('/patient/consent', { method: 'POST', token }))
+        put('patients', await api<Patient>('/patient/consent', { body: { consents: items, channel: 'app' }, token }))
         await api('/patient/plans/opened', { method: 'POST', token })
       })
     },

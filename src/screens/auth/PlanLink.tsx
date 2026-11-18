@@ -7,6 +7,7 @@ import { firstName } from '../../lib/logic'
 import { haptic } from '../../lib/platform'
 import { api, apiMode } from '../../lib/api'
 import { useMe, useStore } from '../../lib/store'
+import { agreeTo, CONSENT_VERSION } from '../../lib/consent'
 
 /**
  * Patient entry from the WhatsApp "Open my plan" button: /plan/:token
@@ -188,7 +189,8 @@ export default function PlanLink() {
                 block
                 disabled={!agree}
                 onClick={() => {
-                  if (me) store.giveConsent(me.id)
+                  // The words on this screen, as agreed to.
+                  if (me) store.giveConsent(me.id, agreeTo(`I agree to share my exercise progress and pain scores with ${physio.name}, and to Betterhood’s Terms and Privacy Policy. (${CONSENT_VERSION}, plan link)`))
                   nav('/me', { replace: true })
                 }}
               >

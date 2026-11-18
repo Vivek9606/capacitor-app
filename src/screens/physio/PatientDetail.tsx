@@ -12,6 +12,7 @@ import { openWhatsApp, toast } from '../../lib/platform'
 import { useStore } from '../../lib/store'
 import { webRoute } from '../../lib/web'
 import type { Assessment, Plan } from '../../lib/types'
+import { AssessmentAnswers } from '../../components/AssessmentAnswers'
 import { DischargeSheet, outcomeLabel } from './Discharge'
 import { useStartPlan } from './Patients'
 
@@ -423,22 +424,29 @@ function AssessmentsCard({ results, invited }: { results: Assessment[]; invited:
         {invited && <Badge tone="brand">From your link</Badge>}
       </div>
       <div className="mt-2 flex flex-col divide-y divide-line">
-        {results.slice(0, 5).map((a) => {
+        {results.slice(0, 5).map((a, i) => {
           const val = a.kind === 'pain' ? (a.condition ?? 'Result ready') : a.scores?.overall != null ? `${a.scores.overall}/10` : ''
           return (
-            <button
-              key={a.id}
-              className="flex items-center gap-3 py-2.5 text-left cursor-pointer disabled:cursor-default"
-              disabled={!a.result}
-              onClick={() => a.result && nav(webRoute(`/${a.result}/`, a.condition ?? a.title))}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[14px] font-medium">{a.title}</div>
-                <div className="text-[12.5px] text-muted">{fmtShort(a.createdAt.slice(0, 10))}{a.advisory ? ' · ⚠ red-flag answers' : ''}</div>
-              </div>
-              <span className="shrink-0 text-[13.5px] font-semibold text-brand">{val}</span>
-              {a.result && <ChevronRight size={16} className="text-muted" />}
-            </button>
+            <div key={a.id} className="py-2.5">
+              <button
+                className="flex w-full items-center gap-3 text-left cursor-pointer disabled:cursor-default"
+                disabled={!a.result}
+                onClick={() => a.result && nav(webRoute(`/${a.result}/`, a.condition ?? a.title))}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-medium">{a.title}</div>
+                  <div className="text-[12.5px] text-muted">
+                    {fmtShort((a.takenAt ?? a.createdAt).slice(0, 10))}
+                    {a.source === 'web' ? ' · on betterhood.in' : ''}
+                    {a.advisory && !a.advisoryReasons?.length ? ' · ⚠ red-flag answers' : ''}
+                  </div>
+                </div>
+                <span className="shrink-0 text-[13.5px] font-semibold text-brand">{val}</span>
+                {a.result && <ChevronRight size={16} className="text-muted" />}
+              </button>
+              {/* The latest result opens with its answers: what the physio needs before the first session. */}
+              <AssessmentAnswers a={a} open={i === 0} />
+            </div>
           )
         })}
       </div>

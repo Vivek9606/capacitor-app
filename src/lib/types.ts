@@ -95,6 +95,8 @@ export interface Patient {
   visits: number
   linkToken: string // token in the WhatsApp plan link
   consentAt?: string
+  /** Agreed to appointment and care updates on WhatsApp. */
+  whatsappOptIn?: boolean
   createdAt: string
   city?: string
   email?: string
@@ -131,6 +133,15 @@ export interface Assessment {
   advisory?: string
   totals: Record<string, number>
   scores?: { overall?: number | null; strength?: number | null; balance?: number | null; mobility?: number | null }
+  /** Every question as asked and what they answered (results from 2026-11-18 on). */
+  answers?: { q: string; a: string | string[] }[]
+  painScore?: number
+  /** The answers that set off the critical advisory. */
+  advisoryReasons?: string[]
+  /** When it was taken (createdAt is when it was saved). */
+  takenAt?: string
+  formVersion?: string
+  source?: 'app' | 'web'
   createdAt: string
 }
 

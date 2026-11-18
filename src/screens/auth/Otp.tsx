@@ -8,12 +8,13 @@ import { haptic, isNative, platform } from '../../lib/platform'
 import { DEMO } from '../../lib/seed'
 import { useStore } from '../../lib/store'
 import { AuthLayout } from './AuthLayout'
+import { whatsappIf } from '../../lib/consent'
 
 // O3 · Verify OTP
 export default function Otp() {
   const nav = useNavigate()
   const loc = useLocation()
-  const state = loc.state as { phone?: string; intent?: string; next?: string } | null
+  const state = loc.state as { phone?: string; intent?: string; next?: string; updates?: boolean } | null
   const store = useStore()
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
@@ -50,11 +51,14 @@ export default function Otp() {
       const r = await store.verifyOtp(phone, c)
       haptic('success')
       if ('signup' in r) {
-        const st = { phone, signupToken: r.signupToken }
+        const st = { phone, signupToken: r.signupToken, updates: state?.updates }
         const to = state?.intent === 'patient' ? '/signup/patient' : state?.intent === 'physio' || state?.intent === 'signup' ? '/setup' : '/start'
         nav(to, { replace: true, state: st })
       }
-      else nav(state?.next ?? (r.role === 'physio' ? '/app' : '/me'), { replace: true })
+      else {
+        store.recordConsents(whatsappIf(state?.updates))
+        nav(state?.next ?? (r.role === 'physio' ? '/app' : '/me'), { replace: true })
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That code didn’t match. Check WhatsApp and try again.')
       setCode('')

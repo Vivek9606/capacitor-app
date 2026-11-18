@@ -5,6 +5,7 @@ import { haptic } from '../../lib/platform'
 import { useStore } from '../../lib/store'
 import type { Patient } from '../../lib/types'
 import { AuthLayout } from './AuthLayout'
+import { WORDING } from '../../lib/consent'
 
 const SEX: { v: NonNullable<Patient['sex']>; label: string }[] = [
   { v: 'F', label: 'Female' },
@@ -15,7 +16,7 @@ const SEX: { v: NonNullable<Patient['sex']>; label: string }[] = [
 // Patient sign-up (no physio yet) → home. The assessment is there when they want it, not a gate.
 export default function PatientSignup() {
   const nav = useNavigate()
-  const state = useLocation().state as { phone?: string; signupToken?: string } | null
+  const state = useLocation().state as { phone?: string; signupToken?: string; updates?: boolean } | null
   const store = useStore()
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
@@ -33,7 +34,7 @@ export default function PatientSignup() {
     setBusy(true)
     setError('')
     try {
-      await store.signupPatient({ phone: state.phone!, signupToken: state.signupToken, name: name.trim(), age: ageN, sex, city: city.trim() })
+      await store.signupPatient({ phone: state.phone!, signupToken: state.signupToken, name: name.trim(), age: ageN, sex, city: city.trim(), agreed: agree, updates: state.updates })
       haptic('success')
       nav('/me', { replace: true })
     } catch (e) {
@@ -76,7 +77,7 @@ export default function PatientSignup() {
           <Checkbox
             checked={agree}
             onChange={setAgree}
-            label={<span className="text-[14px]">I agree to Betterhood’s Terms and Privacy Policy, and to share my answers with the physio I’m matched with.</span>}
+            label={<span className="text-[14px]">{WORDING.signup}</span>}
           />
         </div>
         {error && <p className="mt-3 text-[14px] text-danger">{error}</p>}

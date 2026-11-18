@@ -7,6 +7,7 @@ import { Avatar, Button, Card, Checkbox } from '../../components/ui'
 import { takeWebsiteResult, toInput } from '../../lib/assessments'
 import { firstName } from '../../lib/logic'
 import { useMe, useStore } from '../../lib/store'
+import { agreeTo, WORDING } from '../../lib/consent'
 
 // Main navigation: Shop, Learn, Care, Tools (plus Home). Profile is on the home screen (and in the desktop sidebar).
 const ITEMS: NavItem[] = [
@@ -72,27 +73,33 @@ function ConsentGate() {
   const store = useStore()
   const [agree, setAgree] = useState(false)
   if (!patient) return null
-  const physio = store.db.physios.find((p) => p.id === patient.physioId)!
+  // Someone who signed up without consent (an older app, or switching from a physio profile) may not have a physio yet.
+  const physio = patient.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
+  const wording = WORDING.gate(physio?.name)
   return (
     <div className="mx-auto flex min-h-full max-w-[480px] flex-col px-5 py-6 safe-top lg:justify-center">
       <Logo />
-      <div className="mt-8 flex items-center gap-3">
-        <Avatar name={physio.name} photo={physio.photo} />
-        <div>
-          <div className="text-[13px] text-muted">Your physio</div>
-          <div className="font-semibold">{physio.name}</div>
+      {physio && (
+        <div className="mt-8 flex items-center gap-3">
+          <Avatar name={physio.name} photo={physio.photo} />
+          <div>
+            <div className="text-[13px] text-muted">Your physio</div>
+            <div className="font-semibold">{physio.name}</div>
+          </div>
         </div>
-      </div>
+      )}
       <h1 className="mt-6 font-display text-[24px] font-bold">Hi {firstName(patient.name)}, one quick thing</h1>
-      <p className="mt-2 text-[15px] text-muted">Your exercise progress and pain scores are shared with your physio so they can adjust your plan.</p>
+      <p className="mt-2 text-[15px] text-muted">
+        {physio ? 'Your answers, exercise progress and pain scores are shared with your physio so they can adjust your plan.' : 'Your answers are shared with the physio you’re matched with, so they can help you from the first session.'}
+      </p>
       <Card className="mt-5 p-4">
         <Checkbox
           checked={agree}
           onChange={setAgree}
-          label={<span className="text-[14px]">I agree to share my progress with {physio.name}, and to Betterhood’s Terms and Privacy Policy.</span>}
+          label={<span className="text-[14px]">{wording}</span>}
         />
       </Card>
-      <Button block className="mt-6" disabled={!agree} onClick={() => store.giveConsent(patient.id)}>
+      <Button block className="mt-6" disabled={!agree} onClick={() => store.giveConsent(patient.id, agreeTo(wording))}>
         Agree & continue
       </Button>
     </div>

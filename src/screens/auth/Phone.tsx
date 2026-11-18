@@ -14,7 +14,8 @@ export default function Phone() {
   const intent = (loc.state as { intent?: string } | null)?.intent ?? 'login'
   const [phone, setPhone] = useState('')
   const store = useStore()
-  const [updates, setUpdates] = useState(true)
+  // Unticked: agreeing to updates has to be the person's own choice (DPDP, and WhatsApp's opt-in rules).
+  const [updates, setUpdates] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const digits = phone.replace(/\D/g, '')

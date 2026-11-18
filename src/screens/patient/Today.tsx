@@ -11,6 +11,7 @@ import { patientView, estMinutes } from '../../lib/patientData'
 import { isNative, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
 import SoloHome from './SoloHome'
+import { WebResultsClaim } from '../../components/WebResultsClaim'
 
 function readDismissed() {
   try {
@@ -55,6 +56,10 @@ export default function Today() {
         </button>
         <RefreshButton />
       </header>
+
+      <div className="mt-4 empty:hidden">
+        <WebResultsClaim />
+      </div>
 
       {v.pendingConsents.map((c) => (
         <Card key={c.id} className="mt-4 flex items-center gap-3 border-accent/40 bg-accent-soft p-4" onClick={() => nav(`/me/consents/${c.id}`)}>

@@ -37,6 +37,12 @@ export type WebMsg =
 
 /** What the website's AssessmentRunner records when someone finishes (same shape as its localStorage "bh_results"). */
 export interface SiteAssessmentResult {
+  /** The result's own id, the same on the website, in the account and here. */
+  id?: string
+  answers?: { q: string; a: string | string[] }[]
+  painScore?: number
+  advisoryReasons?: string[]
+  formVersion?: string
   slug: string
   kind: 'pain' | 'health' | 'longevity'
   area: 'back' | 'neck' | 'shoulder' | 'knee' | 'overall'
