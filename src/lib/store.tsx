@@ -338,6 +338,16 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       remote((token) => api('/me/consents', { body: { consents: items, channel: 'app' }, token }))
     },
 
+    /** The signed-in patient edits their own name, age, sex or city. */
+    updateMyProfile(fields: { name?: string; age?: number; sex?: 'F' | 'M' | 'O'; city?: string }) {
+      if (session?.role !== 'patient') return
+      mutate((d) => {
+        const p = d.patients.find((x) => x.id === session.userId)
+        if (p) Object.assign(p, fields)
+      })
+      remote(async (token) => put('patients', await api<Patient>('/patient/profile', { method: 'PATCH', body: fields, token })))
+    },
+
     /** Website results taken with this number on another device (title and date only until claimed). */
     async webResults(): Promise<WebResult[]> {
       if (!apiMode || session?.role !== 'patient' || !session.token) return []

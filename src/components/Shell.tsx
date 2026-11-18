@@ -158,7 +158,7 @@ function TabLink({ item }: { item: NavItem }) {
     >
       {({ isActive }) => (
         <>
-      <span className={cx('relative grid h-8 w-14 place-items-center rounded-full transition-all duration-300', isActive ? 'bg-brand-soft' : 'group-active:scale-90')}>
+      <span className={cx('relative grid h-8 w-14 max-w-full place-items-center rounded-full transition-all duration-300', isActive ? 'bg-brand-soft' : 'group-active:scale-90')}>
         <Icon size={21} strokeWidth={isActive ? 2.3 : 1.8} className={cx('transition-transform duration-300', isActive && 'scale-105')} />
         {item.soon && (
           <span className="absolute -right-6 -top-2">

@@ -50,7 +50,7 @@ export default function Today() {
           <div className="text-[13px] text-muted lg:text-[15px]">{greeting()},</div>
           <div className="font-display text-[22px] font-bold tracking-[-0.01em] lg:text-[28px]">{firstName(patient.name)}</div>
         </div>
-        <button onClick={() => nav('/me/profile')} className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3 cursor-pointer lg:hidden">
+        <button onClick={() => nav('/me/ask')} aria-label={`Message ${doc}`} className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3 cursor-pointer lg:hidden">
           <Avatar name={v.physio.name} photo={v.physio.photo} size={30} />
           <span className="text-[13px] font-medium">{doc}</span>
         </button>

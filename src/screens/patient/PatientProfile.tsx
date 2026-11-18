@@ -1,7 +1,9 @@
-import { ChevronRight, ClipboardCheck, ExternalLink, Globe, LogOut, MessageCircle, MessageSquare, Repeat, RotateCcw, ShieldCheck } from 'lucide-react'
+import { ChevronRight, ClipboardCheck, Pencil, ExternalLink, Globe, LogOut, MessageCircle, MessageSquare, Repeat, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '../../components/Shell'
-import { Avatar, Badge, Card, PageHeader, SectionTitle } from '../../components/ui'
+import { useState } from 'react'
+import { Avatar, Badge, Button, Card, Input, PageHeader, SectionTitle, Toggle } from '../../components/ui'
+import { consent, WORDING } from '../../lib/consent'
 import { patientView } from '../../lib/patientData'
 import { fmtShort } from '../../lib/dates'
 import { firstName, fmtPhone } from '../../lib/logic'
@@ -28,14 +30,22 @@ export default function PatientProfile() {
   return (
     <Page>
       <PageHeader back={false} title="Profile" />
-      <Card className="flex items-center gap-4 p-4">
-        <Avatar name={patient.name} size={56} />
-        <div>
-          <div className="font-display text-[18px] font-bold">{patient.name}</div>
-          <div className="text-[13px] text-muted">
-            {[patient.age, patient.sex, patient.city, fmtPhone(patient.phone)].filter(Boolean).join(' · ')}
-          </div>
+      <MyDetails />
+
+      <SectionTitle>Settings</SectionTitle>
+      <Card className="flex items-center gap-3 p-4">
+        <div className="min-w-0 flex-1 text-[15px]">
+          WhatsApp updates
+          <div className="text-[13px] text-muted">Appointment reminders and messages from your physio</div>
         </div>
+        <Toggle
+          checked={!!patient.whatsappOptIn}
+          onChange={(v) => {
+            store.recordConsents([consent('whatsapp_updates', v, WORDING.whatsapp)])
+            toast(v ? 'You’ll get updates on WhatsApp' : 'WhatsApp updates turned off')
+          }}
+          label="Appointment and care updates on WhatsApp"
+        />
       </Card>
 
       {physio && (<>
@@ -164,5 +174,93 @@ export default function PatientProfile() {
       </Card>
       <p className="py-6 text-center text-[12px] text-faint">Betterhood 0.1 · {isNative ? 'App' : 'Web'}</p>
     </Page>
+  )
+}
+
+const SEX = [
+  { v: 'F', label: 'Female' },
+  { v: 'M', label: 'Male' },
+  { v: 'O', label: 'Other' },
+] as const
+
+/** Name, age, sex and city, editable by the patient. The phone number is the login, so it isn't editable here. */
+function MyDetails() {
+  const { patient } = useMe()
+  const store = useStore()
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState('')
+  const [age, setAge] = useState('')
+  const [sex, setSex] = useState<'F' | 'M' | 'O' | ''>('')
+  const [city, setCity] = useState('')
+  if (!patient) return null
+
+  const start = () => {
+    setName(patient.name)
+    setAge(patient.age ? String(patient.age) : '')
+    setSex(patient.sex ?? '')
+    setCity(patient.city ?? '')
+    setEditing(true)
+  }
+  const n = Number(age)
+  const ageOk = age === '' || (Number.isInteger(n) && n >= 1 && n <= 120)
+  const ok = name.trim().length >= 2 && ageOk
+  const save = () => {
+    if (!ok) return
+    store.updateMyProfile({ name: name.trim(), ...(age ? { age: n } : {}), ...(sex ? { sex } : {}), ...(city.trim() ? { city: city.trim() } : {}) })
+    setEditing(false)
+    toast('Your details are saved')
+  }
+
+  if (!editing)
+    return (
+      <Card className="flex items-center gap-4 p-4">
+        <Avatar name={patient.name} size={56} />
+        <div className="min-w-0 flex-1">
+          <div className="font-display text-[18px] font-bold">{patient.name}</div>
+          <div className="text-[13px] text-muted">
+            {[patient.age && `${patient.age} yrs`, SEX.find((x) => x.v === patient.sex)?.label, patient.city, fmtPhone(patient.phone)].filter(Boolean).join(' · ')}
+          </div>
+        </div>
+        <button onClick={start} className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[13px] font-semibold text-brand cursor-pointer">
+          <Pencil size={14} /> Edit
+        </button>
+      </Card>
+    )
+
+  return (
+    <Card className="flex flex-col gap-3 p-4">
+      <div className="text-[16px] font-semibold">Your details</div>
+      <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="name" />
+      <div className="grid grid-cols-2 gap-3">
+        <Input label="Age" value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" />
+        <Input label="City" value={city} onChange={(e) => setCity(e.target.value)} maxLength={80} autoComplete="address-level2" />
+      </div>
+      <div>
+        <div className="mb-1.5 text-[13px] font-medium text-muted">Sex</div>
+        <div className="flex gap-2">
+          {SEX.map((x) => (
+            <button
+              key={x.v}
+              type="button"
+              aria-pressed={sex === x.v}
+              onClick={() => setSex(x.v)}
+              className={`h-10 flex-1 rounded-xl border text-[14px] cursor-pointer ${sex === x.v ? 'border-brand bg-brand-soft font-semibold text-brand' : 'border-line bg-surface text-ink'}`}
+            >
+              {x.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="text-[12px] text-muted">Phone {fmtPhone(patient.phone)} is how you sign in, so it can’t be changed here.</div>
+      {!ageOk && <div className="text-[13px] text-danger">Enter an age between 1 and 120.</div>}
+      <div className="flex gap-2">
+        <Button variant="secondary" className="flex-1" onClick={() => setEditing(false)}>
+          Cancel
+        </Button>
+        <Button className="flex-1" disabled={!ok} onClick={save}>
+          Save
+        </Button>
+      </div>
+    </Card>
   )
 }

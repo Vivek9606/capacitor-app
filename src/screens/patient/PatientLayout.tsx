@@ -9,14 +9,14 @@ import { firstName } from '../../lib/logic'
 import { useMe, useStore } from '../../lib/store'
 import { agreeTo, WORDING } from '../../lib/consent'
 
-// Main navigation: Shop, Learn, Care, Tools (plus Home). Profile is on the home screen (and in the desktop sidebar).
+// Main navigation: Home, Care, Shop, Learn, Tools and Profile (Profile holds your details, settings and Log out).
 const ITEMS: NavItem[] = [
   { to: '/me', label: 'Home', icon: House, end: true },
   { to: '/me/care', label: 'Care', icon: HeartPulse },
   { to: '/me/shop', label: 'Shop', icon: ShoppingBag },
   { to: '/me/learn', label: 'Learn', icon: BookOpen },
   { to: '/me/tools', label: 'Tools', icon: LayoutGrid },
-  { to: '/me/profile', label: 'Profile', icon: User, mobile: false },
+  { to: '/me/profile', label: 'Profile', icon: User },
 ]
 
 /** Signed up on their own, no physio yet: everything except the physio's plan, visits and messages. */

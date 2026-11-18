@@ -1,9 +1,10 @@
-import { CalendarDays, Check, ChevronRight, ClipboardCheck, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, ClipboardCheck, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, MessageSquare, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { attendanceMarked, bookingLine, BookingBadge, canMarkAttendance } from '../../components/bits'
 import { Page } from '../../components/Shell'
 import { Badge, Button, Card, cx, Empty, Footer, IconButton, IconTile, PageHeader, Progress, WeekDots } from '../../components/ui'
+import { MessageThread } from './MessageThread'
 import { fmtDay, fmtMonthYear, fmtShort, fmtTime, today } from '../../lib/dates'
 import { hasConsent } from '../../lib/consents'
 import { inr } from '../../lib/invoices'
@@ -16,7 +17,7 @@ import { AssessmentAnswers } from '../../components/AssessmentAnswers'
 import { DischargeSheet, outcomeLabel } from './Discharge'
 import { useStartPlan } from './Patients'
 
-const TABS = ['Overview', 'Plans', 'Treatment', 'Visits', 'Consents', 'Bills'] as const
+const TABS = ['Overview', 'Messages', 'Plans', 'Treatment', 'Visits', 'Consents', 'Bills'] as const
 type Tab = (typeof TABS)[number]
 
 // R1 · Patient
@@ -44,6 +45,7 @@ export default function PatientDetail() {
   const due = invoices.filter((i) => i.status === 'unpaid').reduce((s, i) => s + i.total, 0)
   const needsGeneral = !hasConsent(db.consents, p.id, 'general')
   const results = db.assessments.filter((a) => a.patientId === p.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const unread = db.messages.filter((m) => m.patientId === p.id && m.from === 'patient' && !m.read)
 
   return (
     <Page wide>
@@ -128,12 +130,27 @@ export default function PatientDetail() {
                 className={cx('-mb-px shrink-0 whitespace-nowrap border-b-2 pb-2.5 text-[15px] cursor-pointer', tab === t ? 'border-brand font-semibold text-brand' : 'border-transparent text-muted')}
               >
                 {t}
+                {t === 'Messages' && unread.length > 0 && <span className="ml-1.5 rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white">{unread.length}</span>}
               </button>
             ))}
           </div>
 
           {tab === 'Overview' && (
             <div className="flex flex-col gap-3">
+              {unread.length > 0 && (
+                <Card className="flex items-center gap-3 border-accent/40 p-4" onClick={() => setTab('Messages')}>
+                  <IconTile tone="accent">
+                    <MessageSquare size={19} />
+                  </IconTile>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[15px] font-semibold">
+                      {unread.length === 1 ? 'New message' : `${unread.length} new messages`} from {p.name.split(' ')[0]}
+                    </div>
+                    <div className="truncate text-[13px] text-muted">“{unread[unread.length - 1].text}”</div>
+                  </div>
+                  <span className="text-[13px] font-semibold text-brand">Reply</span>
+                </Card>
+              )}
               {needsGeneral && (
                 <div className="flex items-center gap-3 rounded-2xl bg-accent-soft p-4">
                   <FileSignature size={19} className="shrink-0 text-accent" />
@@ -180,6 +197,7 @@ export default function PatientDetail() {
             </div>
           )}
 
+          {tab === 'Messages' && <MessageThread patient={p} />}
           {tab === 'Plans' && (
             <div className="flex flex-col gap-3">
               {plans.filter((pl) => pl.items.length).length === 0 && (

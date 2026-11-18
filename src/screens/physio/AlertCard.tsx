@@ -71,7 +71,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
         ) : alert.kind === 'message' ? (
           <button
             className="mt-1 text-[13px] font-semibold text-wa cursor-pointer"
-            onClick={() => nav(alert.planId ? `/app/plans/${alert.planId}` : `/app/patients/${alert.patientId}`)}
+            onClick={() => nav(`/app/patients/${alert.patientId}`, { state: { tab: 'Messages' } })}
           >
             Reply →
           </button>
