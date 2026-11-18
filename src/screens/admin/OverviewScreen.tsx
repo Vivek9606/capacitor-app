@@ -1,13 +1,14 @@
 import { ClipboardList, Dumbbell, IndianRupee, Stethoscope, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { BarList, countBy, fmtInt, fmtPct, fmtRupees, Funnel, Kpi, PageHeading, Panel, PanelHead, Segmented, Tile, TrendChart } from './kit'
-import { type Dashboard, VIDEO_INFO, videoStats, daily, dayLabels, PERIOD_LABEL, type Period, type Person, SOURCE_INFO, SOURCE_LABEL, STEP_KEYS, STEPS, sum, TODO, todo, windows, within } from './model'
+import { type Dashboard, VIDEO_INFO, videoState, videoStats, daily, dayLabels, PERIOD_LABEL, type Period, type Person, SOURCE_INFO, SOURCE_LABEL, STEP_KEYS, STEPS, sum, TODO, todo, windows, within } from './model'
 import { Pill } from './parts'
+import { ago } from './kit'
 
 export type Screen = 'overview' | 'people' | 'physios' | 'todo' | 'chats'
 
 /** For leadership: is it growing, where do people drop off, what's the money doing, what needs attention. */
-export function OverviewScreen({ d, period, go }: { d: Dashboard; period: Period; go: (s: Screen) => void }) {
+export function OverviewScreen({ d, all, showTest, period, go, openPerson }: { d: Dashboard; all: Dashboard; showTest: boolean; period: Period; go: (s: Screen) => void; openPerson: (p: Person) => void }) {
   const [scope, setScope] = useState<'period' | 'all'>('period')
   const w = windows(period)
   const days = Number(period)
@@ -93,6 +94,8 @@ export function OverviewScreen({ d, period, go }: { d: Dashboard; period: Period
         ]}
       />
 
+      <VideoPanel d={d} all={all} showTest={showTest} period={period} openPerson={openPerson} />
+
       <div className="grid gap-3 lg:grid-cols-3">
         <Panel>
           <PanelHead title="Where new people came from" desc={`New people in the ${PERIOD_LABEL[period]}, by first contact.`} right={<span title={SOURCE_INFO} className="text-[12px] text-faint">What’s this?</span>} />
@@ -144,4 +147,53 @@ function numbers(d: Dashboard, period: Period) {
     revenue: cp(d.events.payments.map((x) => ({ at: x.at, v: x.amount }))),
     accountRate: web.length ? web.filter((p) => p.steps.account).length / web.length : null,
   }
+}
+
+/** Every video consult in the period, newest first, with who joined. Test accounts' calls are counted separately so they're never silently missing. */
+function VideoPanel({ d, all, showTest, period, openPerson }: { d: Dashboard; all: Dashboard; showTest: boolean; period: Period; openPerson: (p: Person) => void }) {
+  const w = windows(period)
+  const inPeriod = (x: Dashboard) => videoStats(x.events.bookings.filter((b) => within(b.at, w.cur)))
+  const v = inPeriod(d)
+  const hidden = showTest ? 0 : inPeriod(all).booked - v.booked
+  const people = new Map(all.people.map((p) => [p.key, p]))
+  const physios = new Map(all.physios.map((x) => [x.id, x.name]))
+  const rows = [...v.list].sort((a, b) => b.when.localeCompare(a.when)).slice(0, 10)
+  const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+  return (
+    <Panel>
+      <PanelHead
+        title="Video consults"
+        desc={`${fmtInt(v.booked)} booked in the ${PERIOD_LABEL[period]}: ${fmtInt(v.held)} held (both joined)${v.oneSide ? `, ${fmtInt(v.oneSide)} where only one side joined` : ''}.`}
+      />
+      <div className="px-5 pb-4 pt-1">
+        {rows.length === 0 ? (
+          <p className="py-3 text-[14px] text-muted">No video consults in the {PERIOD_LABEL[period]}.</p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {rows.map((b, i) => {
+              const p = b.who ? people.get(b.who) : undefined
+              const state = videoState(b)
+              return (
+                <li key={i}>
+                  <button disabled={!p} onClick={() => p && openPerson(p)} className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 text-left text-[14px] cursor-pointer disabled:cursor-default sm:grid-cols-[150px_minmax(0,1fr)_auto]">
+                    <span className="text-muted">{when(b.when)}</span>
+                    <span className="min-w-0 truncate">
+                      <b className="font-medium text-ink">{p?.name ?? 'Patient'}</b> with {physios.get(b.physioId) ?? 'their physio'}
+                      <span className="text-[12px] text-faint"> · booked {ago(b.at)}</span>
+                    </span>
+                    <Pill tone={state.startsWith('Held') ? 'ok' : state.startsWith('Nobody') ? 'muted' : 'warn'}>{state}</Pill>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        {hidden > 0 && (
+          <p className="mt-2 rounded-md bg-track/60 px-3 py-2 text-[12px] text-muted">
+            {fmtInt(hidden)} more {hidden === 1 ? 'is' : 'are'} between test numbers and hidden. Tick “Show test accounts” at the top to see {hidden === 1 ? 'it' : 'them'}.
+          </p>
+        )}
+      </div>
+    </Panel>
+  )
 }

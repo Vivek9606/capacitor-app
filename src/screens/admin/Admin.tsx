@@ -381,7 +381,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
                   {testCount} test number{testCount === 1 ? ' is' : 's are'} hidden from these numbers. Tick “Show test accounts” to include {testCount === 1 ? 'it' : 'them'}.
                 </p>
               )}
-              {screen === 'overview' && <OverviewScreen d={d} period={period} go={go} />}
+              {screen === 'overview' && <OverviewScreen d={d} all={raw} showTest={showTest} period={period} go={go} openPerson={openPerson} />}
               {screen === 'people' && <PeopleScreen people={d.people} q={q} open={openPerson} />}
               {screen === 'physios' && <PhysiosScreen d={d} q={q} period={period} open={openPhysio} />}
               {screen === 'todo' && <TodoScreen d={d} ops={ops} openPerson={openPerson} openPhysio={openPhysio} assign={assign} verify={verify} />}
