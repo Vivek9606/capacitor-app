@@ -3,6 +3,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookingBadge, VISIT_LABEL } from '../../components/bits'
 import { ExerciseMedia } from '../../components/ExerciseMedia'
+import { JoinCall } from '../../components/JoinCall'
+import { bookingMinutes } from '../../lib/slots'
+import { callState, isVideoBooking } from '../../lib/video'
 import { Page } from '../../components/Shell'
 import { Avatar, Button, Card, Empty, RefreshButton, SectionTitle, WeekDots } from '../../components/ui'
 import { fmtTime, greeting, relDay } from '../../lib/dates'
@@ -31,7 +34,8 @@ export default function Today() {
   if (!patient.physioId) return <SoloHome patient={patient} />
   const v = patientView(store.db, patient)
   const doc = `Dr. ${firstName(v.physio.name)}`
-  const next = v.upcoming[0]
+  // A video call that's open right now comes first, ahead of anything else booked today.
+  const next = v.upcoming.find((b) => isVideoBooking(b) && callState(b, bookingMinutes(v.physio, b)) === 'open') ?? v.upcoming[0]
   const exercises = v.plan?.items.map((i) => ({ item: i, ex: store.db.exercises.find((e) => e.id === i.exerciseId) })) ?? []
 
   const hideBanner = () => {
@@ -177,6 +181,7 @@ export default function Today() {
                 </div>
                 <BookingBadge status={next.status} />
               </div>
+              <JoinCall booking={next} physio={v.physio} size="md" block className="mt-3" />
               {(next.status === 'awaiting' || next.status === 'reminder_sent') && (
                 <div className="mt-3 flex gap-2">
                   <Button

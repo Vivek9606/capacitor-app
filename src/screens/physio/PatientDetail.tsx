@@ -1,9 +1,9 @@
-import { CalendarDays, Check, ChevronRight, ClipboardCheck, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, MessageSquare, ReceiptIndianRupee, RotateCcw } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, ClipboardCheck, ClipboardList, Clock, DoorOpen, FileSignature, MessageCircle, MessageSquare, ReceiptIndianRupee, RotateCcw, Video } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { attendanceMarked, bookingLine, BookingBadge, canMarkAttendance } from '../../components/bits'
 import { Page } from '../../components/Shell'
-import { Badge, Button, Card, cx, Empty, Footer, IconButton, IconTile, PageHeader, Progress, WeekDots } from '../../components/ui'
+import { Badge, Button, Card, cx, Empty, Footer, IconButton, IconTile, PageHeader, Progress, Sheet, WeekDots } from '../../components/ui'
 import { MessageThread } from './MessageThread'
 import { fmtDay, fmtMonthYear, fmtShort, fmtTime, today } from '../../lib/dates'
 import { hasConsent } from '../../lib/consents'
@@ -30,6 +30,7 @@ export default function PatientDetail() {
   const initial = (useLocation().state as { tab?: Tab } | null)?.tab
   const [tab, setTab] = useState<Tab>(initial && TABS.includes(initial) ? initial : 'Overview')
   const [discharging, setDischarging] = useState(false)
+  const [calling, setCalling] = useState(false)
   const p = db.patients.find((x) => x.id === id)
   if (!p) return <Navigate to="/app/patients" replace />
 
@@ -53,9 +54,16 @@ export default function PatientDetail() {
         title={p.name}
         subtitle={meta}
         right={
-          <IconButton aria-label="Message on WhatsApp" onClick={() => openWhatsApp(p.phone, `Hi ${p.name.split(' ')[0]}, `)}>
-            <MessageCircle size={19} className="text-wa" />
-          </IconButton>
+          <div className="flex items-center gap-2">
+            {store.apiMode && !p.dischargedAt && (
+              <IconButton aria-label="Video call now" title="Video call now" onClick={() => setCalling(true)}>
+                <Video size={19} className="text-brand" />
+              </IconButton>
+            )}
+            <IconButton aria-label="Message on WhatsApp" onClick={() => openWhatsApp(p.phone, `Hi ${p.name.split(' ')[0]}, `)}>
+              <MessageCircle size={19} className="text-wa" />
+            </IconButton>
+          </div>
         }
       />
       <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-8">
@@ -105,6 +113,11 @@ export default function PatientDetail() {
             <Button block variant="secondary" onClick={() => nav('/app/bookings/new', { state: { patientId: p.id } })}>
               Book a visit
             </Button>
+            {store.apiMode && !p.dischargedAt && (
+              <Button block variant="secondary" onClick={() => setCalling(true)}>
+                <Video size={16} /> Video call now
+              </Button>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <Button variant="secondary" size="md" onClick={() => nav(`/app/patients/${p.id}/consent`)}>
                 <FileSignature size={16} /> Consent
@@ -377,6 +390,7 @@ export default function PatientDetail() {
         </Button>
       </Footer>
       <DischargeSheet patient={p} open={discharging} onClose={() => setDischarging(false)} />
+      <VideoCallSheet patientId={p.id} name={p.name} open={calling} onClose={() => setCalling(false)} />
     </Page>
   )
 }
@@ -469,5 +483,41 @@ function AssessmentsCard({ results, invited }: { results: Assessment[]; invited:
         })}
       </div>
     </Card>
+  )
+}
+
+/** Starts a video consult with the patient now: books a 30-minute video consult for this minute and opens the call. */
+function VideoCallSheet({ patientId, name, open, onClose }: { patientId: string; name: string; open: boolean; onClose: () => void }) {
+  const store = useStore()
+  const nav = useNavigate()
+  const [busy, setBusy] = useState(false)
+  const first = name.split(' ')[0]
+  const start = async () => {
+    setBusy(true)
+    try {
+      const id = await store.startVideoCall(patientId)
+      onClose()
+      nav(`/call/${id}`)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Couldn’t start the call')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Sheet open={open} onClose={onClose} title={`Video call ${first} now?`}>
+      <div className="flex flex-col gap-3 text-[15px]">
+        <p className="text-muted">
+          This books a 30-minute video consult starting now and opens the call. {first} gets a WhatsApp message, then joins from the Betterhood app: <b className="text-ink">Home → Join video call</b> (or Appointments).
+        </p>
+        <p className="text-[13px] text-muted">It shows on your schedule like any other appointment, so you can mark it done or bill for it afterwards.</p>
+        <Button block disabled={busy} onClick={start}>
+          <Video size={17} /> {busy ? 'Starting…' : 'Start video call'}
+        </Button>
+        <Button block variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+      </div>
+    </Sheet>
   )
 }

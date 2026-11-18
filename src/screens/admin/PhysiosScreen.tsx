@@ -4,7 +4,7 @@ import { cx } from '../../components/ui'
 import { api } from '../../lib/api'
 import { toast } from '../../lib/platform'
 import { ago, day, fmtInt, fmtRupees, PageHeading, Panel, PanelHead } from './kit'
-import { activity, ACTIVITY, type Dashboard, downloadCsv, fmtPhone, type Person, type PhysioRow, waLink, within, windows, type Period } from './model'
+import { activity, ACTIVITY, type BookingEvent, videoStats, type Dashboard, downloadCsv, fmtPhone, type Person, type PhysioRow, waLink, within, windows, type Period } from './model'
 import { Chips, ExportButton, Facts, Pill, Table } from './parts'
 import { NotesTags } from './PersonScreen'
 
@@ -114,7 +114,8 @@ interface PhysioJourney {
   patients: { id: string; name: string; selfSignup: boolean; condition?: string; createdAt: string; dischargedAt?: string; lastSession?: string }[]
 }
 
-export function PhysioScreen({ x, people, token, onBack, onChanged, openPerson }: { x: PhysioRow; people: Person[]; token?: string; onBack: () => void; onChanged: () => void; openPerson: (p: Person) => void }) {
+export function PhysioScreen({ x, people, bookings, token, onBack, onChanged, openPerson }: { x: PhysioRow; people: Person[]; bookings: BookingEvent[]; token?: string; onBack: () => void; onChanged: () => void; openPerson: (p: Person) => void }) {
+  const video = videoStats(bookings.filter((b) => b.physioId === x.id))
   const [j, setJ] = useState<PhysioJourney>()
   const [tl, setTl] = useState<{ events: { at: string; title: string; detail?: string }[]; notes: { id: string; text: string; author: string; createdAt: string }[]; tags: string[] }>()
   const load = useCallback(async () => {
@@ -256,6 +257,7 @@ export function PhysioScreen({ x, people, token, onBack, onChanged, openPerson }
                   ),
                 ],
                 ['Bookings', `${x.bookings} (${x.publicBookings} from their public profile)`],
+                ['Video consults', video.booked ? `${video.booked} booked · ${video.held} held${video.oneSide ? ` · ${video.oneSide} one side only` : ''}` : 'None yet'],
                 ['Invoices', `${fmtRupees(x.paidTotal)} paid · ${fmtRupees(x.unpaidTotal)} unpaid`],
                 ['Physios they invited', String(x.referrals)],
               ]}

@@ -373,7 +373,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
           {person ? (
             <PersonScreen p={person} token={token} onBack={() => setPersonKey(undefined)} onChanged={load} />
           ) : physio ? (
-            <PhysioScreen x={physio} people={raw.people} token={token} onBack={() => setPhysioId(undefined)} onChanged={load} openPerson={openPerson} />
+            <PhysioScreen x={physio} people={raw.people} bookings={raw.events.bookings} token={token} onBack={() => setPhysioId(undefined)} onChanged={load} openPerson={openPerson} />
           ) : (
             <>
               {!showTest && testCount > 0 && screen !== 'chats' && (

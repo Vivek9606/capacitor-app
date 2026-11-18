@@ -91,11 +91,36 @@ export interface Dashboard {
   events: {
     assessments: { at: string; who: string; source: string; area: string; kind: string; redFlag: boolean }[]
     sessions: { at: string; who: string; physioId: string }[]
-    bookings: { at: string; who: string | null; physioId: string }[]
+    bookings: BookingEvent[]
     payments: { at: string; who: string | null; physioId: string; amount: number }[]
     anonymous: { at: string; kind: string }[]
   }
   testPhones: string[]
+}
+
+export interface BookingEvent {
+  /** When the booking was made. */
+  at: string
+  who: string | null
+  physioId: string
+  visitType: string
+  status: string
+  /** Appointment start (Indian time, ISO). */
+  when: string
+  physioJoinedAt: string | null
+  patientJoinedAt: string | null
+}
+
+/** Video consults: booked, held (both joined), one side only (the other never joined), not joined yet. */
+export const VIDEO_INFO = 'Video consults booked (by the physio, the patient or the pain chat). Held: both the physio and the patient joined the call. One side only: just one of them joined.'
+export function videoStats(bookings: BookingEvent[]) {
+  const v = bookings.filter((b) => b.visitType === 'teleconsult' && b.status !== 'cancelled')
+  const held = v.filter((b) => b.physioJoinedAt && b.patientJoinedAt)
+  const oneSide = v.filter((b) => !!b.physioJoinedAt !== !!b.patientJoinedAt)
+  return { booked: v.length, held: held.length, oneSide: oneSide.length, list: v }
+}
+export function videoState(b: { physioJoinedAt?: string | null; patientJoinedAt?: string | null }) {
+  return b.physioJoinedAt && b.patientJoinedAt ? 'Held: both joined' : b.physioJoinedAt ? 'Only the physio joined' : b.patientJoinedAt ? 'Only the patient joined' : 'Nobody joined yet'
 }
 
 // ---------- time ----------

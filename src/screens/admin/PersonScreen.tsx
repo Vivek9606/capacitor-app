@@ -5,7 +5,7 @@ import { cx } from '../../components/ui'
 import { api } from '../../lib/api'
 import { toast } from '../../lib/platform'
 import { ago, day, fmtRupees, Panel, PanelHead } from './kit'
-import { fmtPhone, type Person, SOURCE_LABEL, STEP_KEYS, STEPS, waLink } from './model'
+import { fmtPhone, videoState, type Person, SOURCE_LABEL, STEP_KEYS, STEPS, waLink } from './model'
 import { ActivityPill, Facts, PersonBadges, Pill, RedFlag } from './parts'
 
 type Answer = { q: string; a: string | string[] }
@@ -38,7 +38,7 @@ interface Journey {
   profile: { age?: number; sex?: string; consentAt?: string; whatsappOptIn?: boolean; consents?: { purpose: string; granted: boolean; version: string; channel: string; at: string }[]; physio?: { name: string; matchStatus?: string }; discharge?: { outcome?: string; note?: string } }
   assessments: Assessment[]
   chats: { id: string; status: string; userMessages: number; createdAt: string; redFlags: string[] }[]
-  bookings: { id: string; date: string; time: string; visitType: string; status: string; physioName: string }[]
+  bookings: { id: string; date: string; time: string; visitType: string; status: string; physioName: string; physioJoinedAt?: string; patientJoinedAt?: string }[]
   plans: { id: string; title: string; status: string; weeks: number; daysPerWeek: number; sentAt?: string; openedAt?: string; done: number; skipped: number; firstPain?: number; lastPain?: number }[]
   messages: { fromPatient: number; fromPhysio: number; lastAt?: string }
   invoices: { number: string; total: number; status: string; createdAt: string; paidAt?: string }[]
@@ -175,7 +175,7 @@ export function PersonScreen({ p, token, onBack, onChanged }: { p: Person; token
             <Panel>
               <PanelHead title="Care" desc={j.profile.physio ? `With ${j.profile.physio.name}` : 'No physio yet'} />
               <div className="flex flex-col gap-4 px-5 pb-5 pt-3">
-                <Section title="Bookings" empty="No bookings." rows={j.bookings.map((b) => [`${nice(b.visitType)} with ${b.physioName}`, `${b.date} ${String(b.time).slice(0, 5)}`, nice(b.status)])} />
+                <Section title="Bookings" empty="No bookings." rows={j.bookings.map((b) => [`${b.visitType === 'teleconsult' ? 'Video consult' : nice(b.visitType)} with ${b.physioName}`, `${b.date} ${String(b.time).slice(0, 5)}`, b.visitType === 'teleconsult' && b.status !== 'cancelled' ? `${nice(b.status)} · ${videoState(b)}` : nice(b.status)])} />
                 <Section
                   title="Care plans"
                   empty="No care plan yet."

@@ -182,10 +182,13 @@ export function Kpi({ label, info, icon, value, cur, prev, prevText, invert, spa
 }
 
 /** A plain number with a note, for secondary stats. */
-export function Tile({ label, value, note, tone }: { label: string; value: string; note?: string; tone?: 'good' | 'bad' }) {
+export function Tile({ label, value, note, tone, info }: { label: string; value: string; note?: string; tone?: 'good' | 'bad'; info?: string }) {
   return (
     <Panel className="px-4 py-3.5 sm:px-5">
-      <div className="text-[14px] text-muted">{label}</div>
+      <div className="flex items-center gap-1 text-[14px] text-muted">
+        {label}
+        {info && <InfoTip text={info} />}
+      </div>
       <div className={cx('mt-0.5 text-[24px] font-semibold leading-tight tabular-nums', tone === 'good' ? 'text-ok' : tone === 'bad' ? 'text-danger' : 'text-ink')}>{value}</div>
       {note && <div className="mt-0.5 text-[12px] text-muted">{note}</div>}
     </Panel>

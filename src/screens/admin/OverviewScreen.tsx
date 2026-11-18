@@ -1,7 +1,7 @@
 import { ClipboardList, Dumbbell, IndianRupee, Stethoscope, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { BarList, countBy, fmtInt, fmtPct, fmtRupees, Funnel, Kpi, PageHeading, Panel, PanelHead, Segmented, Tile, TrendChart } from './kit'
-import { type Dashboard, daily, dayLabels, PERIOD_LABEL, type Period, type Person, SOURCE_INFO, SOURCE_LABEL, STEP_KEYS, STEPS, sum, TODO, todo, windows, within } from './model'
+import { type Dashboard, VIDEO_INFO, videoStats, daily, dayLabels, PERIOD_LABEL, type Period, type Person, SOURCE_INFO, SOURCE_LABEL, STEP_KEYS, STEPS, sum, TODO, todo, windows, within } from './model'
 import { Pill } from './parts'
 
 export type Screen = 'overview' | 'people' | 'physios' | 'todo' | 'chats'
@@ -22,6 +22,7 @@ export function OverviewScreen({ d, period, go }: { d: Dashboard; period: Period
     { key: 'verify', n: t.verify.length },
   ] as const
   const verified = d.physios.filter((x) => x.verification === 'verified').length
+  const video = videoStats(d.events.bookings.filter((b) => within(b.at, w.cur)))
 
   const spark = (items: { at: string; v?: number }[]) => daily(items, days)
   const newPeople = d.people.filter((p) => p.steps.details).map((p) => ({ at: p.steps.details! }))
@@ -113,7 +114,8 @@ export function OverviewScreen({ d, period, go }: { d: Dashboard; period: Period
         </Panel>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <Tile label="Video consults" info={VIDEO_INFO} value={fmtInt(video.booked)} note={video.booked ? `Booked in the ${PERIOD_LABEL[period]} · ${fmtInt(video.held)} held${video.oneSide ? ` · ${fmtInt(video.oneSide)} one side only` : ''}` : `None booked in the ${PERIOD_LABEL[period]}`} />
         <Tile label="Physios" value={fmtInt(d.physios.length)} note={`${fmtInt(verified)} verified`} />
         <Tile label="Treating someone now" value={fmtInt(d.physios.filter((x) => x.activePatients > 0).length)} note="A patient exercised in the last 14 days" />
         <Tile label="Listed on betterhood.in" value={fmtInt(d.physios.filter((x) => x.listing?.status === 'live').length)} note="Public directory profile is live" />

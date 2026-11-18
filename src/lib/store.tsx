@@ -348,6 +348,34 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       remote(async (token) => put('patients', await api<Patient>('/patient/profile', { method: 'PATCH', body: fields, token })))
     },
 
+    /** Physio: a video consult with this patient starting now (30 min). Saved on the server before it returns, so the call can start straight away. */
+    async startVideoCall(patientId: string): Promise<string> {
+      const p = db.patients.find((x) => x.id === patientId)
+      if (!apiMode || session?.role !== 'physio' || !session.token || !p) throw new Error('Video calls need the live app')
+      // Booking times are Indian local time; round down to the minute.
+      const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]))
+      const row = await api<Booking>('/physio/bookings', {
+        body: {
+          patientId: p.id,
+          patientName: p.name,
+          patientPhone: p.phone,
+          date: `${parts.year}-${parts.month}-${parts.day}`,
+          time: `${parts.hour}:${parts.minute}`,
+          visitType: 'teleconsult',
+          minutes: 30,
+          reason: 'Video call',
+          isNewPatient: false,
+          status: 'confirmed',
+          sendConfirmation: true,
+          reminder: false,
+          source: 'physio',
+        },
+        token: session.token,
+      })
+      put('bookings', row)
+      return row.id
+    },
+
     /** Website results taken with this number on another device (title and date only until claimed). */
     async webResults(): Promise<WebResult[]> {
       if (!apiMode || session?.role !== 'patient' || !session.token) return []

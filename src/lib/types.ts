@@ -249,6 +249,9 @@ export interface Booking {
   sponsored?: boolean
   /** The pain chat's summary for the physio, read before the consult. */
   brief?: string
+  /** When each side first joined the video call (video consults only). */
+  physioJoinedAt?: string
+  patientJoinedAt?: string
   createdAt: string
   /** Someone else's slot, shown to patients only as "busy". */
   hidden?: boolean
