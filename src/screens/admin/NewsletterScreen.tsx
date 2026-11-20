@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, FileText, Lightbulb, Link2, Minus, Monitor, Plus, Send, Smartphone, Trash2, Type } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowUp, Copy, FileText, Image as ImageIcon, Lightbulb, Link2, ListOrdered, Megaphone, Minus, Monitor, Plus, Quote, Send, Smartphone, Trash2, Type } from 'lucide-react'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cx } from '../../components/ui'
 import { api } from '../../lib/api'
@@ -17,6 +17,10 @@ type Block =
   | { type: 'text'; heading?: string; body: string }
   | { type: 'article'; label?: string; title: string; summary?: string; url: string; image?: string; cta?: string }
   | { type: 'tip'; heading?: string; body: string }
+  | { type: 'quote'; text: string; by?: string }
+  | { type: 'steps'; heading?: string; items: string }
+  | { type: 'image'; src: string; alt?: string; caption?: string; url?: string }
+  | { type: 'cta'; heading: string; body?: string; text: string; url: string }
   | { type: 'button'; text: string; url: string }
   | { type: 'divider' }
 interface Content {
@@ -433,6 +437,10 @@ const BLOCKS: { type: Block['type']; label: string; icon: ReactNode; make: () =>
   { type: 'text', label: 'Text', icon: <Type size={15} />, make: () => ({ type: 'text', heading: '', body: '' }) },
   { type: 'article', label: 'Article', icon: <FileText size={15} />, make: () => ({ type: 'article', label: 'Read', title: '', summary: '', url: 'https://betterhood.in/learn/', image: '', cta: 'Read the article' }) },
   { type: 'tip', label: 'Physio tip', icon: <Lightbulb size={15} />, make: () => ({ type: 'tip', heading: 'Physio tip', body: '' }) },
+  { type: 'steps', label: 'Steps', icon: <ListOrdered size={15} />, make: () => ({ type: 'steps', heading: '', items: '' }) },
+  { type: 'quote', label: 'Quote', icon: <Quote size={15} />, make: () => ({ type: 'quote', text: '', by: '' }) },
+  { type: 'image', label: 'Image', icon: <ImageIcon size={15} />, make: () => ({ type: 'image', src: '', alt: '', caption: '', url: '' }) },
+  { type: 'cta', label: 'Banner', icon: <Megaphone size={15} />, make: () => ({ type: 'cta', heading: '', body: '', text: 'Take the free assessment', url: 'https://betterhood.in/quiz-landing-page/' }) },
   { type: 'button', label: 'Button', icon: <Link2 size={15} />, make: () => ({ type: 'button', text: '', url: 'https://betterhood.in/' }) },
   { type: 'divider', label: 'Divider', icon: <Minus size={15} />, make: () => ({ type: 'divider' }) },
 ]
@@ -468,7 +476,7 @@ function Editor({
   const [confirmSend, setConfirmSend] = useState(false)
   const [sends, setSends] = useState<SendRow[]>()
   const readOnly = kind === 'confirm' || (kind === 'issue' && issue?.status !== 'draft')
-  const draft = useMemo(() => ({ kind, subject, preheader, content: c }), [kind, subject, preheader, c])
+  const draft = useMemo(() => ({ kind, id: issue?.id, subject, preheader, content: c }), [kind, issue?.id, subject, preheader, c])
 
   const edit = (fn: (c: Content) => Content) => {
     setC(fn)
@@ -754,7 +762,9 @@ function Editor({
 function clean(c: Content): Content {
   return {
     ...c,
-    blocks: c.blocks.map((b) => (b.type === 'article' && !b.image?.trim() ? { ...b, image: undefined } : b)),
+    blocks: c.blocks.map((b) =>
+      b.type === 'article' && !b.image?.trim() ? { ...b, image: undefined } : b.type === 'image' && !b.url?.trim() ? { ...b, url: undefined } : b,
+    ),
   }
 }
 
@@ -808,6 +818,66 @@ function BlockFields({ b, onChange }: { b: Block; onChange: (b: Block) => void }
           <Field label="Tip">
             <Area value={b.body} onChange={(v) => set('body', v)} rows={3} />
           </Field>
+        </div>
+      )
+    case 'steps':
+      return (
+        <div className="space-y-3">
+          <Field label="Heading (optional)">
+            <Text value={b.heading} onChange={(v) => set('heading', v)} placeholder="A 2-minute desk reset" />
+          </Field>
+          <Field label="Steps" hint="One step per line. They're numbered for you.">
+            <Area value={b.items} onChange={(v) => set('items', v)} rows={4} />
+          </Field>
+        </div>
+      )
+    case 'quote':
+      return (
+        <div className="space-y-3">
+          <Field label="Quote">
+            <Area value={b.text} onChange={(v) => set('text', v)} rows={2} />
+          </Field>
+          <Field label="Who said it (optional)">
+            <Text value={b.by} onChange={(v) => set('by', v)} placeholder="Dr. …, Physiotherapist" />
+          </Field>
+        </div>
+      )
+    case 'image':
+      return (
+        <div className="space-y-3">
+          <Field label="Image link" hint="A https:// image (JPG or PNG), about 1040 px wide.">
+            <Text value={b.src} onChange={(v) => set('src', v)} placeholder="https://…" />
+          </Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Description" hint="Read out by screen readers, shown if images are off.">
+              <Text value={b.alt} onChange={(v) => set('alt', v)} />
+            </Field>
+            <Field label="Caption (optional)">
+              <Text value={b.caption} onChange={(v) => set('caption', v)} />
+            </Field>
+          </div>
+          <Field label="Link when tapped (optional)">
+            <Text value={b.url} onChange={(v) => set('url', v)} placeholder="https://" />
+          </Field>
+        </div>
+      )
+    case 'cta':
+      return (
+        <div className="space-y-3">
+          <Field label="Heading">
+            <Text value={b.heading} onChange={(v) => set('heading', v)} placeholder="Still sore after a week?" />
+          </Field>
+          <Field label="Text (optional)">
+            <Area value={b.body} onChange={(v) => set('body', v)} rows={2} />
+          </Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Button text">
+              <Text value={b.text} onChange={(v) => set('text', v)} />
+            </Field>
+            <Field label="Link">
+              <Text value={b.url} onChange={(v) => set('url', v)} placeholder="https://" />
+            </Field>
+          </div>
         </div>
       )
     case 'button':
