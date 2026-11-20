@@ -1,5 +1,5 @@
 import '@fontsource-variable/geist'
-import { ClipboardCheck, LayoutDashboard, LogOut, MessageCircleHeart, RefreshCw, Search, Stethoscope, Users } from 'lucide-react'
+import { ClipboardCheck, LayoutDashboard, LogOut, Mail, MessageCircleHeart, RefreshCw, Search, Stethoscope, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Logo } from '../../components/Logo'
 import { Button, Card, cx, Input } from '../../components/ui'
@@ -11,6 +11,7 @@ import type { Patient } from '../../lib/types'
 import { Segmented } from './kit'
 import { type Dashboard as Data, type Period, type Person, type PhysioRow, todo } from './model'
 import { OverviewScreen, type Screen } from './OverviewScreen'
+import { NewsletterScreen } from './NewsletterScreen'
 import { type ChatRow, PainChatsPage } from './PainChats'
 import { PeopleScreen } from './PeopleScreen'
 import { PersonScreen } from './PersonScreen'
@@ -300,6 +301,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
     { key: 'people', label: 'People', icon: <Users size={16} />, n: d.people.length, hint: 'Every consumer, once each' },
     { key: 'physios', label: 'Physios', icon: <Stethoscope size={16} />, n: d.physios.length, hint: 'Supply and verification' },
     { key: 'todo', label: 'To-do', icon: <ClipboardCheck size={16} />, n: todoCount, alert: todoCount > 0, hint: 'What to act on today' },
+    { key: 'newsletter', label: 'Newsletter', icon: <Mail size={16} />, hint: 'Write and send the betterhood letter' },
     ...(chats ? [{ key: 'chats' as const, label: 'Pain chats', icon: <MessageCircleHeart size={16} />, n: chats.length, hint: 'Conversations with the pain assistant' }] : []),
   ]
   const onList = !person && !physio
@@ -376,7 +378,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
             <PhysioScreen x={physio} people={raw.people} bookings={raw.events.bookings} token={token} onBack={() => setPhysioId(undefined)} onChanged={load} openPerson={openPerson} />
           ) : (
             <>
-              {!showTest && testCount > 0 && screen !== 'chats' && (
+              {!showTest && testCount > 0 && screen !== 'chats' && screen !== 'newsletter' && (
                 <p className="rounded-md border border-line bg-surface px-3 py-2 text-[12px] text-muted">
                   {testCount} test number{testCount === 1 ? ' is' : 's are'} hidden from these numbers. Tick “Show test accounts” to include {testCount === 1 ? 'it' : 'them'}.
                 </p>
@@ -385,6 +387,7 @@ function Dashboard({ token, onOut }: { token?: string; onOut: () => void }) {
               {screen === 'people' && <PeopleScreen people={d.people} q={q} open={openPerson} />}
               {screen === 'physios' && <PhysiosScreen d={d} q={q} period={period} open={openPhysio} />}
               {screen === 'todo' && <TodoScreen d={d} ops={ops} openPerson={openPerson} openPhysio={openPhysio} assign={assign} verify={verify} />}
+              {screen === 'newsletter' && <NewsletterScreen token={token} />}
               {screen === 'chats' && chats && <PainChatsPage chats={chats} period={period} q={q} token={token} />}
             </>
           )}
