@@ -1,0 +1,71 @@
+name: Deploy web app to betterhood-dist (Cloudflare Pages)
+
+# Builds the web version of the app for betterhood.in/app/ and writes it to app/ in Vivek9606/betterhood-dist,
+# which Cloudflare Pages serves. Everything outside app/ belongs to the website's workflow (betterhood-revamp).
+# The native Android/iOS build is separate and still uses base "/".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dist-app
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # VITE_API_URL and VITE_WEBSITE_URL are variables on the production environment.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_BASE: /app/
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_WEBSITE_URL: ${{ vars.VITE_WEBSITE_URL }}
+      # Only the root _redirects is read (the website's, which rewrites /app/* to the app). If that rule is
+      # skipped, Pages serves the nearest 404.html, so deep links still open the app.
+      - run: |
+          rm -f dist/_redirects
+          cp dist/index.html dist/404.html
+
+      - name: Check out betterhood-dist
+        uses: actions/checkout@v4
+        with:
+          repository: Vivek9606/betterhood-dist
+          ssh-key: ${{ secrets.DIST_DEPLOY_KEY }}
+          path: out
+
+      - name: Commit and push (app/ only)
+        working-directory: out
+        env:
+          MSG: app@${{ github.sha }} (${{ github.event_name }})
+        run: |
+          git config user.name "betterhood-ci"
+          git config user.email "ci@users.noreply.github.com"
+          apply() {
+            mkdir -p app
+            rsync -a --delete "$GITHUB_WORKSPACE/dist/" app/
+            git add -A app
+            git diff --cached --quiet && { echo "no changes"; return 1; }
+            git commit -q -m "$MSG"
+          }
+          apply || exit 0
+          # The website workflow may push at the same time: on a rejected push, take the latest and re-apply.
+          for i in 1 2 3 4 5; do
+            git push origin HEAD:main && exit 0
+            sleep $((i * 3))
+            git fetch -q origin main && git reset -q --hard origin/main
+            apply || exit 0
+          done
+          exit 1
