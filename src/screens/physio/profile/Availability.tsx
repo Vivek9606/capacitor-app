@@ -144,7 +144,8 @@ export default function Availability() {
           </Setting>
           <Card className="p-4 text-[14px] text-muted">
             Appointment lengths come from your consult types ({physio.consult.inClinic.minutes} min in-clinic
-            {physio.consult.homeVisit.enabled ? `, ${physio.consult.homeVisit.minutes ?? 60} min home visit` : ''}).{' '}
+            {physio.consult.homeVisit.enabled ? `, ${physio.consult.homeVisit.minutes ?? 60} min home visit` : ''}
+            {physio.consult.video?.enabled ? `, ${physio.consult.video.minutes} min video` : ''}).{' '}
             <button className="font-semibold text-brand cursor-pointer" onClick={() => nav('/app/profile/clinic')}>
               Edit
             </button>

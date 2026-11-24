@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PracticeModePicker } from '../../../components/PracticeModePicker'
 import { Page } from '../../../components/Shell'
-import { Button, Card, Chip, Footer, IconTile, Input, PageHeader, SoonBadge, Toggle } from '../../../components/ui'
+import { Button, Card, Chip, Footer, IconTile, Input, PageHeader, Toggle } from '../../../components/ui'
 import { WEEK_ORDER } from '../../../lib/dates'
 import { uid } from '../../../lib/logic'
 import { haptic, toast } from '../../../lib/platform'
 import { modeLabels, modesOf } from '../../../lib/practice'
+import { VIDEO_DEFAULT } from '../../../lib/slots'
 import { useMe, useStore } from '../../../lib/store'
 import type { PracticeLocation, PracticeMode } from '../../../lib/types'
 
@@ -26,6 +27,7 @@ export default function Clinic() {
     consult: {
       inClinic: physio?.consult.inClinic ?? { enabled: true, fee: 800, minutes: 45 },
       homeVisit: { minutes: 60, ...(physio?.consult.homeVisit ?? { enabled: false, fee: 1200, radiusKm: 5 }) },
+      video: physio?.consult.video ?? VIDEO_DEFAULT,
     },
     serviceArea: physio?.practice?.serviceArea ?? '',
     travel: physio?.practice?.travelBufferMin ?? 15,
@@ -76,6 +78,7 @@ export default function Clinic() {
       consult: {
         inClinic: { ...f.consult.inClinic, enabled: inPerson && f.consult.inClinic.enabled },
         homeVisit: { ...f.consult.homeVisit, enabled: has('home') },
+        video: f.consult.video,
       },
     })
     toast('Practice saved: your booking page is updated')
@@ -84,6 +87,7 @@ export default function Clinic() {
 
   const setIn = (patch: Partial<typeof f.consult.inClinic>) => setF({ ...f, consult: { ...f.consult, inClinic: { ...f.consult.inClinic, ...patch } } })
   const setHome = (patch: Partial<typeof f.consult.homeVisit>) => setF({ ...f, consult: { ...f.consult, homeVisit: { ...f.consult.homeVisit, ...patch } } })
+  const setVideo = (patch: Partial<typeof f.consult.video>) => setF({ ...f, consult: { ...f.consult, video: { ...f.consult.video, ...patch } } })
   const setLoc = (id: string, patch: Partial<PracticeLocation>) => setF({ ...f, locations: f.locations.map((l) => (l.id === id ? { ...l, ...patch } : l)) })
   const num = (v: string) => Number(v.replace(/\D/g, '')) || 0
 
@@ -222,17 +226,28 @@ export default function Clinic() {
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-3 py-3.5 opacity-60">
-              <IconTile>
-                <Video size={18} />
-              </IconTile>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 text-[15px] font-semibold">
-                  Teleconsult <SoonBadge />
+            <div className="py-3.5">
+              <div className="flex items-center gap-3">
+                <IconTile>
+                  <Video size={18} />
+                </IconTile>
+                <div className="flex-1">
+                  <div className="text-[15px] font-semibold">Video consult</div>
+                  <div className="text-[13px] text-muted">
+                    {f.consult.video.enabled ? `₹${f.consult.video.fee} · ${f.consult.video.minutes} min · in the Betterhood app` : 'Patients anywhere can book a video call with you'}
+                  </div>
                 </div>
-                <div className="text-[13px] text-muted">Video + payments</div>
+                <Toggle label="Video consult" checked={f.consult.video.enabled} onChange={(v) => setVideo({ enabled: v })} />
               </div>
-              <Toggle label="Teleconsult" checked={false} disabled onChange={() => {}} />
+              {f.consult.video.enabled && (
+                <>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <Input label="Fee (₹)" inputMode="numeric" value={String(f.consult.video.fee)} onChange={(e) => setVideo({ fee: num(e.target.value) })} />
+                    <Input label="Minutes" inputMode="numeric" value={String(f.consult.video.minutes)} onChange={(e) => setVideo({ minutes: num(e.target.value) })} />
+                  </div>
+                  <p className="mt-2 text-[13px] text-muted">Video consults use your weekly hours. Patients join from the app; you get a Join button 15 minutes before.</p>
+                </>
+              )}
             </div>
           </Card>
 

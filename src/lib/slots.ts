@@ -53,12 +53,21 @@ export function isWorkingDay(physio: Physio, date: string) {
 
 export function visitMinutes(p: Physio, visitType: VisitType): number {
   if (visitType === 'home_visit') return p.consult.homeVisit.minutes || 60
+  if (visitType === 'teleconsult') return p.consult.video?.minutes || VIDEO_DEFAULT.minutes
   return p.consult.inClinic.minutes || 45
 }
 
 export function visitFee(p: Physio, visitType: VisitType): number {
-  return visitType === 'home_visit' ? p.consult.homeVisit.fee : p.consult.inClinic.fee
+  if (visitType === 'home_visit') return p.consult.homeVisit.fee
+  if (visitType === 'teleconsult') return p.consult.video?.fee ?? p.consult.inClinic.fee
+  return p.consult.inClinic.fee
 }
+
+/** Video consult settings for a physio who hasn't set them yet. Must match the backend (calendar.ts). */
+export const VIDEO_DEFAULT = { enabled: false, fee: 500, minutes: 30 }
+
+/** Can patients book a video consult with this physio themselves? */
+export const offersVideo = (p: Physio) => p.consult.video?.enabled === true
 
 /** Time kept free after an appointment (plus travel for home visits). */
 function bufferAfter(p: Physio, visitType: VisitType): number {

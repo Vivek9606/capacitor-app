@@ -17,9 +17,11 @@ import { api, ApiError, apiMode } from '../../lib/api'
 import { firstName } from '../../lib/logic'
 import { haptic, toast } from '../../lib/platform'
 import { useMe, useStore } from '../../lib/store'
-import type { CallGrant } from '../../lib/video'
+import { type CallGrant, type CallStatus, peerWaiting } from '../../lib/video'
+import { fmtDay, fmtTime } from '../../lib/dates'
+import { useStartPlan } from '../physio/Patients'
 
-type Phase = 'connecting' | 'live' | 'ended' | 'error'
+type Phase = 'lobby' | 'connecting' | 'live' | 'ended' | 'error'
 
 /** Attach a participant's camera (or mic) track to a media element while it exists. */
 function useTrack(room: Room | undefined, participant: Participant | undefined, source: Track.Source, el: React.RefObject<HTMLMediaElement | null>, tick: number) {
@@ -45,7 +47,8 @@ export default function Call() {
   const nav = useNavigate()
   const store = useStore()
   const { session } = useMe()
-  const [phase, setPhase] = useState<Phase>('connecting')
+  const [phase, setPhase] = useState<Phase>('lobby')
+  const [want, setWant] = useState({ mic: true, cam: true }) // chosen in the lobby
   const [error, setError] = useState('')
   const [grant, setGrant] = useState<CallGrant>()
   const [room, setRoom] = useState<Room>()
@@ -59,8 +62,10 @@ export default function Call() {
   const remoteEl = useRef<HTMLVideoElement>(null)
   const remoteAudio = useRef<HTMLAudioElement>(null)
 
+  const startPlan = useStartPlan()
+  const inLobby = phase === 'lobby'
   useEffect(() => {
-    if (!session?.token) return
+    if (!session?.token || inLobby) return
     let cancelled = false
     setRoom(undefined)
     const r = new Room({
@@ -93,7 +98,8 @@ export default function Call() {
         setJoinedAt(Date.now())
         setNeedsAudioTap(!r.canPlaybackAudio)
         try {
-          await r.localParticipant.enableCameraAndMicrophone()
+          if (want.cam) await r.localParticipant.setCameraEnabled(true)
+          if (want.mic) await r.localParticipant.setMicrophoneEnabled(true)
         } catch {
           // Joined, but no camera/mic: they can still see and hear the other person.
           toast('Camera or microphone blocked. Allow them in settings to be seen and heard.')
@@ -111,7 +117,7 @@ export default function Call() {
       cancelled = true
       r.disconnect()
     }
-  }, [id, session?.token, attempt])
+  }, [id, session?.token, attempt, inLobby])
 
   useEffect(() => {
     if (phase !== 'live') return
@@ -147,6 +153,28 @@ export default function Call() {
     )
   }
 
+  const booking = store.db.bookings.find((b) => b.id === id)
+  const lobbyPeer = booking ? (session.role === 'physio' ? booking.patientName : (store.db.physios.find((p) => p.id === booking.physioId)?.name ?? 'your physio')) : ''
+
+  if (phase === 'lobby') {
+    return (
+      <Shell>
+        <Lobby
+          id={id}
+          token={session.token}
+          peer={lobbyPeer}
+          want={want}
+          setWant={setWant}
+          onBack={() => nav(home)}
+          onJoin={() => {
+            haptic('light')
+            setPhase('connecting')
+          }}
+        />
+      </Shell>
+    )
+  }
+
   if (phase === 'error') {
     return (
       <Shell>
@@ -167,32 +195,47 @@ export default function Call() {
   }
 
   if (phase === 'ended') {
-    const booking = store.db.bookings.find((b) => b.id === id)
-    const canMarkDone = session.role === 'physio' && booking && booking.status !== 'done'
+    const isPhysio = session.role === 'physio'
+    const canMarkDone = isPhysio && booking && booking.status !== 'done'
     return (
       <Shell>
         <Notice
           title="Call ended"
-          body={joinedAt ? `Duration ${fmtElapsed(now - joinedAt)}` : undefined}
+          body={
+            (joinedAt ? `Duration ${fmtElapsed(now - joinedAt)}. ` : '') +
+            (isPhysio ? 'Wrap up while it’s fresh: mark the visit done, then send the treatment plan and invoice.' : 'Your physio will share your treatment plan and exercises here in the app.')
+          }
           action={
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex w-full max-w-[320px] flex-col gap-2">
               {canMarkDone && (
                 <Button
+                  block
                   onClick={() => {
                     store.updateBooking(booking.id, { status: 'done' })
                     toast('Visit marked as done')
-                    nav(home)
                   }}
                 >
                   Mark visit done
                 </Button>
               )}
-              <Button variant="secondary" onClick={() => (setPhase('connecting'), setAttempt((a) => a + 1))}>
-                Rejoin
-              </Button>
-              <Button variant="secondary" onClick={() => nav(home)}>
-                Close
-              </Button>
+              {isPhysio && booking?.patientId && (
+                <Button block variant="secondary" onClick={() => startPlan(booking.patientId!, 'plan', { replace: true })}>
+                  Write treatment plan
+                </Button>
+              )}
+              {isPhysio && booking && (
+                <Button block variant="secondary" onClick={() => nav('/app/invoices/new', { replace: true, state: { bookingId: booking.id } })}>
+                  Create invoice
+                </Button>
+              )}
+              <div className="mt-1 flex justify-center gap-2">
+                <Button variant="ghost" className="text-white" onClick={() => (setPhase('connecting'), setAttempt((a) => a + 1))}>
+                  Rejoin
+                </Button>
+                <Button variant="ghost" className="text-white" onClick={() => nav(home)}>
+                  Close
+                </Button>
+              </div>
             </div>
           }
         />
@@ -316,5 +359,154 @@ function CtrlButton({ label, off, disabled, onClick, children }: { label: string
     >
       {children}
     </button>
+  )
+}
+
+/** Indian local "HH:MM" for a timestamp (booking times are IST wherever the phone is). */
+const istTime = (ms: number) => new Date(ms).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const istDate = (ms: number) => new Date(ms).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+
+/**
+ * Before the call: a camera preview, mic and camera switches, and whether the other person is already in.
+ * Joining is possible from 15 minutes before the start; earlier, people can still check their camera and mic.
+ */
+function Lobby({
+  id,
+  token,
+  peer,
+  want,
+  setWant,
+  onJoin,
+  onBack,
+}: {
+  id: string
+  token?: string
+  peer: string
+  want: { mic: boolean; cam: boolean }
+  setWant: (w: { mic: boolean; cam: boolean }) => void
+  onJoin: () => void
+  onBack: () => void
+}) {
+  const [status, setStatus] = useState<CallStatus>()
+  const [statusError, setStatusError] = useState('')
+  const [media, setMedia] = useState<MediaStream>()
+  const [mediaError, setMediaError] = useState('')
+  const [now, setNow] = useState(Date.now())
+  const preview = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    let live = true
+    const check = () =>
+      api<CallStatus>(`/bookings/${encodeURIComponent(id)}/call`, { token })
+        .then((s) => {
+          if (live) (setStatus(s), setStatusError(''))
+        })
+        .catch((e) => {
+          if (live) setStatusError(e instanceof ApiError ? e.message : 'Couldn’t check the call')
+        })
+    check()
+    const t = setInterval(() => (check(), setNow(Date.now())), 10_000)
+    return () => {
+      live = false
+      clearInterval(t)
+    }
+  }, [id, token])
+
+  // Camera + mic preview. Asking here also gets the permission prompts out of the way before the call.
+  useEffect(() => {
+    let stream: MediaStream | undefined
+    let live = true
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMediaError('This browser can’t use the camera. Open the Betterhood app to see and hear each other.')
+      return
+    }
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'user' }, audio: true })
+      .then((s) => {
+        if (!live) return s.getTracks().forEach((t) => t.stop())
+        stream = s
+        setMedia(s)
+      })
+      .catch(() => setMediaError('Allow camera and microphone access for Betterhood in your settings, then come back. You can still join and listen.'))
+    return () => {
+      live = false
+      stream?.getTracks().forEach((t) => t.stop())
+    }
+  }, [])
+  useEffect(() => {
+    if (preview.current && media) preview.current.srcObject = media
+  }, [media, want.cam])
+  useEffect(() => {
+    media?.getAudioTracks().forEach((t) => (t.enabled = want.mic))
+    media?.getVideoTracks().forEach((t) => (t.enabled = want.cam))
+  }, [media, want])
+
+  const opens = status ? Date.parse(status.opensAt) : undefined
+  const closes = status ? Date.parse(status.closesAt) : undefined
+  const starts = status ? Date.parse(status.startsAt) : undefined
+  const early = opens !== undefined && now < opens
+  const over = (closes !== undefined && now > closes) || (!!status && !status.callable && status.status !== 'requested')
+  const pending = status?.status === 'requested'
+  const waiting = peerWaiting(status)
+  const who = peer || 'The other person'
+  const startText = starts ? `${fmtDay(istDate(starts))}, ${fmtTime(istTime(starts))}` : ''
+  const opensText = opens ? fmtTime(istTime(opens)) : ''
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-5 overflow-y-auto px-6 pb-[calc(24px+env(safe-area-inset-bottom))] pt-[calc(24px+env(safe-area-inset-top))] text-center text-white">
+      <div className="relative aspect-[3/4] w-full max-w-[280px] shrink-0 overflow-hidden rounded-3xl bg-white/10 sm:aspect-video sm:max-w-[420px]">
+        {media && want.cam ? (
+          <video ref={preview} autoPlay playsInline muted className="h-full w-full -scale-x-100 object-cover" />
+        ) : (
+          <div className="grid h-full place-items-center text-white/60">
+            <VideoOff size={28} />
+          </div>
+        )}
+        <div className="absolute inset-x-0 bottom-3 flex justify-center gap-3">
+          <CtrlButton label={want.mic ? 'Mute' : 'Unmute'} off={!want.mic} disabled={!media} onClick={() => setWant({ ...want, mic: !want.mic })}>
+            {want.mic ? <Mic size={22} /> : <MicOff size={22} />}
+          </CtrlButton>
+          <CtrlButton label={want.cam ? 'Turn camera off' : 'Turn camera on'} off={!want.cam} disabled={!media} onClick={() => setWant({ ...want, cam: !want.cam })}>
+            {want.cam ? <Video size={22} /> : <VideoOff size={22} />}
+          </CtrlButton>
+        </div>
+      </div>
+      {mediaError && <p className="max-w-[360px] rounded-2xl bg-white/10 px-4 py-3 text-[14px] text-white/85">{mediaError}</p>}
+
+      <div className="max-w-[380px]">
+        <div className="font-display text-[22px] font-bold">{peer ? `Video consult with ${peer}` : 'Video consult'}</div>
+        <p className="mt-1.5 text-[15px] text-white/75">
+          {statusError
+            ? statusError
+            : !status
+              ? 'Checking the call…'
+              : pending
+                ? `This consult is waiting for ${peer || 'your physio'} to accept it. Check your camera and sound now.`
+                : over
+                ? 'This appointment has ended or was cancelled.'
+                : early
+                  ? `Starts ${startText}. You can join from ${opensText}. Check your camera and sound now.`
+                  : waiting
+                    ? `${who} is in the call.`
+                    : `${who} hasn’t joined yet. Join and wait; they’ll appear when they do.`}
+        </p>
+      </div>
+
+      <div className="flex w-full max-w-[320px] flex-col gap-2">
+        <Button
+          block
+          disabled={!status || early || over || pending}
+          onClick={() => {
+            media?.getTracks().forEach((t) => t.stop())
+            onJoin()
+          }}
+        >
+          <Video size={17} /> {early ? `Join opens at ${opensText}` : 'Join now'}
+        </Button>
+        <Button block variant="ghost" className="text-white" onClick={onBack}>
+          Back
+        </Button>
+      </div>
+    </div>
   )
 }

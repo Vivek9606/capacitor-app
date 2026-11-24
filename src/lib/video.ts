@@ -35,3 +35,19 @@ export interface CallGrant {
   startsAt: string
   endsAt: string
 }
+
+/** Who's in the call right now, and its time window (GET /bookings/:id/call). */
+export interface CallStatus {
+  role: 'physio' | 'patient'
+  callable: boolean
+  status: string
+  physioInCall: boolean
+  patientInCall: boolean
+  opensAt: string
+  startsAt: string
+  endsAt: string
+  closesAt: string
+}
+
+/** Is the other side in the call right now? */
+export const peerWaiting = (s: CallStatus | undefined) => (s ? (s.role === 'physio' ? s.patientInCall : s.physioInCall) : false)
