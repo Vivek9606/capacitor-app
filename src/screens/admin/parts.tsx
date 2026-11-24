@@ -203,3 +203,24 @@ export function Facts({ rows }: { rows: [string, ReactNode][] }) {
     </dl>
   )
 }
+
+/** Admin button: default, primary, danger or ghost. */
+export function Btn({ children, onClick, tone = 'default', disabled, title, type = 'button' }: { children: ReactNode; onClick?: () => void; tone?: 'default' | 'primary' | 'danger' | 'ghost'; disabled?: boolean; title?: string; type?: 'button' | 'submit' }) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={cx(
+        'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-[14px] font-medium cursor-pointer disabled:cursor-default disabled:opacity-40',
+        tone === 'primary' && 'bg-brand text-white hover:bg-brand-ink',
+        tone === 'default' && 'border border-line bg-surface text-ink hover:bg-track/60',
+        tone === 'danger' && 'border border-line bg-surface text-danger hover:bg-accent-soft',
+        tone === 'ghost' && 'text-muted hover:bg-track/60 hover:text-ink',
+      )}
+    >
+      {children}
+    </button>
+  )
+}

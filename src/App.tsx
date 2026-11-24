@@ -38,7 +38,7 @@ import AddPatient from './screens/physio/AddPatient'
 import Confirmed from './screens/physio/booking/Confirmed'
 import NewBooking from './screens/physio/booking/NewBooking'
 import Schedule from './screens/physio/booking/Schedule'
-import Community from './screens/physio/Community'
+import Community, { CommunityChannel, CommunityThread } from './screens/physio/Community'
 import ConsentView from './screens/physio/consent/ConsentView'
 import NewConsent from './screens/physio/consent/NewConsent'
 import GroupDetail from './screens/physio/groups/GroupDetail'
@@ -226,6 +226,8 @@ export default function App() {
             <Route path="refer" element={<Refer />} />
             <Route path="partner" element={<Partner />} />
             <Route path="community" element={<Community />} />
+            <Route path="community/c/:id" element={<CommunityChannel />} />
+            <Route path="community/t/:postId" element={<CommunityThread />} />
             <Route path="tools" element={<PhysioTools />} />
           </Route>
 

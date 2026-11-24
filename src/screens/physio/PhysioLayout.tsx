@@ -30,7 +30,7 @@ const ITEMS: NavItem[] = [
   { to: '/app/groups', label: 'Group sessions', icon: UsersRound, mobile: false },
   { to: '/app/invoices', label: 'Invoices', icon: ReceiptIndianRupee, mobile: false },
   { to: '/app/learn', label: 'Learn', icon: GraduationCap, mobile: false },
-  { to: '/app/community', label: 'Community', icon: MessageSquare, soon: true, mobile: false },
+  { to: '/app/community', label: 'Community', icon: MessageSquare, mobile: false },
   { to: '/app/profile', label: 'Profile', icon: User, mobile: false },
 ]
 const EXTRA: NavItem[] = [
@@ -53,6 +53,7 @@ const FLOW = [
   /^\/app\/refer/,
   /^\/app\/partner/,
   /^\/app\/notifications/,
+  /^\/app\/community\/.+/,
 ]
 
 export default function PhysioLayout() {

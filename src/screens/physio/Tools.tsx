@@ -66,7 +66,7 @@ const GROUPS: { title: string; sub: string; tools: PTool[] }[] = [
       { label: 'betterhood.in directory', sub: 'Your public profile on the website', icon: <Globe size={19} />, to: '/app/profile/directory' },
       { label: 'Refer a physio', sub: 'Invite colleagues to betterhood', icon: <Gift size={19} />, to: '/app/refer' },
       { label: 'Partner with us', sub: 'Brands, clinics and programmes', icon: <Handshake size={19} />, to: '/app/partner' },
-      { label: 'Community', sub: 'Physios helping physios', icon: <MessageSquare size={19} />, to: '/app/community', soon: true },
+      { label: 'Community', sub: 'Physios helping physios', icon: <MessageSquare size={19} />, to: '/app/community' },
     ],
   },
   {
