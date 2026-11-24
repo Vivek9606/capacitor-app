@@ -5,7 +5,7 @@ import { type Dashboard, VIDEO_INFO, videoState, videoStats, daily, dayLabels, P
 import { Pill } from './parts'
 import { ago } from './kit'
 
-export type Screen = 'overview' | 'people' | 'physios' | 'todo' | 'chats' | 'newsletter'
+export type Screen = 'overview' | 'people' | 'physios' | 'todo' | 'chats' | 'newsletter' | 'community'
 
 /** For leadership: is it growing, where do people drop off, what's the money doing, what needs attention. */
 export function OverviewScreen({ d, all, showTest, period, go, openPerson }: { d: Dashboard; all: Dashboard; showTest: boolean; period: Period; go: (s: Screen) => void; openPerson: (p: Person) => void }) {

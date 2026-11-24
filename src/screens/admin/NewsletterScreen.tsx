@@ -4,7 +4,7 @@ import { cx } from '../../components/ui'
 import { api } from '../../lib/api'
 import { toast } from '../../lib/platform'
 import { ago, day, fmtInt, PageHeading, Panel, PanelHead, Segmented, Tile } from './kit'
-import { Chips, Pill, type PillTone, Table } from './parts'
+import { Btn, Chips, Pill, type PillTone, Table } from './parts'
 
 /**
  * Newsletter: write and send the betterhood letter, and see who's subscribed.
@@ -123,25 +123,6 @@ function Text({ value, onChange, ...rest }: { value?: string; onChange: (v: stri
 }
 function Area({ value, onChange, rows = 4, ...rest }: { value?: string; onChange: (v: string) => void; rows?: number; placeholder?: string; disabled?: boolean }) {
   return <textarea {...rest} rows={rows} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className={cx(FIELD, 'resize-y py-2 leading-relaxed')} />
-}
-function Btn({ children, onClick, tone = 'default', disabled, title, type = 'button' }: { children: ReactNode; onClick?: () => void; tone?: 'default' | 'primary' | 'danger' | 'ghost'; disabled?: boolean; title?: string; type?: 'button' | 'submit' }) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={cx(
-        'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-[14px] font-medium cursor-pointer disabled:cursor-default disabled:opacity-40',
-        tone === 'primary' && 'bg-brand text-white hover:bg-brand-ink',
-        tone === 'default' && 'border border-line bg-surface text-ink hover:bg-track/60',
-        tone === 'danger' && 'border border-line bg-surface text-danger hover:bg-accent-soft',
-        tone === 'ghost' && 'text-muted hover:bg-track/60 hover:text-ink',
-      )}
-    >
-      {children}
-    </button>
-  )
 }
 
 const errMsg = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
