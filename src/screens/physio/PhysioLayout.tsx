@@ -23,43 +23,43 @@ import { Badge, IconTile, Sheet } from '../../components/ui'
 import { useMe } from '../../lib/store'
 
 const ITEMS: NavItem[] = [
-  { to: '/app', label: 'Home', icon: House, end: true },
-  { to: '/app/schedule', label: 'Schedule', icon: CalendarDays },
-  { to: '/app/patients', label: 'Patients', icon: Users },
-  { to: '/app/tools', label: 'Tools', icon: LayoutGrid },
-  { to: '/app/groups', label: 'Group sessions', icon: UsersRound, mobile: false },
-  { to: '/app/invoices', label: 'Invoices', icon: ReceiptIndianRupee, mobile: false },
-  { to: '/app/learn', label: 'Learn', icon: GraduationCap, mobile: false },
-  { to: '/app/community', label: 'Community', icon: MessageSquare, mobile: false },
-  { to: '/app/profile', label: 'Profile', icon: User, mobile: false },
+  { to: '/physio-dashboard', label: 'Home', icon: House, end: true },
+  { to: '/physio-dashboard/schedule', label: 'Schedule', icon: CalendarDays },
+  { to: '/physio-dashboard/patients', label: 'Patients', icon: Users },
+  { to: '/physio-dashboard/tools', label: 'Tools', icon: LayoutGrid },
+  { to: '/physio-dashboard/groups', label: 'Group sessions', icon: UsersRound, mobile: false },
+  { to: '/physio-dashboard/invoices', label: 'Invoices', icon: ReceiptIndianRupee, mobile: false },
+  { to: '/physio-dashboard/learn', label: 'Learn', icon: GraduationCap, mobile: false },
+  { to: '/physio-dashboard/community', label: 'Community', icon: MessageSquare, mobile: false },
+  { to: '/physio-dashboard/profile', label: 'Profile', icon: User, mobile: false },
 ]
 const EXTRA: NavItem[] = [
-  { to: '/app/refer', label: 'Refer a physio', icon: Gift },
-  { to: '/app/partner', label: 'Partner with us', icon: Handshake },
+  { to: '/physio-dashboard/refer', label: 'Refer a physio', icon: Gift },
+  { to: '/physio-dashboard/partner', label: 'Partner with us', icon: Handshake },
 ]
 
 // Full-screen flows hide the phone tab bar.
 const FLOW = [
-  /^\/app\/plan\//,
-  /^\/app\/bookings\//,
-  /^\/app\/profile\/(clinic|edit|availability)/,
-  /^\/app\/patients\/new/,
-  /^\/app\/patients\/[^/]+\/consent/,
-  /^\/app\/consents\//,
-  /^\/app\/walk-in/,
-  /^\/app\/groups\/new/,
-  /^\/app\/invoices\/new/,
-  /^\/app\/learn\/.+/,
-  /^\/app\/refer/,
-  /^\/app\/partner/,
-  /^\/app\/notifications/,
-  /^\/app\/community\/.+/,
+  /^\/physio-dashboard\/plan\//,
+  /^\/physio-dashboard\/bookings\//,
+  /^\/physio-dashboard\/profile\/(clinic|edit|availability)/,
+  /^\/physio-dashboard\/patients\/new/,
+  /^\/physio-dashboard\/patients\/[^/]+\/consent/,
+  /^\/physio-dashboard\/consents\//,
+  /^\/physio-dashboard\/walk-in/,
+  /^\/physio-dashboard\/groups\/new/,
+  /^\/physio-dashboard\/invoices\/new/,
+  /^\/physio-dashboard\/learn\/.+/,
+  /^\/physio-dashboard\/refer/,
+  /^\/physio-dashboard\/partner/,
+  /^\/physio-dashboard\/notifications/,
+  /^\/physio-dashboard\/community\/.+/,
 ]
 
 export default function PhysioLayout() {
   const { physio, session } = useMe()
   if (!session) return <Navigate to="/welcome" replace />
-  if (!physio) return <Navigate to="/me" replace />
+  if (!physio) return <Navigate to="/consumer-dashboard" replace />
   return (
     <Shell
       items={ITEMS}
@@ -85,15 +85,15 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
       title: 'Care plan + treatment plan',
       badge: 'Recommended',
       sub: 'Exercises, diagnosis and advice, sent on WhatsApp',
-      on: () => go('/app/patients', { pick: 'plan' }),
+      on: () => go('/physio-dashboard/patients', { pick: 'plan' }),
     },
-    { icon: <ClipboardList size={20} />, title: 'Treatment plan only', sub: 'Diagnosis, advice and follow-up in one message', on: () => go('/app/patients', { pick: 'rx' }) },
-    { icon: <Footprints size={20} />, title: 'Walk-in', sub: 'Patient is at the clinic now, check them in', on: () => go('/app/walk-in') },
-    { icon: <CalendarDays size={20} />, title: 'New booking', sub: 'Pick a slot: patient gets a WhatsApp confirmation', on: () => go('/app/bookings/new') },
-    { icon: <UsersRound size={20} />, title: 'Group session', sub: 'Classes like back care or pre-natal, with seats', on: () => go('/app/groups/new') },
-    { icon: <ReceiptIndianRupee size={20} />, title: 'Invoice', sub: 'Bill a visit and send it on WhatsApp with UPI', on: () => go('/app/invoices/new') },
-    { icon: <FileSignature size={20} />, title: 'Consent form', sub: 'Patient signs in clinic or on their phone', on: () => go('/app/patients', { pick: 'consent' }) },
-    { icon: <UserPlus size={20} />, title: 'Add patient', sub: 'Name + mobile. Everything else can wait', on: () => go('/app/patients/new') },
+    { icon: <ClipboardList size={20} />, title: 'Treatment plan only', sub: 'Diagnosis, advice and follow-up in one message', on: () => go('/physio-dashboard/patients', { pick: 'rx' }) },
+    { icon: <Footprints size={20} />, title: 'Walk-in', sub: 'Patient is at the clinic now, check them in', on: () => go('/physio-dashboard/walk-in') },
+    { icon: <CalendarDays size={20} />, title: 'New booking', sub: 'Pick a slot: patient gets a WhatsApp confirmation', on: () => go('/physio-dashboard/bookings/new') },
+    { icon: <UsersRound size={20} />, title: 'Group session', sub: 'Classes like back care or pre-natal, with seats', on: () => go('/physio-dashboard/groups/new') },
+    { icon: <ReceiptIndianRupee size={20} />, title: 'Invoice', sub: 'Bill a visit and send it on WhatsApp with UPI', on: () => go('/physio-dashboard/invoices/new') },
+    { icon: <FileSignature size={20} />, title: 'Consent form', sub: 'Patient signs in clinic or on their phone', on: () => go('/physio-dashboard/patients', { pick: 'consent' }) },
+    { icon: <UserPlus size={20} />, title: 'Add patient', sub: 'Name + mobile. Everything else can wait', on: () => go('/physio-dashboard/patients/new') },
   ]
   return (
     <Sheet open={open} onClose={onClose} title="Create">

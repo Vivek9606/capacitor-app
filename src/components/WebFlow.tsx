@@ -40,7 +40,7 @@ export function WebFlow({
     try { u = new URL(url) } catch { return }
     if (!/^https?:$/.test(u.protocol)) return
     const product = u.hostname === 'shop.betterhood.in' ? u.pathname.match(/\/products\/([\w-]+)\/?$/) : null
-    if (product && isPatient) nav(`/me/shop/${product[1]}`)
+    if (product && isPatient) nav(`/consumer-dashboard/shop/${product[1]}`)
     else void openInApp(u.href)
   }
   const latest = useRef({ context, onMessage, openLink })

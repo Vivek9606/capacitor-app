@@ -22,7 +22,7 @@ export default function GroupDetail() {
   const [editing, setEditing] = useState(false)
   const g = db.groups.find((x) => x.id === id)
   if (!physio) return null
-  if (!g) return <Navigate to="/app/groups" replace />
+  if (!g) return <Navigate to="/physio-dashboard/groups" replace />
 
   const active = g.participants.filter((p) => p.status !== 'cancelled')
   const n = active.length
@@ -116,7 +116,7 @@ export default function GroupDetail() {
                 {series.map((s) => (
                   <button
                     key={s.id}
-                    onClick={() => nav(`/app/groups/${s.id}`, { replace: true })}
+                    onClick={() => nav(`/physio-dashboard/groups/${s.id}`, { replace: true })}
                     className={cx(
                       'rounded-full border px-3 py-1 text-[13px] cursor-pointer',
                       s.id === g.id ? 'border-brand bg-brand-soft font-semibold text-brand' : 'border-line',
@@ -179,7 +179,7 @@ export default function GroupDetail() {
                             Invoiced
                           </Badge>
                         ) : (
-                          <Button size="sm" variant="secondary" onClick={() => nav('/app/invoices/new', { state: { groupId: g.id, participantId: p.id } })}>
+                          <Button size="sm" variant="secondary" onClick={() => nav('/physio-dashboard/invoices/new', { state: { groupId: g.id, participantId: p.id } })}>
                             <ReceiptIndianRupee size={14} /> Invoice
                           </Button>
                         ))}

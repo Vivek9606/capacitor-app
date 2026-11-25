@@ -1,4 +1,4 @@
-import { BadgeCheck, Briefcase, Building2, CalendarCheck, Clock, House, MapPin, Share2, UsersRound } from 'lucide-react'
+import { BadgeCheck, Briefcase, Building2, CalendarCheck, Clock, House, MapPin, Share2, UsersRound, Video } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { openGroups } from '../../components/BookingFlow'
 import { Logo } from '../../components/Logo'
@@ -102,6 +102,17 @@ export default function PublicProfile() {
                 </div>
               </Card>
             )}
+            {physio.consult.video?.enabled && (
+              <Card className="flex items-center gap-3 p-4">
+                <Video size={20} className="text-brand" />
+                <div>
+                  <div className="font-semibold">Video consult</div>
+                  <div className="text-[13px] text-muted">
+                    ₹{physio.consult.video.fee} · {physio.consult.video.minutes} min · from anywhere
+                  </div>
+                </div>
+              </Card>
+            )}
           </div>
 
           {physio.clinic && (
@@ -174,6 +185,13 @@ export default function PublicProfile() {
                   <House size={18} className="shrink-0 text-brand" />
                   <span className="flex-1 text-[15px] font-medium">Home visit</span>
                   <span className="text-[13px] text-muted">{inr(physio.consult.homeVisit.fee)}</span>
+                </button>
+              )}
+              {physio.consult.video?.enabled && (
+                <button onClick={() => nav(`${bookPath}?visit=teleconsult`)} className="flex items-center gap-3 rounded-xl border border-line px-3.5 py-3 text-left hover:border-brand cursor-pointer">
+                  <Video size={18} className="shrink-0 text-brand" />
+                  <span className="flex-1 text-[15px] font-medium">Video consult</span>
+                  <span className="text-[13px] text-muted">{inr(physio.consult.video.fee)}</span>
                 </button>
               )}
             </div>

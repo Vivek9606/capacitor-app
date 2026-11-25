@@ -1,6 +1,6 @@
 import { AlertCircle, Check } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { takeHandoff } from './lib/handoff'
 import { initNative, listenDeepLinks, registerToast, toast } from './lib/platform'
 import { StoreProvider, useMe, useStore } from './lib/store'
@@ -74,19 +74,29 @@ import DirectoryListing from './screens/physio/profile/DirectoryListing'
 // Loaded only when someone joins a call (keeps the video SDK out of the main bundle).
 const Call = lazy(() => import('./screens/call/Call'))
 
+/** Old route names (/app = physio, /me = consumer) still arrive from website links, bookmarks and deep links. */
+function renameLegacyPath(path: string) {
+  return path.replace(/^\/app(?=[/?#]|$)/, '/physio-dashboard').replace(/^\/me(?=[/?#]|$)/, '/consumer-dashboard')
+}
+
+function LegacyRedirect() {
+  const { pathname, search, hash } = useLocation()
+  return <Navigate to={renameLegacyPath(pathname) + search + hash} replace />
+}
+
 function RootRedirect() {
   const { session, physio, patient } = useMe()
   if (!session) return <Navigate to="/welcome" replace />
-  if (physio) return <Navigate to="/app" replace />
-  if (patient) return <Navigate to="/me" replace />
+  if (physio) return <Navigate to="/physio-dashboard" replace />
+  if (patient) return <Navigate to="/consumer-dashboard" replace />
   return <Navigate to="/welcome" replace />
 }
 
 /** Logged-in users skip the welcome/login screens. */
 function GuestOnly({ children }: { children: React.ReactElement }) {
   const { physio, patient } = useMe()
-  if (physio) return <Navigate to="/app" replace />
-  if (patient) return <Navigate to="/me" replace />
+  if (physio) return <Navigate to="/physio-dashboard" replace />
+  if (patient) return <Navigate to="/consumer-dashboard" replace />
   return children
 }
 
@@ -94,7 +104,7 @@ function NativeBridge() {
   const nav = useNavigate()
   useEffect(() => {
     initNative()
-    listenDeepLinks((path) => nav(path))
+    listenDeepLinks((path) => nav(renameLegacyPath(path)))
   }, [nav])
   return null
 }
@@ -111,9 +121,9 @@ function HandoffGate() {
     store
       .redeemHandoff(h.code)
       .then((role) => {
-        const want = h.path && !/^\/(welcome|login)?\/?$/.test(h.path) ? h.path : '/'
+        const want = h.path && !/^\/(welcome|login)?\/?$/.test(h.path) ? renameLegacyPath(h.path) : '/'
         // a physio link for a consumer account (or the other way round) lands on their own home
-        nav(role === 'physio' ? (want.startsWith('/app') ? want : '/app') : want.startsWith('/me') ? want : '/me', { replace: true })
+        nav(role === 'physio' ? (want.startsWith('/physio-dashboard') ? want : '/physio-dashboard') : want.startsWith('/consumer-dashboard') ? want : '/consumer-dashboard', { replace: true })
       })
       .catch(() => toast('That sign-in link has expired. Please log in with your number.'))
       .finally(() => setBusy(false))
@@ -193,7 +203,7 @@ export default function App() {
           <Route path="/call/:id" element={<Suspense fallback={<div className="fixed inset-0 bg-scrim" />}><Call /></Suspense>} />
 
           {/* Physio */}
-          <Route path="/app" element={<PhysioLayout />}>
+          <Route path="/physio-dashboard" element={<PhysioLayout />}>
             <Route index element={<Home />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="patients" element={<Patients />} />
@@ -232,7 +242,7 @@ export default function App() {
           </Route>
 
           {/* Patient */}
-          <Route path="/me" element={<PatientLayout />}>
+          <Route path="/consumer-dashboard" element={<PatientLayout />}>
             <Route index element={<Today />} />
             <Route path="session" element={<Session />} />
             <Route path="plan" element={<MyPlan />} />
@@ -248,13 +258,17 @@ export default function App() {
             <Route path="learn" element={<LearnHub />} />
             <Route path="tools" element={<Tools />} />
             <Route path="diagnostics" element={<Diagnostics />} />
-            <Route path="explore" element={<Navigate to="/me/shop" replace />} />
+            <Route path="explore" element={<Navigate to="/consumer-dashboard/shop" replace />} />
             <Route path="assess" element={<AssessPick />} />
             <Route path="assess/result/:id" element={<AssessResult />} />
             <Route path="assess/:slug" element={<AssessRun />} />
             <Route path="consents/:id" element={<ConsentSign />} />
             <Route path="invoices/:id" element={<PatientInvoice />} />
           </Route>
+
+          {/* Old route names */}
+          <Route path="/app/*" element={<LegacyRedirect />} />
+          <Route path="/me/*" element={<LegacyRedirect />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

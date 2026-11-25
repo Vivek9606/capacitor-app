@@ -19,7 +19,7 @@ export default function AssessResult() {
   const fresh = !!(useLocation().state as { fresh?: boolean } | null)?.fresh
   const a = store.db.assessments.find((x) => x.id === id)
   if (!patient) return null
-  if (!a) return <Navigate to="/me" replace />
+  if (!a) return <Navigate to="/consumer-dashboard" replace />
   const physio = patient.physioId ? store.db.physios.find((p) => p.id === patient.physioId) : undefined
   const totals = Object.entries(a.totals)
   const max = Math.max(1, ...totals.map(([, v]) => v))
@@ -27,7 +27,7 @@ export default function AssessResult() {
 
   return (
     <Page wide>
-      <PageHeader title={fresh ? 'Your result' : a.title} onBack={() => nav('/me')} />
+      <PageHeader title={fresh ? 'Your result' : a.title} onBack={() => nav('/consumer-dashboard')} />
       {fresh && (
         <div className="anim-pop mb-4 flex items-center gap-3 rounded-2xl bg-ok-soft px-4 py-3 text-[14px] font-semibold text-ok">
           <PartyPopper size={18} /> Your health check-in is complete, {firstName(patient.name)}! Here’s what your answers show.
@@ -94,7 +94,7 @@ export default function AssessResult() {
                   <ProductCard key={p.handle} p={p} />
                 ))}
               </div>
-              <Button variant="soft" block size="md" onClick={() => nav('/me/explore')}>
+              <Button variant="soft" block size="md" onClick={() => nav('/consumer-dashboard/explore')}>
                 Browse the full store
               </Button>
             </>

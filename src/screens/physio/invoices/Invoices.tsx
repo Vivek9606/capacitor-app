@@ -36,7 +36,7 @@ export default function Invoices() {
             <IconButton aria-label="Billing settings" onClick={() => setSettings(true)}>
               <Settings2 size={18} />
             </IconButton>
-            <Button size="sm" onClick={() => nav('/app/invoices/new')}>
+            <Button size="sm" onClick={() => nav('/physio-dashboard/invoices/new')}>
               <Plus size={16} /> New
             </Button>
           </div>
@@ -65,13 +65,13 @@ export default function Invoices() {
             icon={<ReceiptIndianRupee size={20} />}
             title={mine.length ? 'Nothing here' : 'No invoices yet'}
             body="Bill a visit right after it ends and send it on WhatsApp with your UPI ID."
-            action={!mine.length && <Button size="md" onClick={() => nav('/app/invoices/new')}>Create invoice</Button>}
+            action={!mine.length && <Button size="md" onClick={() => nav('/physio-dashboard/invoices/new')}>Create invoice</Button>}
           />
         </Card>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {list.map((i) => (
-            <Card key={i.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/app/invoices/${i.id}`)}>
+            <Card key={i.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/physio-dashboard/invoices/${i.id}`)}>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[15px] font-semibold">{i.patientName}</div>
                 <div className="truncate text-[13px] text-muted">

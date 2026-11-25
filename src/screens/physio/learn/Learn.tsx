@@ -35,7 +35,7 @@ export default function Learn() {
             </div>
             {p.next && (
               <button
-                onClick={() => nav(`/app/learn/${p.next!.id}`)}
+                onClick={() => nav(`/physio-dashboard/learn/${p.next!.id}`)}
                 className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[14px] font-semibold text-brand cursor-pointer"
               >
                 <PlayCircle size={17} /> {p.done ? 'Continue' : 'Start'}: {p.next.title}
@@ -61,7 +61,7 @@ export default function Learn() {
                   {m.lessons.map((l) => {
                     const isDone = done.includes(l.id)
                     return (
-                      <button key={l.id} onClick={() => nav(`/app/learn/${l.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-bg cursor-pointer">
+                      <button key={l.id} onClick={() => nav(`/physio-dashboard/learn/${l.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-bg cursor-pointer">
                         <span className={cx('grid h-7 w-7 shrink-0 place-items-center rounded-full', isDone ? 'bg-ok text-white' : 'border-2 border-line text-muted')}>
                           {isDone ? <Check size={14} strokeWidth={3} /> : <PlayCircle size={14} />}
                         </span>
@@ -98,7 +98,7 @@ export default function Learn() {
             <Progress value={p.pct} className="mt-4" />
             <div className="mt-1.5 text-[12px] text-muted">{p.pct}% complete</div>
             {p.next && (
-              <Button block size="md" className="mt-4" onClick={() => nav(`/app/learn/${p.next!.id}`)}>
+              <Button block size="md" className="mt-4" onClick={() => nav(`/physio-dashboard/learn/${p.next!.id}`)}>
                 {p.done ? 'Continue' : 'Start the course'}
               </Button>
             )}

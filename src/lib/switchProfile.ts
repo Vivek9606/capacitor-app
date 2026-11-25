@@ -18,7 +18,7 @@ export function useSwitchProfile() {
         return
       }
       toast(to === 'physio' ? 'Switched to your physio profile' : 'Switched to your consumer profile')
-      nav(to === 'physio' ? '/app' : '/me', { replace: true })
+      nav(to === 'physio' ? '/physio-dashboard' : '/consumer-dashboard', { replace: true })
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Couldn’t switch profiles. Try again.')
     }

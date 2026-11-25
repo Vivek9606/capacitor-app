@@ -30,7 +30,7 @@ export const ASSESSMENTS: AssessmentInfo[] = [
 
 export const assessmentBySlug = (slug: string) => ASSESSMENTS.find((a) => a.slug === slug)
 
-/** The website's result page for a pain result (opened in the app via /me/web). */
+/** The website's result page for a pain result (opened in the app via /consumer-dashboard/web). */
 export const resultPath = (result: string) => `/${result}/`
 export const resultUrl = (result: string) => site(resultPath(result))
 

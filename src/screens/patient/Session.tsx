@@ -30,7 +30,7 @@ export default function Session() {
   const [done, setDone] = useState(false)
   if (!patient) return null
   const v = patientView(store.db, patient)
-  if (!v.plan) return <Navigate to="/me" replace />
+  if (!v.plan) return <Navigate to="/consumer-dashboard" replace />
   const plan = v.plan
   const doc = `Dr. ${firstName(v.physio.name)}`
   const total = plan.items.length
@@ -60,7 +60,7 @@ export default function Session() {
             </div>
           </div>
         )}
-        <Button block className="mt-8 max-w-[320px]" onClick={() => nav('/me', { replace: true })}>
+        <Button block className="mt-8 max-w-[320px]" onClick={() => nav('/consumer-dashboard', { replace: true })}>
           Back to today
         </Button>
       </div>
@@ -73,7 +73,7 @@ export default function Session() {
   return (
     <div className="mx-auto flex min-h-full max-w-[720px] flex-col px-5 pb-6 pt-4 safe-top">
       <div className="flex items-center gap-3">
-        <IconButton aria-label={step === 0 ? 'Close' : 'Previous'} onClick={() => (step === 0 ? nav('/me') : setStep(step - 1))}>
+        <IconButton aria-label={step === 0 ? 'Close' : 'Previous'} onClick={() => (step === 0 ? nav('/consumer-dashboard') : setStep(step - 1))}>
           {step === 0 ? <X size={18} /> : <ChevronLeft size={20} />}
         </IconButton>
         <div className="flex-1">

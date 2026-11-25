@@ -66,6 +66,8 @@ export interface Physio {
   consult: {
     inClinic: { enabled: boolean; fee: number; minutes: number }
     homeVisit: { enabled: boolean; fee: number; radiusKm: number; minutes?: number }
+    /** Video consults in the Betterhood app. Off until the physio turns it on (older profiles don't have it). */
+    video?: { enabled: boolean; fee: number; minutes: number }
   }
   workingDays: string[] // 'Mon'..'Sun' (derived from availability when set)
   hours?: { start: string; end: string }

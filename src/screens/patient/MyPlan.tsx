@@ -85,7 +85,7 @@ export default function MyPlan() {
                 <SectionTitle>Treatment plans</SectionTitle>
                 <div className="flex flex-col gap-2.5">
                   {v.rxPlans.map((p) => (
-                    <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/me/rx/${p.id}`)}>
+                    <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/consumer-dashboard/rx/${p.id}`)}>
                       <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent">
                         <FileText size={19} />
                       </div>

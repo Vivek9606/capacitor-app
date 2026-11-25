@@ -4,7 +4,7 @@ import { dayShort, fmtDay, fmtTime, relDay, today } from '../lib/dates'
 import { inr } from '../lib/invoices'
 import { firstName } from '../lib/logic'
 import { modesOf, placeLabel, practicesOf, type PracticePlace } from '../lib/practice'
-import { fromMin, toMin, visitFee, visitMinutes, type Calendar } from '../lib/slots'
+import { fromMin, offersVideo, toMin, visitFee, visitMinutes, type Calendar } from '../lib/slots'
 import type { GroupSession, Physio, VisitType } from '../lib/types'
 import { SlotPicker } from './SlotPicker'
 import { Avatar, Button, Card, cx, Input, TextArea } from './ui'
@@ -43,7 +43,7 @@ const seatsLeft = (g: GroupSession) => g.capacity - g.participants.filter((x) =>
 
 /**
  * Calendly-style booking: pick what to book → day & time → details → done.
- * Public booking page (/dr/:slug/book) and the patient app (/me/book).
+ * Public booking page (/dr/:slug/book) and the patient app (/consumer-dashboard/book).
  */
 export function BookingFlow({
   physio,
@@ -59,8 +59,7 @@ export function BookingFlow({
   cal: Calendar
   known?: { name: string; phone: string }
   initialGroupId?: string
-  /** Opens with this visit type chosen. 'teleconsult' also adds the video option, which physios don't list
-   *  themselves yet (the pain chat sends people here for a video consult). */
+  /** Opens with this visit type chosen (if the physio offers it). */
   initialVisit?: VisitType
   onBook: (v: BookingSubmit) => Promise<void> | void
   onJoinGroup: (groupId: string, who: { name: string; phone: string }) => Promise<void> | void
@@ -68,8 +67,6 @@ export function BookingFlow({
 }) {
   const groups = openGroups(physio, cal.groups)
   const types: { visitType: VisitType; title: string; icon: React.ReactNode; sub: string; place?: PracticePlace }[] = []
-  if (initialVisit === 'teleconsult')
-    types.push({ visitType: 'teleconsult', title: 'Video consultation', icon: <Video size={19} />, sub: 'Video call in the Betterhood app' })
   const modes = modesOf(physio)
   const places = practicesOf(physio)
   if (physio.consult.inClinic.enabled) {
@@ -98,6 +95,10 @@ export function BookingFlow({
       icon: <House size={19} />,
       sub: physio.practice?.serviceArea ? `Covers ${physio.practice.serviceArea}` : `Within ${physio.consult.homeVisit.radiusKm} km`,
     })
+
+  // Video consults: only for physios who offer them (Profile → Practice setup).
+  if (offersVideo(physio))
+    types.push({ visitType: 'teleconsult', title: 'Video consultation', icon: <Video size={19} />, sub: 'From anywhere, in the Betterhood app' })
 
   const initial: Choice | undefined = initialGroupId && groups.some((g) => g.id === initialGroupId) ? { kind: 'group', groupId: initialGroupId } : initialVisit && types.some((t) => t.visitType === initialVisit && !t.place) ? { kind: 'visit', visitType: initialVisit } : types.length === 1 && !groups.length ? { kind: 'visit', visitType: types[0].visitType } : undefined
   const [choice, setChoice] = useState<Choice | undefined>(initial)

@@ -17,12 +17,12 @@ export default function NewConsent() {
   const nav = useNavigate()
   const st = (useLocation().state ?? {}) as { formId?: string; returnToFlow?: boolean }
   // Opened from the plan flow: go back to the step the physio was on, with everything they typed.
-  const done = () => (st.returnToFlow ? nav(-1) : nav(`/app/patients/${id}`, { replace: true, state: { tab: 'Consents' } }))
+  const done = () => (st.returnToFlow ? nav(-1) : nav(`/physio-dashboard/patients/${id}`, { replace: true, state: { tab: 'Consents' } }))
   const [formId, setFormId] = useState<string | undefined>(st.formId)
   const [mode, setMode] = useState<'choose' | 'sign'>('choose')
   const patient = store.db.patients.find((p) => p.id === id)
   if (!physio) return null
-  if (!patient) return <Navigate to="/app/patients" replace />
+  if (!patient) return <Navigate to="/physio-dashboard/patients" replace />
   const mine = store.db.consents.filter((c) => c.patientId === patient.id)
   const form = formId ? formById(formId) : undefined
   const name = firstName(patient.name)

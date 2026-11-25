@@ -115,7 +115,7 @@ export default function NewGroup() {
               repeat,
             )
             toast(repeat > 1 ? `${repeat} weekly sessions created` : 'Group session created')
-            nav(`/app/groups/${id}`, { replace: true })
+            nav(`/physio-dashboard/groups/${id}`, { replace: true })
           }}
         >
           {repeat > 1 ? `Create ${repeat} sessions` : 'Create session'}

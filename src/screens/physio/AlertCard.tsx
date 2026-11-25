@@ -43,7 +43,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
               </button>
               <button
                 className="h-9 rounded-full border border-line bg-surface px-4 text-[13px] font-semibold text-ink cursor-pointer"
-                onClick={() => nav('/app/bookings/new', { state: { rescheduleId: alert.bookingId } })}
+                onClick={() => nav('/physio-dashboard/bookings/new', { state: { rescheduleId: alert.bookingId } })}
               >
                 Suggest another time
               </button>
@@ -63,7 +63,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
             <div className="mt-0.5 text-[13px] text-muted">{alert.sub}</div>
             <button
               className={cx('mt-1.5 text-[13px] font-semibold cursor-pointer', 'text-wa')}
-              onClick={() => nav('/app/bookings/new', { state: { rescheduleId: alert.bookingId } })}
+              onClick={() => nav('/physio-dashboard/bookings/new', { state: { rescheduleId: alert.bookingId } })}
             >
               Pick a new time →
             </button>
@@ -71,7 +71,7 @@ export function AlertCard({ alert }: { alert: Alert }) {
         ) : alert.kind === 'message' ? (
           <button
             className="mt-1 text-[13px] font-semibold text-wa cursor-pointer"
-            onClick={() => nav(`/app/patients/${alert.patientId}`, { state: { tab: 'Messages' } })}
+            onClick={() => nav(`/physio-dashboard/patients/${alert.patientId}`, { state: { tab: 'Messages' } })}
           >
             Reply →
           </button>

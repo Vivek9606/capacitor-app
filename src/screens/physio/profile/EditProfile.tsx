@@ -36,7 +36,7 @@ export default function EditProfile() {
       ...(submitVerification ? { verification: 'pending' as const } : {}),
     })
     toast(submitVerification ? 'Saved · submitted for verification' : 'Profile saved')
-    nav('/app/profile', { replace: true })
+    nav('/physio-dashboard/profile', { replace: true })
   }
 
   return (
@@ -56,7 +56,7 @@ export default function EditProfile() {
               ))}
             </div>
           </div>
-          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/app/profile/clinic')}>
+          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/physio-dashboard/profile/clinic')}>
             <div className="min-w-0 flex-1">
               <div className="text-[15px] font-semibold">How you practise</div>
               <div className="truncate text-[13px] text-muted">{modeLabels(modesOf(physio)).join(' · ')}</div>
