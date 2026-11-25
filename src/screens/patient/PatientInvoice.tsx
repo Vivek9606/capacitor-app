@@ -18,7 +18,7 @@ export default function PatientInvoice() {
   const docRef = useRef<HTMLDivElement>(null)
   const inv = db.invoices.find((i) => i.id === id && i.patientId === patient?.id)
   if (!patient) return null
-  if (!inv) return <Navigate to="/me/appointments" replace />
+  if (!inv) return <Navigate to="/consumer-dashboard/appointments" replace />
   const physio = db.physios.find((p) => p.id === inv.physioId)!
   const upi = inv.status === 'unpaid' ? upiLink(physio, inv) : undefined
 

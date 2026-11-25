@@ -15,7 +15,7 @@ export default function Confirmed() {
   const { physio } = useMe()
   const nav = useNavigate()
   const b = db.bookings.find((x) => x.id === id)
-  if (!b || !physio) return <Navigate to="/app/schedule" replace />
+  if (!b || !physio) return <Navigate to="/physio-dashboard/schedule" replace />
   const name = firstName(b.patientName)
   const where = b.visitType === 'home_visit' ? 'Home visit' : b.visitType === 'teleconsult' ? 'Video call in the Betterhood app' : visitPlace(physio) ?? physio.name
   const remindAt = (() => {
@@ -26,7 +26,7 @@ export default function Confirmed() {
 
   return (
     <Page>
-      <PageHeader title="Booking confirmed" close onBack={() => nav('/app/schedule', { replace: true })} />
+      <PageHeader title="Booking confirmed" close onBack={() => nav('/physio-dashboard/schedule', { replace: true })} />
       <div className="flex items-center gap-3">
         <div className="anim-pop grid h-12 w-12 place-items-center rounded-full bg-ok text-white">
           <Check size={26} strokeWidth={3} />
@@ -67,7 +67,7 @@ export default function Confirmed() {
       </div>
       <p className="mt-4 text-[12px] text-faint">Demo: messages aren’t really sent. Log in as the patient to tap Confirm or Reschedule.</p>
       <Footer>
-        <Button block onClick={() => nav('/app/schedule', { replace: true })}>
+        <Button block onClick={() => nav('/physio-dashboard/schedule', { replace: true })}>
           Done
         </Button>
       </Footer>

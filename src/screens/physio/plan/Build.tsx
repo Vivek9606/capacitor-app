@@ -42,9 +42,9 @@ export default function Build() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  if (!draft) return <Navigate to="/app/patients" replace />
+  if (!draft) return <Navigate to="/physio-dashboard/patients" replace />
   const patient = db.patients.find((p) => p.id === draft.patientId)
-  if (!patient) return <Navigate to="/app/patients" replace />
+  if (!patient) return <Navigate to="/physio-dashboard/patients" replace />
 
   const exById = (id: string) => db.exercises.find((e) => e.id === id)
   const inPlan = new Set(draft.items.map((i) => i.exerciseId))
@@ -162,7 +162,7 @@ export default function Build() {
       <PageHeader
         title={draft.editPlanId ? 'Adjust care plan' : 'Build care plan'}
         subtitle={draft.editPlanId ? `For ${firstName(patient.name)} · progress is kept` : `For ${firstName(patient.name)} · ${stepLabel(draft, 'build')}`}
-        onBack={() => (draft.editPlanId ? nav(-1) : nav('/app/plan/rx', { replace: true }))}
+        onBack={() => (draft.editPlanId ? nav(-1) : nav('/physio-dashboard/plan/rx', { replace: true }))}
         right={
           <button className="text-[14px] font-semibold text-brand cursor-pointer" onClick={() => setTplOpen(true)}>
             Templates
@@ -187,7 +187,7 @@ export default function Build() {
       </div>
 
       <Footer className="lg:mt-6 lg:flex lg:justify-end">
-        <Button block className="lg:w-[400px]" disabled={draft.items.length === 0} onClick={() => nav('/app/plan/preview', { replace: true })}>
+        <Button block className="lg:w-[400px]" disabled={draft.items.length === 0} onClick={() => nav('/physio-dashboard/plan/preview', { replace: true })}>
           {draft.editPlanId ? 'Next: review changes' : `Preview what ${firstName(patient.name)} sees`}
         </Button>
       </Footer>

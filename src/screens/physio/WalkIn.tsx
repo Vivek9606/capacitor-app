@@ -43,13 +43,13 @@ export default function WalkIn() {
     const pname = p?.name ?? name
     const needsConsent = !hasConsent(db.consents, done.patientId, 'general')
     const next = [
-      ...(needsConsent ? [{ icon: <FileSignature size={18} />, t: 'Take treatment consent', s: 'Patient signs on your phone', on: () => nav(`/app/patients/${done.patientId}/consent`, { replace: true, state: { formId: 'general' } }) }] : []),
+      ...(needsConsent ? [{ icon: <FileSignature size={18} />, t: 'Take treatment consent', s: 'Patient signs on your phone', on: () => nav(`/physio-dashboard/patients/${done.patientId}/consent`, { replace: true, state: { formId: 'general' } }) }] : []),
       { icon: <Activity size={18} />, t: 'Care plan + treatment plan', s: 'Send exercises after the session', on: () => startPlan(done.patientId, 'plan') },
-      { icon: <ReceiptIndianRupee size={18} />, t: 'Create invoice', s: `${physio.consult.inClinic.fee ? `₹${physio.consult.inClinic.fee}` : 'Consult fee'} · send on WhatsApp`, on: () => nav('/app/invoices/new', { replace: true, state: { bookingId: done.bookingId } }) },
+      { icon: <ReceiptIndianRupee size={18} />, t: 'Create invoice', s: `${physio.consult.inClinic.fee ? `₹${physio.consult.inClinic.fee}` : 'Consult fee'} · send on WhatsApp`, on: () => nav('/physio-dashboard/invoices/new', { replace: true, state: { bookingId: done.bookingId } }) },
     ]
     return (
       <Page>
-        <PageHeader title="Checked in" close onBack={() => nav('/app', { replace: true })} />
+        <PageHeader title="Checked in" close onBack={() => nav('/physio-dashboard', { replace: true })} />
         <div className="flex items-center gap-3">
           <div className="anim-pop grid h-12 w-12 place-items-center rounded-full bg-ok text-white">
             <Check size={26} strokeWidth={3} />
@@ -73,7 +73,7 @@ export default function WalkIn() {
           ))}
         </div>
         <Footer>
-          <Button block variant="secondary" onClick={() => nav('/app', { replace: true })}>
+          <Button block variant="secondary" onClick={() => nav('/physio-dashboard', { replace: true })}>
             Back to today
           </Button>
         </Footer>

@@ -22,7 +22,7 @@ export default function InvoiceView() {
   const docRef = useRef<HTMLDivElement>(null)
   const inv = store.db.invoices.find((x) => x.id === id)
   if (!physio) return null
-  if (!inv) return <Navigate to="/app/invoices" replace />
+  if (!inv) return <Navigate to="/physio-dashboard/invoices" replace />
 
   const fileName = `${inv.number}.pdf`
   const title = `Invoice ${inv.number}`

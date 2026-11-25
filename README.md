@@ -47,9 +47,9 @@ The website ([betterhood-website-revamp](../../betterhood-website-revamp)) owns 
 
 | Flow | Website page | In the app | What the app does |
 |---|---|---|---|
-| Assessments (all 9: pain, health level 2, longevity) | `/assessment-*/` | `/me/assess/:slug` | Sends the patient's known details; receives the result and saves it to `POST /patient/assessments` (pain results suggest a physio) |
+| Assessments (all 9: pain, health level 2, longevity) | `/assessment-*/` | `/consumer-dashboard/assess/:slug` | Sends the patient's known details; receives the result and saves it to `POST /patient/assessments` (pain results suggest a physio) |
 | Assessment result pages | `/result-*/` | `/web?p=/result-…/` | Shown as is |
-| Physio directory listing | `/physio-directory/join/` | Profile → betterhood.in directory → `/app/profile/directory` | Sends the signed-in session, so there's no OTP; shows the listing URL and status |
+| Physio directory listing | `/physio-directory/join/` | Profile → betterhood.in directory → `/physio-dashboard/profile/directory` | Sends the signed-in session, so there's no OTP; shows the listing URL and status |
 
 The page runs in embed mode (`?embed=app&origin=…`): no site header/footer, and it talks to the app over `postMessage` (`bh:ready`, `bh:context`, `bh:assessment-result`, `bh:ack`, `bh:directory-published`). The app only accepts messages from its own frame at `VITE_WEBSITE_URL`'s origin. The website must allow being framed, which GitHub Pages does. If it moves to a host that sends `X-Frame-Options` or a CSP `frame-ancestors` rule, allow `capacitor://localhost`, `https://localhost` and the app's web origin.
 

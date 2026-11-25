@@ -26,7 +26,7 @@ export default function Groups() {
         title="Group sessions"
         subtitle="Classes with several patients at once"
         right={
-          <Button size="sm" onClick={() => nav('/app/groups/new')}>
+          <Button size="sm" onClick={() => nav('/physio-dashboard/groups/new')}>
             <Plus size={16} /> New
           </Button>
         }
@@ -37,7 +37,7 @@ export default function Groups() {
             icon={<UsersRound size={20} />}
             title="No group sessions yet"
             body="Run a back-care, knee or pre-natal class for 6–10 people. Patients can join from your booking page."
-            action={<Button size="md" onClick={() => nav('/app/groups/new')}>Create a group session</Button>}
+            action={<Button size="md" onClick={() => nav('/physio-dashboard/groups/new')}>Create a group session</Button>}
           />
         </Card>
       ) : (
@@ -46,7 +46,7 @@ export default function Groups() {
           {upcoming.length === 0 && <p className="text-[14px] text-muted">Nothing scheduled.</p>}
           <div className="grid gap-3 lg:grid-cols-2">
             {upcoming.map((g) => (
-              <GroupCard key={g.id} g={g} onClick={() => nav(`/app/groups/${g.id}`)} />
+              <GroupCard key={g.id} g={g} onClick={() => nav(`/physio-dashboard/groups/${g.id}`)} />
             ))}
           </div>
           {past.length > 0 && (
@@ -54,7 +54,7 @@ export default function Groups() {
               <SectionTitle>Past & cancelled</SectionTitle>
               <div className="grid gap-3 lg:grid-cols-2">
                 {past.map((g) => (
-                  <GroupCard key={g.id} g={g} onClick={() => nav(`/app/groups/${g.id}`)} />
+                  <GroupCard key={g.id} g={g} onClick={() => nav(`/physio-dashboard/groups/${g.id}`)} />
                 ))}
               </div>
             </>

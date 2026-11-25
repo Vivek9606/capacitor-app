@@ -43,7 +43,7 @@ const seatsLeft = (g: GroupSession) => g.capacity - g.participants.filter((x) =>
 
 /**
  * Calendly-style booking: pick what to book → day & time → details → done.
- * Public booking page (/dr/:slug/book) and the patient app (/me/book).
+ * Public booking page (/dr/:slug/book) and the patient app (/consumer-dashboard/book).
  */
 export function BookingFlow({
   physio,

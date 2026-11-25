@@ -137,7 +137,7 @@ export default function Call() {
   const poor = remote?.connectionQuality === ConnectionQuality.Poor || local?.connectionQuality === ConnectionQuality.Poor
 
   if (!session) return <Navigate to="/welcome" replace />
-  const home = session.role === 'physio' ? '/app/schedule' : '/me/appointments'
+  const home = session.role === 'physio' ? '/physio-dashboard/schedule' : '/consumer-dashboard/appointments'
   const peer = grant ? (session.role === 'physio' ? firstName(grant.peerName) : grant.peerName) : ''
 
   const leave = () => {
@@ -224,7 +224,7 @@ export default function Call() {
                 </Button>
               )}
               {isPhysio && booking && (
-                <Button block variant="secondary" onClick={() => nav('/app/invoices/new', { replace: true, state: { bookingId: booking.id } })}>
+                <Button block variant="secondary" onClick={() => nav('/physio-dashboard/invoices/new', { replace: true, state: { bookingId: booking.id } })}>
                   Create invoice
                 </Button>
               )}

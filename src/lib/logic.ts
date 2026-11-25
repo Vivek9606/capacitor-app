@@ -100,13 +100,13 @@ export interface ProfileStep {
 
 export function profileSteps(p: Physio): ProfileStep[] {
   return [
-    { key: 'basic', label: 'Basic details', done: !!p.name, to: '/app/profile/edit', nudge: 'Add your name so patients recognise you.', cta: 'Add details' },
-    { key: 'focus', label: 'Focus areas', done: p.focusAreas.length > 0, to: '/app/profile/edit', nudge: 'Pick your focus areas.', cta: 'Pick areas' },
+    { key: 'basic', label: 'Basic details', done: !!p.name, to: '/physio-dashboard/profile/edit', nudge: 'Add your name so patients recognise you.', cta: 'Add details' },
+    { key: 'focus', label: 'Focus areas', done: p.focusAreas.length > 0, to: '/physio-dashboard/profile/edit', nudge: 'Pick your focus areas.', cta: 'Pick areas' },
     {
       key: 'qual',
       label: 'Qualifications & council reg. no.',
       done: !!p.qualification && !!p.councilRegNo,
-      to: '/app/profile/edit',
+      to: '/physio-dashboard/profile/edit',
       nudge: 'Add your qualification and council registration to get verified.',
       cta: 'Get verified',
     },
@@ -114,7 +114,7 @@ export function profileSteps(p: Physio): ProfileStep[] {
       key: 'clinic',
       label: practiceStepLabel(p),
       done: practiceLocationDone(p),
-      to: '/app/profile/clinic',
+      to: '/physio-dashboard/profile/clinic',
       nudge: modesOf(p).includes('clinic')
         ? 'Add your clinic location so patients near you can find and book you.'
         : 'Tell patients where you see them so they can book the right visit.',
@@ -124,7 +124,7 @@ export function profileSteps(p: Physio): ProfileStep[] {
       key: 'hours',
       label: 'Weekly hours & booking rules',
       done: !!p.availability || !!p.hours,
-      to: '/app/profile/availability',
+      to: '/physio-dashboard/profile/availability',
       nudge: 'Set your weekly hours so patients can book open slots from your booking page.',
       cta: 'Set hours',
     },

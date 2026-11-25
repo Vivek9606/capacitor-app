@@ -57,7 +57,7 @@ export default function Otp() {
       }
       else {
         store.recordConsents(whatsappIf(state?.updates))
-        nav(state?.next ?? (r.role === 'physio' ? '/app' : '/me'), { replace: true })
+        nav(state?.next ?? (r.role === 'physio' ? '/physio-dashboard' : '/consumer-dashboard'), { replace: true })
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That code didn’t match. Check WhatsApp and try again.')

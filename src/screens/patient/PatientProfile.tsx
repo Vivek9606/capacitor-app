@@ -59,7 +59,7 @@ export default function PatientProfile() {
           </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2 text-[13px] font-semibold">
-          <button onClick={() => nav('/me/ask')} className="flex flex-col items-center gap-1 rounded-xl bg-bg py-3 text-brand cursor-pointer">
+          <button onClick={() => nav('/consumer-dashboard/ask')} className="flex flex-col items-center gap-1 rounded-xl bg-bg py-3 text-brand cursor-pointer">
             <MessageSquare size={18} /> Ask
           </button>
           <button onClick={() => openWhatsApp(physio.phone, `Hi ${doc}, `)} className="flex flex-col items-center gap-1 rounded-xl bg-bg py-3 text-wa cursor-pointer">
@@ -72,9 +72,9 @@ export default function PatientProfile() {
       </Card>
       </>)}
 
-      <SectionTitle right={<button onClick={() => nav('/me/assess')} className="text-[13px] font-semibold text-brand cursor-pointer">New</button>}>My assessments</SectionTitle>
+      <SectionTitle right={<button onClick={() => nav('/consumer-dashboard/assess')} className="text-[13px] font-semibold text-brand cursor-pointer">New</button>}>My assessments</SectionTitle>
       {assessments.length === 0 ? (
-        <Card className="flex items-center gap-3 p-4" onClick={() => nav('/me/assess')}>
+        <Card className="flex items-center gap-3 p-4" onClick={() => nav('/consumer-dashboard/assess')}>
           <ClipboardCheck size={19} className="shrink-0 text-brand" />
           <span className="flex-1 text-[14px]">Take a 5-minute pain assessment</span>
           <ChevronRight size={17} className="text-muted" />
@@ -82,7 +82,7 @@ export default function PatientProfile() {
       ) : (
         <Card className="divide-y divide-line">
           {assessments.map((a) => (
-            <button key={a.id} onClick={() => nav(`/me/assess/result/${a.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+            <button key={a.id} onClick={() => nav(`/consumer-dashboard/assess/result/${a.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[15px] font-medium">{a.title}</div>
                 <div className="text-[13px] text-muted">{a.condition ?? 'Result'} · {fmtShort(a.createdAt.slice(0, 10))}</div>
@@ -98,7 +98,7 @@ export default function PatientProfile() {
           <SectionTitle>Consent forms</SectionTitle>
           <Card className="divide-y divide-line">
             {consents.map((c) => (
-              <button key={c.id} onClick={() => nav(`/me/consents/${c.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+              <button key={c.id} onClick={() => nav(`/consumer-dashboard/consents/${c.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[15px] font-medium">{c.title}</div>
                   <div className="text-[13px] text-muted">{fmtShort((c.signedAt ?? c.requestedAt).slice(0, 10))}</div>

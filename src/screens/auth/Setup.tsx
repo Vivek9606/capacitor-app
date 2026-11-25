@@ -67,7 +67,7 @@ export default function Setup() {
             setError('')
             try {
               await signupPhysio({ phone, name: name.trim(), email: email.trim(), focusAreas: focus, practiceSettings: modeLabels(modes), practice: { modes }, referredBy: readRef(), signupToken: st?.signupToken, updates: st?.updates })
-              nav('/app', { replace: true })
+              nav('/physio-dashboard', { replace: true })
             } catch (e) {
               setError(e instanceof Error ? e.message : 'Couldn’t create your account')
               setBusy(false)

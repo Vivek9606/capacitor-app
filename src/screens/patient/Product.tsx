@@ -59,7 +59,7 @@ export default function Product() {
 
   const variant = useMemo(() => data?.variants.find((v) => v.options.every((o, i) => o === picked[i])), [data, picked])
   const description = useMemo(() => (data?.description ? cleanHtml(data.description) : ''), [data])
-  if (!base && failed) return <Navigate to="/me/shop" replace />
+  if (!base && failed) return <Navigate to="/consumer-dashboard/shop" replace />
 
   const images = data?.images.length ? data.images.map((u) => (u.startsWith('//') ? `https:${u}` : u)) : base ? [base.image] : []
   const price = variant ? variant.price / 100 : base?.price ?? 0

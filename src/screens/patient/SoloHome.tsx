@@ -26,7 +26,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
           <div className="font-display text-[22px] font-bold tracking-[-0.01em] lg:text-[28px]">{firstName(patient.name)}</div>
         </div>
         <RefreshButton />
-        <button aria-label="Profile" onClick={() => nav('/me/profile')} className="rounded-full cursor-pointer lg:hidden">
+        <button aria-label="Profile" onClick={() => nav('/consumer-dashboard/profile')} className="rounded-full cursor-pointer lg:hidden">
           <Avatar name={patient.name} size={40} />
         </button>
       </header>
@@ -34,7 +34,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
       <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">
           <WebResultsClaim />
-          <Card className="overflow-hidden p-0" onClick={() => nav('/me/chat')}>
+          <Card className="overflow-hidden p-0" onClick={() => nav('/consumer-dashboard/chat')}>
             <div className="bg-hero p-4 text-white">
               <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wider text-white/75">
                 <MessageCircleHeart size={14} /> Pain assistant
@@ -47,9 +47,9 @@ export default function SoloHome({ patient }: { patient: Patient }) {
             </div>
           </Card>
           <MatchCard patient={patient} hasAssessment={!!latest} />
-          {latest && <ResultCard a={latest} onOpen={() => nav(`/me/assess/result/${latest.id}`)} />}
+          {latest && <ResultCard a={latest} onOpen={() => nav(`/consumer-dashboard/assess/result/${latest.id}`)} />}
           {latest && (
-            <button onClick={() => nav('/me/assess')} className="flex items-center justify-between rounded-2xl border border-dashed border-brand-line px-4 py-3 text-[14px] font-semibold text-brand cursor-pointer">
+            <button onClick={() => nav('/consumer-dashboard/assess')} className="flex items-center justify-between rounded-2xl border border-dashed border-brand-line px-4 py-3 text-[14px] font-semibold text-brand cursor-pointer">
               Take another assessment <ChevronRight size={16} />
             </button>
           )}
@@ -58,7 +58,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
         <div className="mt-2 flex flex-col gap-3 lg:mt-0">
           {picks.length > 0 && (
             <>
-              <SectionTitle right={<button onClick={() => nav('/me/shop')} className="text-[13px] font-semibold text-brand cursor-pointer">See all</button>}>
+              <SectionTitle right={<button onClick={() => nav('/consumer-dashboard/shop')} className="text-[13px] font-semibold text-brand cursor-pointer">See all</button>}>
                 Picked for your {latest!.area}
               </SectionTitle>
               <div className="grid grid-cols-2 gap-3">
@@ -69,7 +69,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
             </>
           )}
           <SectionTitle>Explore</SectionTitle>
-          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/me/diagnostics')}>
+          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/consumer-dashboard/diagnostics')}>
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
               <Stethoscope size={20} />
             </span>
@@ -79,7 +79,7 @@ export default function SoloHome({ patient }: { patient: Patient }) {
             </div>
             <ChevronRight size={18} className="text-faint" />
           </Card>
-          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/me/tools')}>
+          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/consumer-dashboard/tools')}>
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
               <LayoutGrid size={20} />
             </span>

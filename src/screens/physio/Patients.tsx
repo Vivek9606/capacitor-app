@@ -21,7 +21,7 @@ export function useStartPlan() {
   const nav = useNavigate()
   return (patientId: string, mode: 'plan' | 'rx', opts: { replace?: boolean } = {}) => {
     store.startDraft(patientId, mode === 'rx' ? { items: [], title: 'Treatment plan', mode: 'rx' } : { mode: 'plan' })
-    nav('/app/plan/consult', { replace: opts.replace })
+    nav('/physio-dashboard/plan/consult', { replace: opts.replace })
   }
 }
 
@@ -62,7 +62,7 @@ export default function Patients() {
                 <ClipboardCheck size={16} /> Invite
               </Button>
             )}
-            <Button size="sm" variant="soft" onClick={() => nav('/app/patients/new', { state: { pick } })}>
+            <Button size="sm" variant="soft" onClick={() => nav('/physio-dashboard/patients/new', { state: { pick } })}>
               <UserPlus size={16} /> Add
             </Button>
           </div>
@@ -90,7 +90,7 @@ export default function Patients() {
             icon={<Users size={20} />}
             title={q ? 'No matches' : 'No patients yet'}
             body={q ? 'Try a different name or number.' : 'Add a patient with just a name and mobile number.'}
-            action={!q && <Button size="md" onClick={() => nav('/app/patients/new', { state: { pick } })}>Add patient</Button>}
+            action={!q && <Button size="md" onClick={() => nav('/physio-dashboard/patients/new', { state: { pick } })}>Add patient</Button>}
           />
         </Card>
       ) : (
@@ -99,7 +99,7 @@ export default function Patients() {
             const plan = db.plans.find((pl) => pl.patientId === p.id && pl.status === 'active')
             const adh = plan && adherence(plan, db.sessions)
             return (
-              <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => (pick === 'consent' ? nav(`/app/patients/${p.id}/consent`) : pick ? startPlan(p.id, pick) : nav(`/app/patients/${p.id}`))}>
+              <Card key={p.id} className="flex items-center gap-3 p-4" onClick={() => (pick === 'consent' ? nav(`/physio-dashboard/patients/${p.id}/consent`) : pick ? startPlan(p.id, pick) : nav(`/physio-dashboard/patients/${p.id}`))}>
                 <Avatar name={p.name} size={44} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

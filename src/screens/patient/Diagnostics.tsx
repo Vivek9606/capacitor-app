@@ -33,7 +33,7 @@ export default function Diagnostics() {
         ))}
       </div>
 
-      <Card className="mt-4 flex items-center gap-3 border-brand-line bg-brand-soft/40 p-4" onClick={() => nav(`/me/assess/${areaInfo.assessment}`)}>
+      <Card className="mt-4 flex items-center gap-3 border-brand-line bg-brand-soft/40 p-4" onClick={() => nav(`/consumer-dashboard/assess/${areaInfo.assessment}`)}>
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand text-white">
           <ClipboardCheck size={20} />
         </span>
@@ -65,7 +65,7 @@ export default function Diagnostics() {
           <SectionTitle>Your results</SectionTitle>
           <div className="flex flex-col gap-2.5">
             {mine.slice(0, 8).map((a) => (
-              <Card key={a.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/me/assess/result/${a.id}`)}>
+              <Card key={a.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/consumer-dashboard/assess/result/${a.id}`)}>
                 <div className="min-w-0 flex-1">
                   <div className="text-[15px] font-semibold">{a.kind === 'pain' ? a.condition ?? a.title : `${a.title} · ${a.scores?.overall ?? '–'}/10`}</div>
                   <div className="text-[13px] text-muted">
@@ -78,7 +78,7 @@ export default function Diagnostics() {
           </div>
         </>
       )}
-      <button onClick={() => nav('/me/assess')} className="mt-5 text-[14px] font-semibold text-brand cursor-pointer">
+      <button onClick={() => nav('/consumer-dashboard/assess')} className="mt-5 text-[14px] font-semibold text-brand cursor-pointer">
         All assessments, including health scores →
       </button>
       <div className="h-8" />

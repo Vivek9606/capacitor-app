@@ -82,7 +82,7 @@ export default function Clinic() {
       },
     })
     toast('Practice saved: your booking page is updated')
-    nav('/app/profile', { replace: true })
+    nav('/physio-dashboard/profile', { replace: true })
   }
 
   const setIn = (patch: Partial<typeof f.consult.inClinic>) => setF({ ...f, consult: { ...f.consult, inClinic: { ...f.consult.inClinic, ...patch } } })
@@ -251,7 +251,7 @@ export default function Clinic() {
             </div>
           </Card>
 
-          <Card className="mt-4 flex items-center gap-3 p-4" onClick={() => nav('/app/profile/availability')}>
+          <Card className="mt-4 flex items-center gap-3 p-4" onClick={() => nav('/physio-dashboard/profile/availability')}>
             <IconTile tone="lime">
               <Clock size={18} />
             </IconTile>

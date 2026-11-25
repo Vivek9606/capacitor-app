@@ -16,7 +16,7 @@ export default function ConsentSign() {
   const nav = useNavigate()
   const c = store.db.consents.find((x) => x.id === id && x.patientId === patient?.id)
   if (!patient) return null
-  if (!c) return <Navigate to="/me" replace />
+  if (!c) return <Navigate to="/consumer-dashboard" replace />
   const physio = store.db.physios.find((p) => p.id === c.physioId)!
   const doc = `Dr. ${firstName(physio.name)}`
 
@@ -46,12 +46,12 @@ export default function ConsentSign() {
               store.signConsent(c.id, v)
               haptic('success')
               toast(`Signed: ${doc} has a copy`)
-              nav('/me', { replace: true })
+              nav('/consumer-dashboard', { replace: true })
             }}
             onDecline={() => {
               store.setConsentStatus(c.id, 'declined')
               toast(`${doc} will talk it through with you at your visit`)
-              nav('/me', { replace: true })
+              nav('/consumer-dashboard', { replace: true })
             }}
           />
         ) : c.status === 'signed' ? (

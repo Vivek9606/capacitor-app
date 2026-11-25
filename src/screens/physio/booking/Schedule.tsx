@@ -67,12 +67,12 @@ export default function Schedule() {
             <Button size="sm" variant="secondary" aria-label="Block time" onClick={() => setBlockOpen(true)}>
               <Ban size={15} /> <span className="hidden min-[400px]:inline">Block</span>
             </Button>
-            <IconButton aria-label="Availability settings" onClick={() => nav('/app/profile/availability')}>
+            <IconButton aria-label="Availability settings" onClick={() => nav('/physio-dashboard/profile/availability')}>
               <Settings2 size={18} />
             </IconButton>
             <button
               aria-label="New booking"
-              onClick={() => nav('/app/bookings/new', { state: { date: day } })}
+              onClick={() => nav('/physio-dashboard/bookings/new', { state: { date: day } })}
               className="grid h-11 w-11 place-items-center rounded-full bg-brand text-white cursor-pointer"
             >
               <Plus size={22} />
@@ -143,7 +143,7 @@ export default function Schedule() {
           {!working && booked.length === 0 && groups.length === 0 && !dayBlock && (
             <Card className="p-5 text-center text-[14px] text-muted">
               Not a working day.{' '}
-              <button className="font-semibold text-brand cursor-pointer" onClick={() => nav('/app/profile/availability')}>
+              <button className="font-semibold text-brand cursor-pointer" onClick={() => nav('/physio-dashboard/profile/availability')}>
                 Change hours
               </button>{' '}
               or add a booking with +.
@@ -188,7 +188,7 @@ export default function Schedule() {
                     )}
                   </Card>
                 ) : r.group ? (
-                  <Card className="border-brand-line bg-brand-soft/40 p-3.5" onClick={() => nav(`/app/groups/${r.group!.id}`)}>
+                  <Card className="border-brand-line bg-brand-soft/40 p-3.5" onClick={() => nav(`/physio-dashboard/groups/${r.group!.id}`)}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-1.5 text-[15px] font-semibold">
                         <UsersRound size={15} className="shrink-0 text-brand" />
@@ -215,7 +215,7 @@ export default function Schedule() {
                   </div>
                 ) : (
                   <button
-                    onClick={() => nav('/app/bookings/new', { state: { date: day, time: r.time } })}
+                    onClick={() => nav('/physio-dashboard/bookings/new', { state: { date: day, time: r.time } })}
                     className="flex h-[52px] items-center gap-2 rounded-2xl border border-dashed border-brand-line px-4 text-[14px] font-semibold text-brand hover:bg-brand-soft/40 cursor-pointer"
                   >
                     <Plus size={16} /> Open slot · tap to book
@@ -328,14 +328,14 @@ export default function Schedule() {
               </Button>
             )}
             {(open.status === 'done' || open.status === 'checked_in') && (
-              <Button block variant="soft" size="md" className="mt-3" onClick={() => nav('/app/invoices/new', { state: { bookingId: open.id } })}>
+              <Button block variant="soft" size="md" className="mt-3" onClick={() => nav('/physio-dashboard/invoices/new', { state: { bookingId: open.id } })}>
                 Create invoice
               </Button>
             )}
 
             <div className="mt-4 grid grid-cols-2 gap-2.5">
               {open.patientId && (
-                <Button variant="secondary" size="md" onClick={() => nav(`/app/patients/${open.patientId}`)}>
+                <Button variant="secondary" size="md" onClick={() => nav(`/physio-dashboard/patients/${open.patientId}`)}>
                   Open patient
                 </Button>
               )}
@@ -353,7 +353,7 @@ export default function Schedule() {
                 </Button>
               )}
               {isOpenBooking(open) && (
-                <Button variant="secondary" size="md" onClick={() => nav('/app/bookings/new', { state: { rescheduleId: open.id } })}>
+                <Button variant="secondary" size="md" onClick={() => nav('/physio-dashboard/bookings/new', { state: { rescheduleId: open.id } })}>
                   Reschedule
                 </Button>
               )}

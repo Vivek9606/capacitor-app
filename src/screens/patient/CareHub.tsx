@@ -55,19 +55,19 @@ export default function Care() {
                 icon={<ClipboardList size={20} />}
                 title="My care plan"
                 sub={v.plan ? `${v.plan.title} · week ${v.week} of ${v.plan.weeks}` : 'Your exercises and treatment plans'}
-                onClick={() => nav('/me/plan')}
+                onClick={() => nav('/consumer-dashboard/plan')}
                 right={v.adherence ? <Badge tone="brand">{v.adherence.pct}%</Badge> : undefined}
               />
-              <Row icon={<CalendarDays size={20} />} title="Visits" sub={next ? `Next: ${relDay(next.date)}, ${fmtTime(next.time)}` : 'No upcoming visits'} onClick={() => nav('/me/appointments')} />
-              <Row icon={<CalendarPlus size={20} />} title="Book a session" sub={`Pick a time with ${doc}`} onClick={() => nav('/me/book')} />
+              <Row icon={<CalendarDays size={20} />} title="Visits" sub={next ? `Next: ${relDay(next.date)}, ${fmtTime(next.time)}` : 'No upcoming visits'} onClick={() => nav('/consumer-dashboard/appointments')} />
+              <Row icon={<CalendarPlus size={20} />} title="Book a session" sub={`Pick a time with ${doc}`} onClick={() => nav('/consumer-dashboard/book')} />
               <Row
                 icon={<MessageSquare size={20} />}
                 title={`Ask ${doc}`}
                 sub="Replies also arrive on WhatsApp"
-                onClick={() => nav('/me/ask')}
+                onClick={() => nav('/consumer-dashboard/ask')}
                 right={v.unreadFromPhysio ? <Badge tone="accent">{v.unreadFromPhysio} new</Badge> : undefined}
               />
-              {v.rxPlans.length > 0 && <Row icon={<FileText size={20} />} title="Treatment plans" sub={`${v.rxPlans.length} from ${doc}`} onClick={() => nav('/me/plan')} />}
+              {v.rxPlans.length > 0 && <Row icon={<FileText size={20} />} title="Treatment plans" sub={`${v.rxPlans.length} from ${doc}`} onClick={() => nav('/consumer-dashboard/plan')} />}
             </>
           ) : (
             <>
@@ -80,9 +80,9 @@ export default function Care() {
         <div>
           <SectionTitle className="lg:mt-0">Diagnostics</SectionTitle>
           <div className="flex flex-col gap-2.5">
-            {latest && <ResultCard a={latest} onOpen={() => nav(`/me/assess/result/${latest.id}`)} />}
-            <Row icon={<Stethoscope size={20} />} title="Conditions & causes" sub="What’s behind back, neck, shoulder and knee pain" onClick={() => nav('/me/diagnostics')} />
-            <Row icon={<ClipboardCheck size={20} />} title={latest ? 'Take another assessment' : 'Take an assessment'} sub="Pain checks and health scores, 5 minutes each" onClick={() => nav('/me/assess')} />
+            {latest && <ResultCard a={latest} onOpen={() => nav(`/consumer-dashboard/assess/result/${latest.id}`)} />}
+            <Row icon={<Stethoscope size={20} />} title="Conditions & causes" sub="What’s behind back, neck, shoulder and knee pain" onClick={() => nav('/consumer-dashboard/diagnostics')} />
+            <Row icon={<ClipboardCheck size={20} />} title={latest ? 'Take another assessment' : 'Take an assessment'} sub="Pain checks and health scores, 5 minutes each" onClick={() => nav('/consumer-dashboard/assess')} />
           </div>
         </div>
       </div>

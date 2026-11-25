@@ -31,7 +31,7 @@ export default function Appointments() {
         title="Visits"
         subtitle={`With ${v.physio.name}`}
         right={
-          <Button size="sm" variant="soft" onClick={() => nav('/me/book')}>
+          <Button size="sm" variant="soft" onClick={() => nav('/consumer-dashboard/book')}>
             <Plus size={16} /> Book
           </Button>
         }
@@ -41,7 +41,7 @@ export default function Appointments() {
           <h2 className="mb-3 text-[17px] font-semibold">Upcoming</h2>
           {v.upcoming.length === 0 ? (
             <Card>
-              <Empty icon={<CalendarDays size={20} />} title="No upcoming visits" action={<Button size="md" onClick={() => nav('/me/book')}>Book a visit</Button>} />
+              <Empty icon={<CalendarDays size={20} />} title="No upcoming visits" action={<Button size="md" onClick={() => nav('/consumer-dashboard/book')}>Book a visit</Button>} />
             </Card>
           ) : (
             <div className="flex flex-col gap-3">
@@ -135,7 +135,7 @@ export default function Appointments() {
           <SectionTitle>Bills</SectionTitle>
           <Card className="divide-y divide-line lg:max-w-[560px]">
             {v.invoices.map((i) => (
-              <button key={i.id} onClick={() => nav(`/me/invoices/${i.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
+              <button key={i.id} onClick={() => nav(`/consumer-dashboard/invoices/${i.id}`)} className="flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer">
                 <div className="min-w-0 flex-1">
                   <div className="text-[15px] font-medium">
                     {inr(i.total)} · {fmtShort(i.date)}

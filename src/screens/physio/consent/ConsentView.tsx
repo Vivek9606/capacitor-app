@@ -19,7 +19,7 @@ export default function ConsentView() {
   const c = store.db.consents.find((x) => x.id === id)
   const patient = c && store.db.patients.find((p) => p.id === c.patientId)
   if (!physio) return null
-  if (!c || !patient) return <Navigate to="/app/patients" replace />
+  if (!c || !patient) return <Navigate to="/physio-dashboard/patients" replace />
 
   return (
     <Page>
@@ -66,7 +66,7 @@ export default function ConsentView() {
           </Button>
         )}
         {(c.status === 'declined' || c.status === 'revoked') && (
-          <Button variant="secondary" size="md" onClick={() => nav(`/app/patients/${patient.id}/consent`, { state: { formId: c.formId } })}>
+          <Button variant="secondary" size="md" onClick={() => nav(`/physio-dashboard/patients/${patient.id}/consent`, { state: { formId: c.formId } })}>
             Take this consent again
           </Button>
         )}

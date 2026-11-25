@@ -73,7 +73,7 @@ export default function NewInvoice() {
       store.updateInvoice(id, { sent: true })
     }
     toast(send ? `Invoice sent to ${patient.name.split(' ')[0]}` : 'Invoice saved')
-    nav(`/app/invoices/${id}`, { replace: true })
+    nav(`/physio-dashboard/invoices/${id}`, { replace: true })
   }
 
   return (
@@ -104,7 +104,7 @@ export default function NewInvoice() {
                   <div className="text-[12px] text-muted">{fmtPhone(p.phone)}</div>
                 </button>
               ))}
-              <button onClick={() => nav('/app/patients/new')} className="block w-full px-4 py-3 text-left text-[14px] font-semibold text-brand hover:bg-bg cursor-pointer">
+              <button onClick={() => nav('/physio-dashboard/patients/new')} className="block w-full px-4 py-3 text-left text-[14px] font-semibold text-brand hover:bg-bg cursor-pointer">
                 + Add a new patient
               </button>
             </Card>

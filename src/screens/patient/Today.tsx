@@ -54,7 +54,7 @@ export default function Today() {
           <div className="text-[13px] text-muted lg:text-[15px]">{greeting()},</div>
           <div className="font-display text-[22px] font-bold tracking-[-0.01em] lg:text-[28px]">{firstName(patient.name)}</div>
         </div>
-        <button onClick={() => nav('/me/ask')} aria-label={`Message ${doc}`} className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3 cursor-pointer lg:hidden">
+        <button onClick={() => nav('/consumer-dashboard/ask')} aria-label={`Message ${doc}`} className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pl-1 pr-3 cursor-pointer lg:hidden">
           <Avatar name={v.physio.name} photo={v.physio.photo} size={30} />
           <span className="text-[13px] font-medium">{doc}</span>
         </button>
@@ -66,7 +66,7 @@ export default function Today() {
       </div>
 
       {v.pendingConsents.map((c) => (
-        <Card key={c.id} className="mt-4 flex items-center gap-3 border-accent/40 bg-accent-soft p-4" onClick={() => nav(`/me/consents/${c.id}`)}>
+        <Card key={c.id} className="mt-4 flex items-center gap-3 border-accent/40 bg-accent-soft p-4" onClick={() => nav(`/consumer-dashboard/consents/${c.id}`)}>
           <FileSignature size={20} className="shrink-0 text-accent" />
           <div className="min-w-0 flex-1">
             <div className="text-[15px] font-semibold">Please sign: {c.title}</div>
@@ -115,7 +115,7 @@ export default function Today() {
                 ))}
               </div>
               <button
-                onClick={() => nav('/me/session')}
+                onClick={() => nav('/consumer-dashboard/session')}
                 className="mt-4 flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-white text-[16px] font-semibold text-brand cursor-pointer"
               >
                 <Play size={18} fill="currentColor" /> Start session
@@ -132,7 +132,7 @@ export default function Today() {
                   <div className="text-[13px] text-muted">{v.nextSession ? `Next session: ${relDay(v.nextSession)}` : 'Your plan is complete'}</div>
                 </div>
               </div>
-              <button onClick={() => nav('/me/session')} className="mt-3 text-[14px] font-semibold text-brand cursor-pointer">
+              <button onClick={() => nav('/consumer-dashboard/session')} className="mt-3 text-[14px] font-semibold text-brand cursor-pointer">
                 Do an extra session anyway →
               </button>
             </div>
@@ -168,7 +168,7 @@ export default function Today() {
         <div className="mt-3 flex flex-col gap-3 lg:mt-0">
           <SectionTitle className="mt-3 lg:mt-0">Next visit</SectionTitle>
           {next ? (
-            <Card className="p-4" onClick={() => nav('/me/appointments')}>
+            <Card className="p-4" onClick={() => nav('/consumer-dashboard/appointments')}>
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[16px] font-semibold">
@@ -194,7 +194,7 @@ export default function Today() {
                   >
                     Confirm
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={(e) => (e.stopPropagation(), nav('/me/appointments'))}>
+                  <Button size="sm" variant="secondary" onClick={(e) => (e.stopPropagation(), nav('/consumer-dashboard/appointments'))}>
                     Reschedule
                   </Button>
                 </div>
@@ -203,13 +203,13 @@ export default function Today() {
           ) : (
             <Card className="flex items-center justify-between p-4">
               <span className="text-[14px] text-muted">No visit booked</span>
-              <Button size="sm" variant="soft" onClick={() => nav('/me/book')}>
+              <Button size="sm" variant="soft" onClick={() => nav('/consumer-dashboard/book')}>
                 Book a visit
               </Button>
             </Card>
           )}
 
-          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/me/ask')}>
+          <Card className="flex items-center gap-3 p-4" onClick={() => nav('/consumer-dashboard/ask')}>
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent">
               <MessageSquare size={19} />
             </div>

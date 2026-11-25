@@ -11,18 +11,18 @@ import { agreeTo, WORDING } from '../../lib/consent'
 
 // Main navigation: Home, Care, Shop, Learn, Tools and Profile (Profile holds your details, settings and Log out).
 const ITEMS: NavItem[] = [
-  { to: '/me', label: 'Home', icon: House, end: true },
-  { to: '/me/care', label: 'Care', icon: HeartPulse },
-  { to: '/me/shop', label: 'Shop', icon: ShoppingBag },
-  { to: '/me/learn', label: 'Learn', icon: BookOpen },
-  { to: '/me/tools', label: 'Tools', icon: LayoutGrid },
-  { to: '/me/profile', label: 'Profile', icon: User },
+  { to: '/consumer-dashboard', label: 'Home', icon: House, end: true },
+  { to: '/consumer-dashboard/care', label: 'Care', icon: HeartPulse },
+  { to: '/consumer-dashboard/shop', label: 'Shop', icon: ShoppingBag },
+  { to: '/consumer-dashboard/learn', label: 'Learn', icon: BookOpen },
+  { to: '/consumer-dashboard/tools', label: 'Tools', icon: LayoutGrid },
+  { to: '/consumer-dashboard/profile', label: 'Profile', icon: User },
 ]
 
 /** Signed up on their own, no physio yet: everything except the physio's plan, visits and messages. */
-const SOLO_OK = [/^\/me\/?$/, /^\/me\/(care|shop|learn|tools|diagnostics|explore|profile|assess|chat)/]
+const SOLO_OK = [/^\/consumer-dashboard\/?$/, /^\/consumer-dashboard\/(care|shop|learn|tools|diagnostics|explore|profile|assess|chat)/]
 
-const FLOW = [/^\/me\/assess\//, /^\/me\/session/, /^\/me\/rx\//, /^\/me\/ask/, /^\/me\/book/, /^\/me\/(consents|invoices)\//, /^\/me\/shop\/.+/]
+const FLOW = [/^\/consumer-dashboard\/assess\//, /^\/consumer-dashboard\/session/, /^\/consumer-dashboard\/rx\//, /^\/consumer-dashboard\/ask/, /^\/consumer-dashboard\/book/, /^\/consumer-dashboard\/(consents|invoices)\//, /^\/consumer-dashboard\/shop\/.+/]
 
 export default function PatientLayout() {
   const { patient, physio, session } = useMe()
@@ -44,16 +44,16 @@ export default function PatientLayout() {
     const pending = takeWebsiteResult()
     if (!pending) return
     const id = store.saveAssessment(patient.id, toInput(pending.info, pending.result))
-    nav(`/me/assess/result/${id}`, { replace: true, state: { fresh: true } })
+    nav(`/consumer-dashboard/assess/result/${id}`, { replace: true, state: { fresh: true } })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?.id])
 
   if (!session) return <Navigate to="/welcome" replace />
-  if (physio) return <Navigate to="/app" replace />
+  if (physio) return <Navigate to="/physio-dashboard" replace />
   if (!patient) return <Navigate to="/welcome" replace />
 
   if (!myPhysio) {
-    if (!SOLO_OK.some((r) => r.test(loc.pathname))) return <Navigate to="/me" replace />
+    if (!SOLO_OK.some((r) => r.test(loc.pathname))) return <Navigate to="/consumer-dashboard" replace />
     return <Shell items={ITEMS} hideTabsOn={(p) => FLOW.some((r) => r.test(p))} user={{ name: patient.name, sub: 'Finding your physio' }} />
   }
   if (!patient.consentAt) return <ConsentGate />
