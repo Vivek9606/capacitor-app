@@ -17,7 +17,7 @@ const AREA_ICON: Record<AreaKey | 'overall', string> = {
 export default function AssessPick() {
   const nav = useNavigate()
   const row = (a: AssessmentInfo) => (
-    <Card key={a.slug} className="flex items-center gap-3.5 p-4" onClick={() => nav(`/me/assess/${a.slug}`)}>
+    <Card key={a.slug} className="flex items-center gap-3.5 p-4" onClick={() => nav(`/consumer-dashboard/assess/${a.slug}`)}>
       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d={AREA_ICON[a.area]} />

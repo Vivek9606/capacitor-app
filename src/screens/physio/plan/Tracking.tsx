@@ -22,7 +22,7 @@ export default function Tracking() {
   const plan = db.plans.find((p) => p.id === id)
   const patient = plan && db.patients.find((p) => p.id === plan.patientId)
 
-  if (!plan || !patient || !physio) return <Navigate to="/app/patients" replace />
+  if (!plan || !patient || !physio) return <Navigate to="/physio-dashboard/patients" replace />
   const dots = weekDots(plan, db.sessions)
   const scheduledThisWeek = dots.filter((d) => d.state !== 'rest').length
   const doneThisWeek = dots.filter((d) => d.state === 'done' || d.state === 'today_done').length
@@ -39,7 +39,7 @@ export default function Tracking() {
 
   const adjust = () => {
     store.startDraft(patient.id, { items: plan.items, daysPerWeek: plan.daysPerWeek, weeks: plan.weeks, title: plan.title, ...(plan.rx ? { rx: plan.rx } : {}), editPlanId: plan.status === 'active' ? plan.id : undefined, mode: 'plan' })
-    nav('/app/plan/build')
+    nav('/physio-dashboard/plan/build')
   }
 
   return (
@@ -47,7 +47,7 @@ export default function Tracking() {
       <PageHeader
         title={`${name} · ${plan.title}`}
         subtitle={`Sent ${fmtShort(plan.sentAt.slice(0, 10))} · ${fmtTime(`${sent.getHours()}:${sent.getMinutes()}`)}`}
-        onBack={() => nav(`/app/patients/${patient.id}`)}
+        onBack={() => nav(`/physio-dashboard/patients/${patient.id}`)}
       />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-3">

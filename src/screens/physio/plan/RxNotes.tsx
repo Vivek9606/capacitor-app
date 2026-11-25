@@ -42,7 +42,7 @@ function ConsentNeeded({ patient, formId, title }: { patient: Patient; formId: s
       <div className="min-w-0 flex-1 text-[14px]">
         <b>{title}</b> needs signed consent from {firstName(patient.name)}.
       </div>
-      <button className="shrink-0 text-[13px] font-semibold text-brand cursor-pointer" onClick={() => nav(`/app/patients/${patient.id}/consent`, { state: { formId, returnToFlow: true } })}>
+      <button className="shrink-0 text-[13px] font-semibold text-brand cursor-pointer" onClick={() => nav(`/physio-dashboard/patients/${patient.id}/consent`, { state: { formId, returnToFlow: true } })}>
         Take consent
       </button>
     </div>
@@ -53,7 +53,7 @@ function ConsentNeeded({ patient, formId, title }: { patient: Patient; formId: s
 export function Consult() {
   const { store, physio, draft, patient } = useFlow()
   const nav = useNavigate()
-  if (!draft || !physio || !patient) return <Navigate to="/app/patients" replace />
+  if (!draft || !physio || !patient) return <Navigate to="/physio-dashboard/patients" replace />
   const rx = draft.rx
   const set = (patch: Partial<Rx>) => store.updateDraft({ rx: { ...rx, ...patch } })
   const needsGeneral = !hasConsent(store.db.consents, patient.id, 'general')
@@ -82,7 +82,7 @@ export function Consult() {
         </div>
       </div>
       <Footer className="lg:flex lg:justify-end">
-        <Button block className="lg:w-[400px]" onClick={() => nav('/app/plan/rx', { replace: true })}>
+        <Button block className="lg:w-[400px]" onClick={() => nav('/physio-dashboard/plan/rx', { replace: true })}>
           Next: treatment plan
         </Button>
       </Footer>
@@ -94,7 +94,7 @@ export function Consult() {
 export default function RxNotes() {
   const { store, physio, draft, patient } = useFlow()
   const nav = useNavigate()
-  if (!draft || !physio || !patient) return <Navigate to="/app/patients" replace />
+  if (!draft || !physio || !patient) return <Navigate to="/physio-dashboard/patients" replace />
   const rxOnly = isRxOnly(draft)
   const rx = draft.rx
   const set = (patch: Partial<Rx>) => store.updateDraft({ rx: { ...rx, ...patch } })
@@ -103,7 +103,7 @@ export default function RxNotes() {
 
   return (
     <Page wide>
-      <PageHeader title="Treatment plan" subtitle={`${firstName(patient.name)} · ${stepLabel(draft, 'rx')}`} onBack={() => nav('/app/plan/consult', { replace: true })} />
+      <PageHeader title="Treatment plan" subtitle={`${firstName(patient.name)} · ${stepLabel(draft, 'rx')}`} onBack={() => nav('/physio-dashboard/plan/consult', { replace: true })} />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex flex-col gap-4">
           <div>
@@ -189,7 +189,7 @@ export default function RxNotes() {
         </div>
       </div>
       <Footer className="lg:flex lg:justify-end">
-        <Button block className="lg:w-[400px]" disabled={!valid} onClick={() => nav(rxOnly ? '/app/plan/preview' : '/app/plan/build', { replace: true })}>
+        <Button block className="lg:w-[400px]" disabled={!valid} onClick={() => nav(rxOnly ? '/physio-dashboard/plan/preview' : '/physio-dashboard/plan/build', { replace: true })}>
           {rxOnly ? `Preview what ${firstName(patient.name)} sees` : 'Next: care plan exercises'}
         </Button>
       </Footer>

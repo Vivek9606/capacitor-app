@@ -31,9 +31,9 @@ export default function AddPatient() {
       condition: condition.trim() || undefined,
     })
     toast(`${name.trim()} added`)
-    if (pick === 'consent') nav(`/app/patients/${id}/consent`, { replace: true })
+    if (pick === 'consent') nav(`/physio-dashboard/patients/${id}/consent`, { replace: true })
     else if (pick) startPlan(id, pick, { replace: true })
-    else nav(`/app/patients/${id}`, { replace: true })
+    else nav(`/physio-dashboard/patients/${id}`, { replace: true })
   }
 
   return (

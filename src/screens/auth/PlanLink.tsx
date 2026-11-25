@@ -64,7 +64,7 @@ export default function PlanLink() {
       </div>
     )
   if (!preview) return <LinkExpired />
-  if (step === 'verify' && me && me.linkToken === token && me.consentAt) return <Navigate to="/me" replace />
+  if (step === 'verify' && me && me.linkToken === token && me.consentAt) return <Navigate to="/consumer-dashboard" replace />
   const physio = preview.physio
   const plan = preview.plan
 
@@ -74,7 +74,7 @@ export default function PlanLink() {
     try {
       const r = await store.verifyPlanLink(token, digits)
       haptic('success')
-      if (r.consentGiven) nav('/me', { replace: true })
+      if (r.consentGiven) nav('/consumer-dashboard', { replace: true })
       else setStep('consent')
     } catch (e) {
       haptic('medium')
@@ -191,7 +191,7 @@ export default function PlanLink() {
                 onClick={() => {
                   // The words on this screen, as agreed to.
                   if (me) store.giveConsent(me.id, agreeTo(`I agree to share my exercise progress and pain scores with ${physio.name}, and to Betterhood’s Terms and Privacy Policy. (${CONSENT_VERSION}, plan link)`))
-                  nav('/me', { replace: true })
+                  nav('/consumer-dashboard', { replace: true })
                 }}
               >
                 Agree & start

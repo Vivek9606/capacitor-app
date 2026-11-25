@@ -45,13 +45,13 @@ export default function Book() {
           })
           haptic('success')
           toast(`Request sent: ${doc} will confirm on WhatsApp`)
-          nav('/me/appointments', { replace: true })
+          nav('/consumer-dashboard/appointments', { replace: true })
         }}
         onJoinGroup={(gid) => {
           store.addParticipant(gid, { patientId: patient.id, name: patient.name, phone: patient.phone })
           haptic('success')
           toast('Seat booked: see you there')
-          nav('/me/appointments', { replace: true })
+          nav('/consumer-dashboard/appointments', { replace: true })
         }}
       />
       <div className="h-6" />

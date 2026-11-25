@@ -11,9 +11,9 @@ import { useMe } from '../../lib/store'
 
 /**
  * Community: Slack-style channels for physios.
- *  /app/community               channel list (phones) / list + intro (desktop)
- *  /app/community/c/:id         a channel: messages oldest → newest, message box at the bottom
- *  /app/community/t/:postId     a thread: the message and its replies
+ *  /physio-dashboard/community               channel list (phones) / list + intro (desktop)
+ *  /physio-dashboard/community/c/:id         a channel: messages oldest → newest, message box at the bottom
+ *  /physio-dashboard/community/t/:postId     a thread: the message and its replies
  * Everything is live from the API and refreshed every few seconds while open.
  */
 
@@ -70,7 +70,7 @@ function DemoNotice() {
 function ChannelRow({ c, active, compact }: { c: CChannel; active?: boolean; compact?: boolean }) {
   return (
     <NavLink
-      to={`/app/community/c/${c.id}`}
+      to={`/physio-dashboard/community/c/${c.id}`}
       className={cx(
         'flex items-center gap-3 rounded-2xl text-left cursor-pointer',
         compact ? 'px-3 py-2' : 'border border-line bg-surface px-4 py-3.5 hover:border-brand-line',
@@ -101,7 +101,7 @@ function ChannelRail({ activeId }: { activeId?: string }) {
   const { channels } = useChannels()
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col border-r border-line/70 px-3 py-6 lg:flex">
-      <NavLink to="/app/community" className="px-3 font-display text-[20px] font-bold">
+      <NavLink to="/physio-dashboard/community" className="px-3 font-display text-[20px] font-bold">
         Community
       </NavLink>
       <div className="mt-4 flex flex-col gap-0.5 overflow-y-auto">{channels?.map((c) => <ChannelRow key={c.id} c={c} compact active={c.id === activeId} />)}</div>
@@ -386,7 +386,7 @@ export function CommunityChannel() {
   const actions = usePostActions(onChanged)
 
   if (!apiMode) return <DemoNotice />
-  if (error && !feed) return <Navigate to="/app/community" replace />
+  if (error && !feed) return <Navigate to="/physio-dashboard/community" replace />
 
   return (
     <ChatFrame
@@ -395,7 +395,7 @@ export function CommunityChannel() {
       onScroll={onScroll}
       header={
         <>
-          <BackButton to="/app/community" />
+          <BackButton to="/physio-dashboard/community" />
           <div className="min-w-0 flex-1">
             <h1 className="flex items-center gap-1 truncate font-display text-[20px] font-bold leading-tight">
               <Hash size={18} className="shrink-0 text-muted" />
@@ -443,7 +443,7 @@ export function CommunityChannel() {
         />
       )}
       {posts.map((p) => (
-        <PostItem key={p.id} post={p} author={authors[p.authorId]} onHelpful={() => actions.helpful(p)} onReply={() => nav(`/app/community/t/${p.id}`)} onMenu={() => actions.open(p)} />
+        <PostItem key={p.id} post={p} author={authors[p.authorId]} onHelpful={() => actions.helpful(p)} onReply={() => nav(`/physio-dashboard/community/t/${p.id}`)} onMenu={() => actions.open(p)} />
       ))}
       {actions.sheet}
     </ChatFrame>
@@ -493,7 +493,7 @@ export function CommunityThread() {
       </Page>
     )
 
-  const back = t ? `/app/community/c/${t.channel.id}` : '/app/community'
+  const back = t ? `/physio-dashboard/community/c/${t.channel.id}` : '/physio-dashboard/community'
   return (
     <ChatFrame
       rail={<ChannelRail activeId={t?.channel.id} />}

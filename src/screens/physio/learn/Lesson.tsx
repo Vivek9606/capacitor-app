@@ -13,7 +13,7 @@ export default function Lesson() {
   const nav = useNavigate()
   const i = ALL_LESSONS.findIndex((l) => l.id === id)
   if (!physio) return null
-  if (i < 0) return <Navigate to="/app/learn" replace />
+  if (i < 0) return <Navigate to="/physio-dashboard/learn" replace />
   const l = ALL_LESSONS[i]
   const next = ALL_LESSONS[i + 1]
   const done = (physio.courseProgress ?? []).includes(l.id)
@@ -23,16 +23,16 @@ export default function Lesson() {
       haptic('success')
       store.toggleLesson(physio.id, l.id, true)
     }
-    if (next) nav(`/app/learn/${next.id}`, { replace: true })
+    if (next) nav(`/physio-dashboard/learn/${next.id}`, { replace: true })
     else {
       toast(`🎓 You’ve finished ${COURSE.title}!`)
-      nav('/app/learn', { replace: true })
+      nav('/physio-dashboard/learn', { replace: true })
     }
   }
 
   return (
     <Page>
-      <PageHeader title={l.title} subtitle={`${COURSE.title} · ${l.moduleTitle}`} onBack={() => nav('/app/learn')} />
+      <PageHeader title={l.title} subtitle={`${COURSE.title} · ${l.moduleTitle}`} onBack={() => nav('/physio-dashboard/learn')} />
       <div className="flex items-center gap-3 text-[13px] text-muted">
         <span className="inline-flex items-center gap-1">
           <Clock size={13} /> {l.minutes} min read

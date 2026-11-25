@@ -16,7 +16,7 @@ export function ProductCard({ p, className }: { p: Product; className?: string }
   const off = p.compare && p.compare > p.price ? Math.round((1 - p.price / p.compare) * 100) : 0
   return (
     <button
-      onClick={() => nav(`/me/shop/${p.handle}`)}
+      onClick={() => nav(`/consumer-dashboard/shop/${p.handle}`)}
       className={cx('pressable group flex min-w-0 flex-col overflow-hidden rounded-[18px] border border-line bg-surface text-left shadow-card cursor-pointer hover:border-brand-line', className)}
     >
       <div className="relative aspect-square w-full bg-[#f6f1ea]">
@@ -131,7 +131,7 @@ export function MatchCard({ patient, physio, hasAssessment }: { patient: Patient
             <p className="mt-0.5 text-[13px] text-muted">5 minutes, designed by physios. We use it to match you with the right physiotherapist.</p>
           </div>
         </div>
-        <button onClick={() => nav('/me/assess')} className="pressable mt-3 h-11 w-full rounded-xl bg-brand text-[15px] font-semibold text-white shadow-brand cursor-pointer">
+        <button onClick={() => nav('/consumer-dashboard/assess')} className="pressable mt-3 h-11 w-full rounded-xl bg-brand text-[15px] font-semibold text-white shadow-brand cursor-pointer">
           Start assessment
         </button>
       </Card>

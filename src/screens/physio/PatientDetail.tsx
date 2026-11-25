@@ -32,7 +32,7 @@ export default function PatientDetail() {
   const [discharging, setDischarging] = useState(false)
   const [calling, setCalling] = useState(false)
   const p = db.patients.find((x) => x.id === id)
-  if (!p) return <Navigate to="/app/patients" replace />
+  if (!p) return <Navigate to="/physio-dashboard/patients" replace />
 
   const plans = db.plans.filter((pl) => pl.patientId === p.id).sort((a, b) => b.sentAt.localeCompare(a.sentAt))
   const active = plans.find((pl) => pl.status === 'active')
@@ -110,7 +110,7 @@ export default function PatientDetail() {
             <Button block variant="secondary" onClick={() => startPlan(p.id, 'rx')}>
               Treatment plan only
             </Button>
-            <Button block variant="secondary" onClick={() => nav('/app/bookings/new', { state: { patientId: p.id } })}>
+            <Button block variant="secondary" onClick={() => nav('/physio-dashboard/bookings/new', { state: { patientId: p.id } })}>
               Book a visit
             </Button>
             {store.apiMode && !p.dischargedAt && (
@@ -119,10 +119,10 @@ export default function PatientDetail() {
               </Button>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="secondary" size="md" onClick={() => nav(`/app/patients/${p.id}/consent`)}>
+              <Button variant="secondary" size="md" onClick={() => nav(`/physio-dashboard/patients/${p.id}/consent`)}>
                 <FileSignature size={16} /> Consent
               </Button>
-              <Button variant="secondary" size="md" onClick={() => nav('/app/invoices/new', { state: { patientId: p.id } })}>
+              <Button variant="secondary" size="md" onClick={() => nav('/physio-dashboard/invoices/new', { state: { patientId: p.id } })}>
                 <ReceiptIndianRupee size={16} /> Invoice
               </Button>
             </div>
@@ -171,7 +171,7 @@ export default function PatientDetail() {
                     <div className="font-medium">No signed treatment consent yet</div>
                     <div className="text-[13px] text-muted">Take it before the first treatment.</div>
                   </div>
-                  <Button size="sm" onClick={() => nav(`/app/patients/${p.id}/consent`, { state: { formId: 'general' } })}>
+                  <Button size="sm" onClick={() => nav(`/physio-dashboard/patients/${p.id}/consent`, { state: { formId: 'general' } })}>
                     Take consent
                   </Button>
                 </div>
@@ -323,7 +323,7 @@ export default function PatientDetail() {
 
           {tab === 'Consents' && (
             <div className="flex flex-col gap-3">
-              <Button variant="soft" size="md" className="self-start" onClick={() => nav(`/app/patients/${p.id}/consent`)}>
+              <Button variant="soft" size="md" className="self-start" onClick={() => nav(`/physio-dashboard/patients/${p.id}/consent`)}>
                 <FileSignature size={16} /> Take a consent
               </Button>
               {consents.length === 0 && (
@@ -332,7 +332,7 @@ export default function PatientDetail() {
                 </Card>
               )}
               {consents.map((c) => (
-                <Card key={c.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/app/consents/${c.id}`)}>
+                <Card key={c.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/physio-dashboard/consents/${c.id}`)}>
                   <IconTile tone={c.status === 'signed' ? 'brand' : 'accent'}>{c.status === 'signed' ? <Check size={18} /> : <Clock size={18} />}</IconTile>
                   <div className="min-w-0 flex-1">
                     <div className="text-[15px] font-semibold">{c.title}</div>
@@ -354,7 +354,7 @@ export default function PatientDetail() {
 
           {tab === 'Bills' && (
             <div className="flex flex-col gap-3">
-              <Button variant="soft" size="md" className="self-start" onClick={() => nav('/app/invoices/new', { state: { patientId: p.id } })}>
+              <Button variant="soft" size="md" className="self-start" onClick={() => nav('/physio-dashboard/invoices/new', { state: { patientId: p.id } })}>
                 <ReceiptIndianRupee size={16} /> New invoice
               </Button>
               {invoices.length === 0 && (
@@ -363,7 +363,7 @@ export default function PatientDetail() {
                 </Card>
               )}
               {invoices.map((i) => (
-                <Card key={i.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/app/invoices/${i.id}`)}>
+                <Card key={i.id} className="flex items-center gap-3 p-4" onClick={() => nav(`/physio-dashboard/invoices/${i.id}`)}>
                   <div className="min-w-0 flex-1">
                     <div className="text-[15px] font-semibold">
                       {i.number} · {inr(i.total)}
@@ -411,7 +411,7 @@ function PlanCard({ plan, compact }: { plan: Plan; compact?: boolean }) {
   const pain = painTrend(plan, db.sessions)
   const status = plan.status === 'active' ? (plan.openedAt ? 'Active' : 'Not opened') : plan.status === 'completed' ? 'Completed' : 'Replaced'
   return (
-    <Card className="p-4" onClick={() => nav(`/app/plans/${plan.id}`)}>
+    <Card className="p-4" onClick={() => nav(`/physio-dashboard/plans/${plan.id}`)}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-[17px] font-semibold">{plan.title} plan</div>

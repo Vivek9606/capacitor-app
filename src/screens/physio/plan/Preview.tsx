@@ -19,9 +19,9 @@ export default function Preview() {
   const nav = useNavigate()
   const [sending, setSending] = useState(false)
   const draft = store.db.draft
-  if (!draft || !physio) return <Navigate to="/app/patients" replace />
+  if (!draft || !physio) return <Navigate to="/physio-dashboard/patients" replace />
   const patient = store.db.patients.find((p) => p.id === draft.patientId)
-  if (!patient) return <Navigate to="/app/patients" replace />
+  if (!patient) return <Navigate to="/physio-dashboard/patients" replace />
 
   const editing = draft.editPlanId ? store.db.plans.find((p) => p.id === draft.editPlanId && p.status === 'active') : undefined
   if (editing) return <SaveChanges plan={editing} patient={patient} />
@@ -64,13 +64,13 @@ export default function Preview() {
         })
       haptic('success')
       toast(`${ownWhatsApp ? `Plan saved for ${name}` : `Sent to ${name} on WhatsApp`}${followUp ? ' · follow-up booked' : ''}`)
-      nav(planId && !rxOnly ? `/app/plans/${planId}` : `/app/patients/${patient.id}`, { replace: true })
+      nav(planId && !rxOnly ? `/physio-dashboard/plans/${planId}` : `/physio-dashboard/patients/${patient.id}`, { replace: true })
     }, 600)
   }
 
   return (
     <Page>
-      <PageHeader title="Preview" subtitle={`${stepLabel(draft, 'preview')} · exactly what ${name} will see`} onBack={() => nav(rxOnly ? '/app/plan/rx' : '/app/plan/build', { replace: true })} />
+      <PageHeader title="Preview" subtitle={`${stepLabel(draft, 'preview')} · exactly what ${name} will see`} onBack={() => nav(rxOnly ? '/physio-dashboard/plan/rx' : '/physio-dashboard/plan/build', { replace: true })} />
       <WhatsAppPreview
         onBehalfOf={physio.name}
         time={time}
@@ -163,12 +163,12 @@ function SaveChanges({ plan, patient }: { plan: Plan; patient: Patient }) {
     if (tell) openWhatsApp(patient.phone, `Hi ${name}, I’ve updated your care plan: ${why}. Open it here: ${publicUrl(`/plan/${patient.linkToken}`)}`)
     haptic('success')
     toast(`Plan updated for ${name}`)
-    nav(`/app/plans/${plan.id}`, { replace: true })
+    nav(`/physio-dashboard/plans/${plan.id}`, { replace: true })
   }
 
   return (
     <Page>
-      <PageHeader title="Save changes" subtitle={`${name}’s current plan · progress is kept`} onBack={() => nav('/app/plan/build', { replace: true })} />
+      <PageHeader title="Save changes" subtitle={`${name}’s current plan · progress is kept`} onBack={() => nav('/physio-dashboard/plan/build', { replace: true })} />
       <Card className="p-4">
         <div className="text-[13px] font-semibold text-muted">What’s changing</div>
         {summary.length === 0 ? (

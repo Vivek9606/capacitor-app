@@ -52,7 +52,7 @@ export default function NewBooking() {
     const status = confirmNow ? 'awaiting' : 'confirmed'
     if (existing) {
       store.updateBooking(existing.id, { date, time, visitType: visit, status, sendConfirmation: confirmNow, reminder })
-      nav(`/app/bookings/${existing.id}/confirmed`, { replace: true })
+      nav(`/physio-dashboard/bookings/${existing.id}/confirmed`, { replace: true })
     } else {
       const id = store.addBooking({
         physioId: physio.id,
@@ -69,7 +69,7 @@ export default function NewBooking() {
         reminder,
         source: 'physio',
       })
-      nav(`/app/bookings/${id}/confirmed`, { replace: true })
+      nav(`/physio-dashboard/bookings/${id}/confirmed`, { replace: true })
     }
   }
 

@@ -136,7 +136,7 @@ export default function PainChat() {
                 <p className="mt-0.5 text-[13px] leading-relaxed text-muted">
                   {fmtDay(chat.booking.date)}, {fmtTime(chat.booking.time)} with {chat.physio?.name ?? 'your physio'}. They’ll confirm on WhatsApp. At the time, open Appointments and tap Join video call.
                 </p>
-                <Button size="sm" className="mt-3" onClick={() => nav('/me/appointments')}>
+                <Button size="sm" className="mt-3" onClick={() => nav('/consumer-dashboard/appointments')}>
                   View appointments
                 </Button>
               </div>
@@ -214,7 +214,7 @@ function ConsultCard({ chat, onBooked }: { chat: Chat; onBooked: (c: Chat) => vo
   const [time, setTime] = useState<string>()
   const [saving, setSaving] = useState(false)
   const opts = useMemo(() => ({ visitType: 'teleconsult' as const, forPatient: true }), [])
-  const bookPath = patient?.physioId === ph.id ? '/me/book' : `/dr/${ph.slug}/book`
+  const bookPath = patient?.physioId === ph.id ? '/consumer-dashboard/book' : `/dr/${ph.slug}/book`
 
   const book = async () => {
     if (!date || !time || !session?.token) return

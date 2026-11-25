@@ -42,21 +42,21 @@ export default function Home() {
   const pendingConsents = db.consents.filter((c) => c.physioId === physio.id && c.status === 'pending')
   const owed = unpaid.reduce((s, i) => s + i.total, 0)
   const stats = [
-    { icon: <CalendarDays size={17} />, value: todays.length + groups.length, label: 'Today', to: '/app/schedule' },
-    { icon: <Inbox size={17} />, value: requests.length, label: 'Requests', to: '/app/schedule', warn: requests.length > 0 },
-    { icon: <ClipboardList size={17} />, value: activePlans.length, label: 'Active plans', to: '/app/patients' },
-    { icon: <TrendingUp size={17} />, value: avgAdh === undefined ? '–' : `${avgAdh}%`, label: 'Adherence', to: '/app/patients', warn: avgAdh !== undefined && avgAdh < 60 },
-    { icon: <ReceiptIndianRupee size={17} />, value: owed ? `₹${owed.toLocaleString('en-IN')}` : '₹0', label: 'Outstanding', to: '/app/invoices', warn: owed > 0 },
-    { icon: <FileSignature size={17} />, value: pendingConsents.length, label: 'Consents due', to: '/app/patients', warn: pendingConsents.length > 0 },
+    { icon: <CalendarDays size={17} />, value: todays.length + groups.length, label: 'Today', to: '/physio-dashboard/schedule' },
+    { icon: <Inbox size={17} />, value: requests.length, label: 'Requests', to: '/physio-dashboard/schedule', warn: requests.length > 0 },
+    { icon: <ClipboardList size={17} />, value: activePlans.length, label: 'Active plans', to: '/physio-dashboard/patients' },
+    { icon: <TrendingUp size={17} />, value: avgAdh === undefined ? '–' : `${avgAdh}%`, label: 'Adherence', to: '/physio-dashboard/patients', warn: avgAdh !== undefined && avgAdh < 60 },
+    { icon: <ReceiptIndianRupee size={17} />, value: owed ? `₹${owed.toLocaleString('en-IN')}` : '₹0', label: 'Outstanding', to: '/physio-dashboard/invoices', warn: owed > 0 },
+    { icon: <FileSignature size={17} />, value: pendingConsents.length, label: 'Consents due', to: '/physio-dashboard/patients', warn: pendingConsents.length > 0 },
   ]
 
   const quick = [
-    { icon: <Activity size={19} />, label: 'Care plan', on: () => nav('/app/patients', { state: { pick: 'plan' } }) },
-    { icon: <Footprints size={19} />, label: 'Walk-in', on: () => nav('/app/walk-in') },
-    { icon: <CalendarDays size={19} />, label: 'New booking', on: () => nav('/app/bookings/new') },
-    { icon: <UsersRound size={19} />, label: 'Group session', on: () => nav('/app/groups/new') },
-    { icon: <ReceiptIndianRupee size={19} />, label: 'Invoice', on: () => nav('/app/invoices/new') },
-    { icon: <Gift size={19} />, label: 'Invite a physio', on: () => nav('/app/refer'), accent: true },
+    { icon: <Activity size={19} />, label: 'Care plan', on: () => nav('/physio-dashboard/patients', { state: { pick: 'plan' } }) },
+    { icon: <Footprints size={19} />, label: 'Walk-in', on: () => nav('/physio-dashboard/walk-in') },
+    { icon: <CalendarDays size={19} />, label: 'New booking', on: () => nav('/physio-dashboard/bookings/new') },
+    { icon: <UsersRound size={19} />, label: 'Group session', on: () => nav('/physio-dashboard/groups/new') },
+    { icon: <ReceiptIndianRupee size={19} />, label: 'Invoice', on: () => nav('/physio-dashboard/invoices/new') },
+    { icon: <Gift size={19} />, label: 'Invite a physio', on: () => nav('/physio-dashboard/refer'), accent: true },
   ]
 
   const done = (b: Booking) => {
@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <Page wide>
       <header className="flex items-center gap-3">
-        <button aria-label="My profile" onClick={() => nav('/app/profile')} className="rounded-full cursor-pointer lg:hidden">
+        <button aria-label="My profile" onClick={() => nav('/physio-dashboard/profile')} className="rounded-full cursor-pointer lg:hidden">
           <Avatar name={physio.name} photo={physio.photo} size={44} />
         </button>
         <div className="flex-1">
@@ -77,7 +77,7 @@ export default function Home() {
           </div>
         </div>
         <RefreshButton />
-        <IconButton aria-label="Notifications" onClick={() => nav('/app/notifications')}>
+        <IconButton aria-label="Notifications" onClick={() => nav('/physio-dashboard/notifications')}>
           <NotifDot show={alerts.length > 0} />
         </IconButton>
       </header>
@@ -132,7 +132,7 @@ export default function Home() {
           </div>
 
           {unpaid.length > 0 && (
-            <Card className="mt-3 flex items-center gap-3 p-4" onClick={() => nav('/app/invoices')}>
+            <Card className="mt-3 flex items-center gap-3 p-4" onClick={() => nav('/physio-dashboard/invoices')}>
               <IconTile tone="accent">
                 <ReceiptIndianRupee size={19} />
               </IconTile>
@@ -146,7 +146,7 @@ export default function Home() {
             </Card>
           )}
 
-          <Card className="mt-3 flex items-center gap-3 p-4" onClick={() => nav(course.next ? `/app/learn/${course.next.id}` : '/app/learn')}>
+          <Card className="mt-3 flex items-center gap-3 p-4" onClick={() => nav(course.next ? `/physio-dashboard/learn/${course.next.id}` : '/physio-dashboard/learn')}>
             <IconTile tone="lime">
               <GraduationCap size={19} />
             </IconTile>
@@ -177,13 +177,13 @@ export default function Home() {
         <div>
           {waiting.length > 0 && (
             <>
-              <SectionTitle className="lg:mt-0" right={<Link to="/app/walk-in" className="text-[14px] font-semibold text-brand">+ Walk-in</Link>}>
+              <SectionTitle className="lg:mt-0" right={<Link to="/physio-dashboard/walk-in" className="text-[14px] font-semibold text-brand">+ Walk-in</Link>}>
                 Waiting · {waiting.length}
               </SectionTitle>
               <div className="flex flex-col gap-2.5">
                 {waiting.map((b) => (
                   <Card key={b.id} className="flex items-center gap-3 border-ok/40 bg-ok-soft/50 p-3.5">
-                    <div className="min-w-0 flex-1" onClick={() => b.patientId && nav(`/app/patients/${b.patientId}`)}>
+                    <div className="min-w-0 flex-1" onClick={() => b.patientId && nav(`/physio-dashboard/patients/${b.patientId}`)}>
                       <div className="flex items-center gap-1.5 truncate text-[15px] font-semibold">
                         {b.source === 'walk_in' && <Footprints size={14} className="shrink-0 text-accent" />}
                         {b.patientName}
@@ -204,7 +204,7 @@ export default function Home() {
           <SectionTitle
             className={cx(!waiting.length && 'lg:mt-0')}
             right={
-              <Link to="/app/schedule" className="text-[14px] font-semibold text-brand">
+              <Link to="/physio-dashboard/schedule" className="text-[14px] font-semibold text-brand">
                 See all
               </Link>
             }
@@ -221,7 +221,7 @@ export default function Home() {
               .sort((x, y) => x.time.localeCompare(y.time))
               .map((row) =>
                 'b' in row && row.b ? (
-                  <Card key={row.b.id} className={cx('p-4', row.b.status === 'no_show' && 'opacity-70')} onClick={() => (row.b.patientId ? nav(`/app/patients/${row.b.patientId}`) : nav('/app/schedule'))}>
+                  <Card key={row.b.id} className={cx('p-4', row.b.status === 'no_show' && 'opacity-70')} onClick={() => (row.b.patientId ? nav(`/physio-dashboard/patients/${row.b.patientId}`) : nav('/physio-dashboard/schedule'))}>
                     <div className="flex items-center gap-4">
                       <TimeCol time={row.b.time} />
                       <div className="min-w-0 flex-1 border-l border-line pl-4">
@@ -243,7 +243,7 @@ export default function Home() {
                     )}
                   </Card>
                 ) : 'g' in row && row.g ? (
-                  <Card key={row.g.id} className="flex items-center gap-4 border-brand-line bg-brand-soft/40 p-4" onClick={() => nav(`/app/groups/${row.g.id}`)}>
+                  <Card key={row.g.id} className="flex items-center gap-4 border-brand-line bg-brand-soft/40 p-4" onClick={() => nav(`/physio-dashboard/groups/${row.g.id}`)}>
                     <TimeCol time={row.g.time} />
                     <div className="min-w-0 flex-1 border-l border-line pl-4">
                       <div className="flex items-center gap-1.5 truncate text-[15px] font-semibold">

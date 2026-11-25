@@ -12,7 +12,7 @@ export default function RxView() {
   const { patient } = useMe()
   const { db } = useStore()
   const plan = db.plans.find((p) => p.id === id && p.patientId === patient?.id)
-  if (!patient || !plan?.rx) return <Navigate to="/me/plan" replace />
+  if (!patient || !plan?.rx) return <Navigate to="/consumer-dashboard/plan" replace />
   const physio = db.physios.find((p) => p.id === plan.physioId)!
 
   const download = () => {

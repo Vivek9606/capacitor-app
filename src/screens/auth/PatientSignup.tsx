@@ -36,7 +36,7 @@ export default function PatientSignup() {
     try {
       await store.signupPatient({ phone: state.phone!, signupToken: state.signupToken, name: name.trim(), age: ageN, sex, city: city.trim(), agreed: agree, updates: state.updates })
       haptic('success')
-      nav('/me', { replace: true })
+      nav('/consumer-dashboard', { replace: true })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Couldn’t create your account')
     } finally {

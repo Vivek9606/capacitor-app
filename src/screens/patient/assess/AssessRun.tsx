@@ -14,7 +14,7 @@ export default function AssessRun() {
   const nav = useNavigate()
   const saved = useRef(false)
 
-  if (!info) return <Navigate to="/me/assess" replace />
+  if (!info) return <Navigate to="/consumer-dashboard/assess" replace />
   if (!patient) return null
 
   return (
@@ -30,7 +30,7 @@ export default function AssessRun() {
         const id = store.saveAssessment(patient.id, toInput(info, msg.result))
         reply({ type: 'bh:ack', id })
         haptic('success')
-        nav(`/me/assess/result/${id}`, { replace: true, state: { fresh: true } })
+        nav(`/consumer-dashboard/assess/result/${id}`, { replace: true, state: { fresh: true } })
       }}
     />
   )

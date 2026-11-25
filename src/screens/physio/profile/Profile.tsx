@@ -40,7 +40,7 @@ export default function Profile() {
         <h1 className="font-display text-[20px] font-bold lg:text-[28px]">My profile</h1>
         <div className="flex gap-2">
           <RefreshButton />
-          <IconButton aria-label="Edit profile" onClick={() => nav('/app/profile/edit')}>
+          <IconButton aria-label="Edit profile" onClick={() => nav('/physio-dashboard/profile/edit')}>
             <Pencil size={17} />
           </IconButton>
         </div>
@@ -108,7 +108,7 @@ export default function Profile() {
                   </button>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button onClick={() => nav('/app/profile/directory')} className="pressable h-11 rounded-xl bg-brand-soft text-[14px] font-semibold text-brand cursor-pointer">
+                  <button onClick={() => nav('/physio-dashboard/profile/directory')} className="pressable h-11 rounded-xl bg-brand-soft text-[14px] font-semibold text-brand cursor-pointer">
                     Edit listing
                   </button>
                   <button onClick={() => nav(webRoute(`/physio/${listing.slug}/`, 'My directory profile'))} className="pressable h-11 rounded-xl border border-line text-[14px] font-semibold cursor-pointer">
@@ -120,7 +120,7 @@ export default function Profile() {
               <>
                 <p className="mt-1 text-[13px] text-muted">Patients across India find physios on betterhood.in. Create your public profile there. It gets its own link and goes live within minutes.</p>
                 {store.apiMode ? (
-                  <button onClick={() => nav('/app/profile/directory')} className="pressable mt-3 h-11 w-full rounded-xl bg-brand text-[15px] font-semibold text-white shadow-brand cursor-pointer">
+                  <button onClick={() => nav('/physio-dashboard/profile/directory')} className="pressable mt-3 h-11 w-full rounded-xl bg-brand text-[15px] font-semibold text-white shadow-brand cursor-pointer">
                     List my practice
                   </button>
                 ) : (
@@ -153,14 +153,14 @@ export default function Profile() {
 
           <Card className="divide-y divide-line">
             {[
-              { icon: <Briefcase size={18} />, label: 'Practice setup', sub: modeLabels(modesOf(physio)).join(' · '), to: '/app/profile/clinic' },
-              { icon: <CalendarClock size={18} />, label: 'Availability', sub: 'Weekly hours, breaks and booking rules', to: '/app/profile/availability' },
-              { icon: <UsersRound size={18} />, label: 'Group sessions', to: '/app/groups' },
-              { icon: <ReceiptIndianRupee size={18} />, label: 'Invoices & billing', to: '/app/invoices' },
-              { icon: <GraduationCap size={18} />, label: 'PhysioPreneurship course', sub: `${course.done} of ${course.total} lessons`, to: '/app/learn' },
-              { icon: <MessageSquare size={18} />, label: 'Community', to: '/app/community' },
-              { icon: <Gift size={18} />, label: 'Refer a physio', to: '/app/refer' },
-              { icon: <Handshake size={18} />, label: 'Partner with Betterhood', to: '/app/partner' },
+              { icon: <Briefcase size={18} />, label: 'Practice setup', sub: modeLabels(modesOf(physio)).join(' · '), to: '/physio-dashboard/profile/clinic' },
+              { icon: <CalendarClock size={18} />, label: 'Availability', sub: 'Weekly hours, breaks and booking rules', to: '/physio-dashboard/profile/availability' },
+              { icon: <UsersRound size={18} />, label: 'Group sessions', to: '/physio-dashboard/groups' },
+              { icon: <ReceiptIndianRupee size={18} />, label: 'Invoices & billing', to: '/physio-dashboard/invoices' },
+              { icon: <GraduationCap size={18} />, label: 'PhysioPreneurship course', sub: `${course.done} of ${course.total} lessons`, to: '/physio-dashboard/learn' },
+              { icon: <MessageSquare size={18} />, label: 'Community', to: '/physio-dashboard/community' },
+              { icon: <Gift size={18} />, label: 'Refer a physio', to: '/physio-dashboard/refer' },
+              { icon: <Handshake size={18} />, label: 'Partner with Betterhood', to: '/physio-dashboard/partner' },
             ].map((r) => (
               <button key={r.to} onClick={() => nav(r.to)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[15px] cursor-pointer">
                 <span className="text-brand">{r.icon}</span>
