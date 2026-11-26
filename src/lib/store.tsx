@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { disablePush } from './push'
 import { api, ApiError, apiMode } from './api'
 import { addDays, nowTs, today } from './dates'
 import { slugify, uid } from './logic'
@@ -204,6 +205,7 @@ function makeStore(db: DB, session: Session | undefined, ctl: Ctl) {
       }
     },
     logout() {
+      disablePush(session?.token)
       setSession(undefined)
       if (apiMode) setDb(() => EMPTY)
     },
