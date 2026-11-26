@@ -9,3 +9,7 @@ ios/App/Pods
 !.env.example
 *.tsbuildinfo
 .idea/
+
+# Firebase app config (added at build time, see docs/push-notifications.md)
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist

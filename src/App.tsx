@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { takeHandoff } from './lib/handoff'
 import { initNative, listenDeepLinks, registerToast, toast } from './lib/platform'
+import { enablePush, listenPushTaps } from './lib/push'
 import { StoreProvider, useMe, useStore } from './lib/store'
 import Admin from './screens/admin/Admin'
 import Join from './screens/auth/Join'
@@ -102,9 +103,15 @@ function GuestOnly({ children }: { children: React.ReactElement }) {
 
 function NativeBridge() {
   const nav = useNavigate()
+  const token = useStore().session?.token
+  // Signed in (now, or still from last time): this device gets push notifications for that account.
+  useEffect(() => {
+    if (token) enablePush(token)
+  }, [token])
   useEffect(() => {
     initNative()
     listenDeepLinks((path) => nav(renameLegacyPath(path)))
+    listenPushTaps((path) => nav(renameLegacyPath(path)))
   }, [nav])
   return null
 }
